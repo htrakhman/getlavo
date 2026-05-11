@@ -1,0 +1,43 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# next.js
+.next/
+out/
+
+# env files — never commit secrets
+.env
+.env.local
+.env.*.local
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# OS
+.DS_Store
+
+# Lead lists and spreadsheets — never commit customer data
+*.xlsx
+*.xls
+*.csv
+*.~lock.*
+
+# Seed scripts with hardcoded credentials
+scripts/seed.mjs
+
+# Claude Code agent state (worktrees, local settings)
+.claude/
+
+# Supabase CLI scratch
+supabase/.temp/
