@@ -71,6 +71,8 @@ function SignupForm() {
         full_name: name,
         email: newUser.email ?? email,
       });
+      const portalKind = role === 'building_manager' ? 'building' : role === 'operator' ? 'operator' : 'resident';
+      await sb.from('profile_portals').upsert({ profile_id: newUser.id, portal: portalKind });
     }
 
     if (inviteToken) {

@@ -20,7 +20,8 @@ const NAV = [
 export default async function BuildingLayout({ children }: { children: React.ReactNode }) {
   const session = await getSessionUser();
   if (!session) redirect('/login');
-  if (session.profile.role !== 'building_manager') redirect('/');
+  const canAccess = session.profile.role === 'building_manager' || session.portals.includes('building');
+  if (!canAccess) redirect('/');
 
   const { current, all } = await getCurrentBuildingForSession(session.user.id);
 

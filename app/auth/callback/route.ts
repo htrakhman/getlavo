@@ -1,6 +1,13 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextRequest, NextResponse } from 'next/server';
 
+type RoleStr = 'building_manager' | 'operator' | 'resident';
+const VALID_ROLES: RoleStr[] = ['building_manager', 'operator', 'resident'];
+
+function roleToPortal(r: string) {
+  return r === 'building_manager' ? 'building' : r === 'operator' ? 'operator' : 'resident';
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
@@ -44,37 +51,35 @@ export async function GET(request: NextRequest) {
     .eq('id', user.id)
     .maybeSingle();
 
+  async function upsertRole(r: string, fullName: string) {
+    await supabase.from('profiles').upsert({ id: user!.id, role: r, full_name: fullName, email: user!.email! });
+    await supabase.from('profile_portals').upsert({ profile_id: user!.id, portal: roleToPortal(r) });
+  }
+
   let dest: string;
 
-  if (role && ['building_manager', 'operator', 'resident'].includes(role)) {
+  if (role && VALID_ROLES.includes(role as RoleStr)) {
     // Explicit role from the signup page. Always upsert so the intended role
     // wins even if the DB trigger already created the row with a different default.
+    // Also add the portal to profile_portals so multi-role access works.
     const fullName =
       user.user_metadata?.full_name ||
       user.user_metadata?.name ||
       user.email?.split('@')[0] ||
       '';
-
-    await supabase.from('profiles').upsert({
-      id: user.id,
-      role,
-      full_name: fullName,
-      email: user.email!,
-    });
-
+    await upsertRole(role, fullName);
     dest = role === 'building_manager' ? '/building/onboarding'
          : role === 'operator' ? '/operator/onboarding'
          : '/resident/onboarding';
   } else if (profile) {
     // Returning user (sign-in, no role in URL) — route by stored role.
-    // For email users, check auth metadata as a fallback: if the DB has
-    // null/resident but metadata says building_manager/operator (set at
-    // sign-up), correct the profile so they don't land in the wrong portal.
+    // For email users, auth metadata holds the role from sign-up options.data;
+    // if the DB has null/resident but metadata says otherwise, correct it.
     let effectiveRole = profile.role as string | null;
     const metaRole = user.user_metadata?.role as string | undefined;
     if (
       metaRole &&
-      ['building_manager', 'operator', 'resident'].includes(metaRole) &&
+      VALID_ROLES.includes(metaRole as RoleStr) &&
       metaRole !== effectiveRole &&
       (effectiveRole === null || effectiveRole === undefined || effectiveRole === 'resident')
     ) {
@@ -83,12 +88,7 @@ export async function GET(request: NextRequest) {
         user.user_metadata?.name ||
         user.email?.split('@')[0] ||
         '';
-      await supabase.from('profiles').upsert({
-        id: user.id,
-        role: metaRole,
-        full_name: fullName,
-        email: user.email!,
-      });
+      await upsertRole(metaRole, fullName);
       effectiveRole = metaRole;
     }
     dest = effectiveRole === 'building_manager' ? '/building'
@@ -96,21 +96,16 @@ export async function GET(request: NextRequest) {
          : effectiveRole === 'resident' ? '/resident'
          : '/auth/pick-role';
   } else {
-    // No profile and no role — new user who came via login page.
-    // Check metadata in case they signed up via email and the trigger failed.
+    // No profile and no role URL param — new user via login page.
+    // Fall back to metadata role (set during email sign-up) if the trigger failed.
     const metaRole = user.user_metadata?.role as string | undefined;
-    if (metaRole && ['building_manager', 'operator', 'resident'].includes(metaRole)) {
+    if (metaRole && VALID_ROLES.includes(metaRole as RoleStr)) {
       const fullName =
         user.user_metadata?.full_name ||
         user.user_metadata?.name ||
         user.email?.split('@')[0] ||
         '';
-      await supabase.from('profiles').upsert({
-        id: user.id,
-        role: metaRole,
-        full_name: fullName,
-        email: user.email!,
-      });
+      await upsertRole(metaRole, fullName);
       dest = metaRole === 'building_manager' ? '/building/onboarding'
            : metaRole === 'operator' ? '/operator/onboarding'
            : '/resident/onboarding';

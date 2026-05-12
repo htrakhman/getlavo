@@ -53,6 +53,9 @@ export default function PickRolePage() {
 
     if (error) { setErr(error.message); setBusy(false); return; }
 
+    const portalKind = role === 'building_manager' ? 'building' : role === 'operator' ? 'operator' : 'resident';
+    await sb.from('profile_portals').upsert({ profile_id: user.id, portal: portalKind });
+
     const dest = role === 'building_manager' ? '/building/onboarding'
                : role === 'operator' ? '/operator/onboarding'
                : '/resident/onboarding';

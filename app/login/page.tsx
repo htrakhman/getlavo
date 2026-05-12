@@ -26,7 +26,7 @@ function LoginForm() {
     // The DB trigger can default to 'resident' even when the user signed up as
     // building_manager or operator. The intended role is stored in auth metadata
     // (set via options.data during signUp). If the DB role is null/resident but
-    // metadata says otherwise, correct the profile now.
+    // metadata says otherwise, correct the profile and add the portal now.
     let resolvedRole = p?.role as string | null | undefined;
     const metaRole = user.user_metadata?.role as string | undefined;
     if (
@@ -41,13 +41,26 @@ function LoginForm() {
         full_name: user.user_metadata?.full_name || '',
         email: user.email!,
       });
+      const portalKind = metaRole === 'building_manager' ? 'building' : metaRole === 'operator' ? 'operator' : 'resident';
+      await sb.from('profile_portals').upsert({ profile_id: user.id, portal: portalKind });
       resolvedRole = metaRole;
     }
 
-    const dest = resolvedRole === 'building_manager' ? '/building'
-               : resolvedRole === 'operator' ? '/operator'
-               : resolvedRole === 'resident' ? '/resident'
-               : '/auth/pick-role';
+    // Also fetch portals so multi-role users land in the right place.
+    // profile.role is the primary/last-active portal; portals array is the full set.
+    const { data: portalRows } = await sb.from('profile_portals').select('portal').eq('profile_id', user.id);
+    const portals = (portalRows ?? []).map((r: any) => r.portal as string);
+
+    // Route to the portal that matches profile.role. If profile.role is unset,
+    // fall back to the first portal the user has, then pick-role.
+    let dest: string;
+    if (resolvedRole === 'building_manager') dest = '/building';
+    else if (resolvedRole === 'operator') dest = '/operator';
+    else if (resolvedRole === 'resident') dest = '/resident';
+    else if (portals.includes('building')) dest = '/building';
+    else if (portals.includes('operator')) dest = '/operator';
+    else if (portals.includes('resident')) dest = '/resident';
+    else dest = '/auth/pick-role';
     window.location.href = dest;
   }
 
