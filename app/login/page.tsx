@@ -24,7 +24,8 @@ function LoginForm() {
     if (pe) { setErr(`Profile error: ${pe.message}`); setBusy(false); return; }
     const dest = p?.role === 'building_manager' ? '/building'
                : p?.role === 'operator' ? '/operator'
-               : '/resident/onboarding';
+               : p?.role === 'resident' ? '/resident/onboarding'
+               : '/auth/pick-role';
     window.location.href = dest;
   }
 

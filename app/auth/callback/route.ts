@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
       user.email?.split('@')[0] ||
       '';
 
-    await supabase.from('profiles').insert({
+    await supabase.from('profiles').upsert({
       id: user.id,
       role,
       full_name: fullName,
