@@ -49,7 +49,9 @@ export async function GET(request: NextRequest) {
   if (profile) {
     dest = profile.role === 'building_manager' ? '/building'
          : profile.role === 'operator' ? '/operator'
-         : '/resident/onboarding';
+         : profile.role === 'admin' ? '/admin'
+         : profile.role === 'resident' ? '/resident/onboarding'
+         : '/auth/pick-role';
   } else if (role && ['building_manager', 'operator', 'resident'].includes(role)) {
     // New Google user — create profile
     const fullName =
