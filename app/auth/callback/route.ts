@@ -46,12 +46,9 @@ export async function GET(request: NextRequest) {
 
   let dest: string;
 
-  if (profile) {
-    dest = profile.role === 'building_manager' ? '/building'
-         : profile.role === 'operator' ? '/operator'
-         : '/resident/onboarding';
-  } else if (role && ['building_manager', 'operator', 'resident'].includes(role)) {
-    // New Google user — create profile
+  if (role && ['building_manager', 'operator', 'resident'].includes(role)) {
+    // Explicit role from the signup page. Always upsert so the intended role
+    // wins even if the DB trigger already created the row with a different default.
     const fullName =
       user.user_metadata?.full_name ||
       user.user_metadata?.name ||
@@ -68,7 +65,14 @@ export async function GET(request: NextRequest) {
     dest = role === 'building_manager' ? '/building/onboarding'
          : role === 'operator' ? '/operator/onboarding'
          : '/resident/onboarding';
+  } else if (profile) {
+    // Returning user (sign-in, no role in URL) — route by stored role.
+    dest = profile.role === 'building_manager' ? '/building'
+         : profile.role === 'operator' ? '/operator'
+         : profile.role === 'resident' ? '/resident'
+         : '/auth/pick-role';
   } else {
+    // No profile and no role — new Google user who came via login page.
     dest = '/auth/pick-role';
   }
 

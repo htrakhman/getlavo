@@ -29,7 +29,7 @@ export default function ResidentOnboarding() {
   const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
-    const slug = typeof window !== 'undefined' ? localStorage.getItem('gleam_building_slug') : null;
+    const slug = typeof window !== 'undefined' ? localStorage.getItem('lavo_building_slug') : null;
     sb.from('buildings')
       .select('id, name, address_line1, city, status, slug, wash_day')
       .in('status', ['prospect', 'pilot', 'active'])
@@ -100,7 +100,7 @@ export default function ResidentOnboarding() {
       await sb.from('vehicles').insert(vehiclePayload);
     }
 
-    if (typeof window !== 'undefined') localStorage.removeItem('gleam_building_slug');
+    if (typeof window !== 'undefined') localStorage.removeItem('lavo_building_slug');
     setBusy(false);
     router.push('/resident/washes');
   }
