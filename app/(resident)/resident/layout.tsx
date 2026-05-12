@@ -15,9 +15,9 @@ const NAV = [
 export default async function ResidentLayout({ children }: { children: React.ReactNode }) {
   const session = await getSessionUser();
   if (!session) redirect('/login');
-  if (session.profile.role !== 'resident') redirect('/');
+  if (!session.portals.includes('resident')) redirect('/');
   return (
-    <PortalShell nav={NAV} accent="Resident portal" user={{ name: session.profile.full_name, sub: session.profile.email, role: session.profile.role }}>
+    <PortalShell nav={NAV} accent="Resident portal" user={{ name: session.profile.full_name, sub: session.profile.email, role: session.profile.role }} currentPortal="resident" portals={session.portals}>
       {children}
     </PortalShell>
   );

@@ -7,8 +7,8 @@ import { MobileMenu } from './MobileMenu';
 export type NavItem = { href: string; label: string; icon?: React.ReactNode };
 
 export function PortalShell({
-  nav, user, accent, children, sidebarTop,
-}: { nav: NavItem[]; user: { name: string; sub: string; role: string }; accent: string; children: React.ReactNode; sidebarTop?: React.ReactNode }) {
+  nav, user, accent, children, sidebarTop, currentPortal, portals,
+}: { nav: NavItem[]; user: { name: string; sub: string; role: string }; accent: string; children: React.ReactNode; sidebarTop?: React.ReactNode; currentPortal?: string; portals?: string[] }) {
   return (
     <div className="flex min-h-screen">
       <aside className="sticky top-0 hidden h-screen w-64 shrink-0 border-r border-white/5 bg-ink-900/60 px-4 py-6 backdrop-blur md:flex md:flex-col">
@@ -24,8 +24,8 @@ export function PortalShell({
           ))}
         </nav>
         <div className="mt-auto flex flex-col gap-3">
-          {process.env.NEXT_PUBLIC_DEV_ROLE_SWITCHER === 'true' && (
-            <DevRoleSwitcher currentRole={user.role} />
+          {portals && portals.length > 1 && currentPortal && (
+            <DevRoleSwitcher currentPortal={currentPortal} />
           )}
           <div className="rounded-xl border border-white/5 bg-white/5 p-3">
             <div className="text-sm font-medium text-ink-100">{user.name}</div>
@@ -39,8 +39,19 @@ export function PortalShell({
       <main className="min-w-0 flex-1">
         <header className="flex items-center justify-between gap-2 border-b border-white/5 px-4 py-3 md:px-10">
           <MobileMenu nav={nav} accent={accent} user={user} />
-          <div className="ml-auto flex items-center gap-2">
+          <div className="ml-auto flex items-center gap-3">
             <NotificationsBell />
+            <div className="hidden md:flex items-center gap-3">
+              <div className="text-right">
+                <div className="text-xs font-medium text-ink-100">{user.name}</div>
+                <div className="text-[11px] text-ink-400 truncate max-w-[160px]">{user.sub}</div>
+              </div>
+              <form action="/api/auth/signout" method="post">
+                <button className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-ink-300 transition hover:bg-white/10 hover:text-ink-100">
+                  Sign out
+                </button>
+              </form>
+            </div>
           </div>
         </header>
         <div className="px-6 py-8 md:px-10">{children}</div>

@@ -20,7 +20,7 @@ const NAV = [
 export default async function BuildingLayout({ children }: { children: React.ReactNode }) {
   const session = await getSessionUser();
   if (!session) redirect('/login');
-  if (session.profile.role !== 'building_manager') redirect('/');
+  if (!session.portals.includes('building')) redirect('/');
 
   const { current, all } = await getCurrentBuildingForSession(session.user.id);
 
@@ -30,6 +30,8 @@ export default async function BuildingLayout({ children }: { children: React.Rea
       accent="Building portal"
       user={{ name: session.profile.full_name, sub: session.profile.email, role: session.profile.role }}
       sidebarTop={<BuildingSwitcher current={current} all={all} />}
+      currentPortal="building"
+      portals={session.portals}
     >
       {children}
     </PortalShell>
