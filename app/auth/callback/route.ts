@@ -1,5 +1,4 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr';
-import { cookies } from 'next/headers';
+import { createServerClient } from '@supabase/ssr';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
@@ -12,26 +11,23 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}/login?error=missing_code`);
   }
 
-  const cookieStore = cookies();
+  // Collect cookies to set on the final response
+  const pendingCookies: Array<{ name: string; value: string; options: Record<string, unknown> }> = [];
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name: string) { return cookieStore.get(name)?.value; },
-        set(name: string, value: string, options: CookieOptions) {
-          try { cookieStore.set({ name, value, ...options }); } catch {}
-        },
-        remove(name: string, options: CookieOptions) {
-          try { cookieStore.set({ name, value: '', ...options }); } catch {}
-        },
+        getAll() { return request.cookies.getAll(); },
+        setAll(cookiesToSet) { pendingCookies.push(...cookiesToSet); },
       },
     }
   );
 
   const { error } = await supabase.auth.exchangeCodeForSession(code);
   if (error) {
-    return NextResponse.redirect(`${origin}/login?error=oauth_error`);
+    return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(error.message)}`);
   }
 
   const { data: { user } } = await supabase.auth.getUser();
@@ -46,16 +42,14 @@ export async function GET(request: NextRequest) {
     .eq('id', user.id)
     .maybeSingle();
 
-  if (profile) {
-    // Existing user — send them to their portal
-    const dest = profile.role === 'building_manager' ? '/building'
-               : profile.role === 'operator' ? '/operator'
-               : '/resident/onboarding';
-    return NextResponse.redirect(`${origin}${dest}`);
-  }
+  let dest: string;
 
-  // New Google user — create profile if role is known, otherwise pick role
-  if (role && ['building_manager', 'operator', 'resident'].includes(role)) {
+  if (profile) {
+    dest = profile.role === 'building_manager' ? '/building'
+         : profile.role === 'operator' ? '/operator'
+         : '/resident/onboarding';
+  } else if (role && ['building_manager', 'operator', 'resident'].includes(role)) {
+    // New Google user — create profile
     const fullName =
       user.user_metadata?.full_name ||
       user.user_metadata?.name ||
@@ -69,12 +63,16 @@ export async function GET(request: NextRequest) {
       email: user.email!,
     });
 
-    const dest = role === 'building_manager' ? '/building/onboarding'
-               : role === 'operator' ? '/operator/onboarding'
-               : '/resident/onboarding';
-    return NextResponse.redirect(`${origin}${dest}`);
+    dest = role === 'building_manager' ? '/building/onboarding'
+         : role === 'operator' ? '/operator/onboarding'
+         : '/resident/onboarding';
+  } else {
+    dest = '/auth/pick-role';
   }
 
-  // No role provided — send to role picker
-  return NextResponse.redirect(`${origin}/auth/pick-role`);
+  const response = NextResponse.redirect(`${origin}${dest}`);
+  pendingCookies.forEach(({ name, value, options }) => {
+    response.cookies.set(name, value, options as Parameters<typeof response.cookies.set>[2]);
+  });
+  return response;
 }
