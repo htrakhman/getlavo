@@ -67,13 +67,56 @@ export async function GET(request: NextRequest) {
          : '/resident/onboarding';
   } else if (profile) {
     // Returning user (sign-in, no role in URL) — route by stored role.
-    dest = profile.role === 'building_manager' ? '/building'
-         : profile.role === 'operator' ? '/operator'
-         : profile.role === 'resident' ? '/resident'
+    // For email users, check auth metadata as a fallback: if the DB has
+    // null/resident but metadata says building_manager/operator (set at
+    // sign-up), correct the profile so they don't land in the wrong portal.
+    let effectiveRole = profile.role as string | null;
+    const metaRole = user.user_metadata?.role as string | undefined;
+    if (
+      metaRole &&
+      ['building_manager', 'operator', 'resident'].includes(metaRole) &&
+      metaRole !== effectiveRole &&
+      (effectiveRole === null || effectiveRole === undefined || effectiveRole === 'resident')
+    ) {
+      const fullName =
+        user.user_metadata?.full_name ||
+        user.user_metadata?.name ||
+        user.email?.split('@')[0] ||
+        '';
+      await supabase.from('profiles').upsert({
+        id: user.id,
+        role: metaRole,
+        full_name: fullName,
+        email: user.email!,
+      });
+      effectiveRole = metaRole;
+    }
+    dest = effectiveRole === 'building_manager' ? '/building'
+         : effectiveRole === 'operator' ? '/operator'
+         : effectiveRole === 'resident' ? '/resident'
          : '/auth/pick-role';
   } else {
-    // No profile and no role — new Google user who came via login page.
-    dest = '/auth/pick-role';
+    // No profile and no role — new user who came via login page.
+    // Check metadata in case they signed up via email and the trigger failed.
+    const metaRole = user.user_metadata?.role as string | undefined;
+    if (metaRole && ['building_manager', 'operator', 'resident'].includes(metaRole)) {
+      const fullName =
+        user.user_metadata?.full_name ||
+        user.user_metadata?.name ||
+        user.email?.split('@')[0] ||
+        '';
+      await supabase.from('profiles').upsert({
+        id: user.id,
+        role: metaRole,
+        full_name: fullName,
+        email: user.email!,
+      });
+      dest = metaRole === 'building_manager' ? '/building/onboarding'
+           : metaRole === 'operator' ? '/operator/onboarding'
+           : '/resident/onboarding';
+    } else {
+      dest = '/auth/pick-role';
+    }
   }
 
   const response = NextResponse.redirect(`${origin}${dest}`);

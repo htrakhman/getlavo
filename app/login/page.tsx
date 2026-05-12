@@ -22,9 +22,31 @@ function LoginForm() {
     if (!user) { setErr('No session — try again'); setBusy(false); return; }
     const { data: p, error: pe } = await sb.from('profiles').select('role').eq('id', user.id).maybeSingle();
     if (pe) { setErr(`Profile error: ${pe.message}`); setBusy(false); return; }
-    const dest = p?.role === 'building_manager' ? '/building'
-               : p?.role === 'operator' ? '/operator'
-               : p?.role === 'resident' ? '/resident'
+
+    // The DB trigger can default to 'resident' even when the user signed up as
+    // building_manager or operator. The intended role is stored in auth metadata
+    // (set via options.data during signUp). If the DB role is null/resident but
+    // metadata says otherwise, correct the profile now.
+    let resolvedRole = p?.role as string | null | undefined;
+    const metaRole = user.user_metadata?.role as string | undefined;
+    if (
+      metaRole &&
+      ['building_manager', 'operator', 'resident'].includes(metaRole) &&
+      metaRole !== resolvedRole &&
+      (resolvedRole === null || resolvedRole === undefined || resolvedRole === 'resident')
+    ) {
+      await sb.from('profiles').upsert({
+        id: user.id,
+        role: metaRole,
+        full_name: user.user_metadata?.full_name || '',
+        email: user.email!,
+      });
+      resolvedRole = metaRole;
+    }
+
+    const dest = resolvedRole === 'building_manager' ? '/building'
+               : resolvedRole === 'operator' ? '/operator'
+               : resolvedRole === 'resident' ? '/resident'
                : '/auth/pick-role';
     window.location.href = dest;
   }

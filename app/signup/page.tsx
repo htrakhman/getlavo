@@ -60,6 +60,19 @@ function SignupForm() {
     });
     if (error) { setErr(error.message); setBusy(false); return; }
 
+    // Explicitly upsert the profile with the chosen role right after sign-up.
+    // The DB trigger may default to 'resident' or fail entirely, so we set the
+    // intended role here while we have an active session.
+    const { data: { user: newUser } } = await sb.auth.getUser();
+    if (newUser) {
+      await sb.from('profiles').upsert({
+        id: newUser.id,
+        role,
+        full_name: name,
+        email: newUser.email ?? email,
+      });
+    }
+
     if (inviteToken) {
       fetch('/api/building/invites/accept', {
         method: 'POST',
