@@ -20,11 +20,17 @@ function LoginForm() {
     if (error) { setErr(error.message); setBusy(false); return; }
     const { data: { user } } = await sb.auth.getUser();
     if (!user) { setErr('No session — try again'); setBusy(false); return; }
-    const { data: p, error: pe } = await sb.from('profiles').select('role').eq('id', user.id).maybeSingle();
+    const [{ data: p, error: pe }, { data: portalRows }] = await Promise.all([
+      sb.from('profiles').select('role').eq('id', user.id).maybeSingle(),
+      sb.from('profile_portals').select('portal').eq('profile_id', user.id),
+    ]);
     if (pe) { setErr(`Profile error: ${pe.message}`); setBusy(false); return; }
-    const dest = p?.role === 'building_manager' ? '/building'
-               : p?.role === 'operator' ? '/operator'
-               : p?.role === 'resident' ? '/resident/onboarding'
+    const portals = (portalRows ?? []).map((r: { portal: string }) => r.portal);
+    const firstPortal = portals[0] ?? null;
+    const dest = firstPortal === 'building' ? '/building'
+               : firstPortal === 'operator' ? '/operator'
+               : firstPortal === 'resident' ? '/resident/onboarding'
+               : p?.role === 'admin' ? '/admin'
                : '/auth/pick-role';
     window.location.href = dest;
   }

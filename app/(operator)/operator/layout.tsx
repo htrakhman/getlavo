@@ -14,7 +14,7 @@ const NAV = [
 export default async function OperatorLayout({ children }: { children: React.ReactNode }) {
   const session = await getSessionUser();
   if (!session) redirect('/login');
-  if (session.profile.role !== 'operator') redirect('/');
+  if (!session.portals.includes('operator')) redirect('/');
   return (
     <PortalShell nav={NAV} accent="Operator portal" user={{ name: session.profile.full_name, sub: session.profile.email, role: session.profile.role }}>
       {children}

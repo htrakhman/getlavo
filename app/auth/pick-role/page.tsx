@@ -44,7 +44,11 @@ export default function PickRolePage() {
       user.email?.split('@')[0] ||
       '';
 
-    const { error } = await sb.from('profiles').insert({
+    const portalKind = role === 'building_manager' ? 'building'
+                     : role === 'operator' ? 'operator'
+                     : 'resident';
+
+    const { error } = await sb.from('profiles').upsert({
       id: user.id,
       role,
       full_name: fullName,
@@ -52,6 +56,8 @@ export default function PickRolePage() {
     });
 
     if (error) { setErr(error.message); setBusy(false); return; }
+
+    await sb.from('profile_portals').upsert({ profile_id: user.id, portal: portalKind });
 
     const dest = role === 'building_manager' ? '/building/onboarding'
                : role === 'operator' ? '/operator/onboarding'
