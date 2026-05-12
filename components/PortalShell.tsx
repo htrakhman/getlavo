@@ -7,8 +7,8 @@ import { MobileMenu } from './MobileMenu';
 export type NavItem = { href: string; label: string; icon?: React.ReactNode };
 
 export function PortalShell({
-  nav, user, accent, children, sidebarTop,
-}: { nav: NavItem[]; user: { name: string; sub: string; role: string }; accent: string; children: React.ReactNode; sidebarTop?: React.ReactNode }) {
+  nav, user, accent, children, sidebarTop, currentPortal, portals,
+}: { nav: NavItem[]; user: { name: string; sub: string; role: string }; accent: string; children: React.ReactNode; sidebarTop?: React.ReactNode; currentPortal?: string; portals?: string[] }) {
   return (
     <div className="flex min-h-screen">
       <aside className="sticky top-0 hidden h-screen w-64 shrink-0 border-r border-white/5 bg-ink-900/60 px-4 py-6 backdrop-blur md:flex md:flex-col">
@@ -24,8 +24,8 @@ export function PortalShell({
           ))}
         </nav>
         <div className="mt-auto flex flex-col gap-3">
-          {process.env.NEXT_PUBLIC_DEV_ROLE_SWITCHER === 'true' && (
-            <DevRoleSwitcher currentRole={user.role} />
+          {portals && portals.length > 1 && currentPortal && (
+            <DevRoleSwitcher currentPortal={currentPortal} />
           )}
           <div className="rounded-xl border border-white/5 bg-white/5 p-3">
             <div className="text-sm font-medium text-ink-100">{user.name}</div>

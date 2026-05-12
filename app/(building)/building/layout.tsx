@@ -30,6 +30,8 @@ export default async function BuildingLayout({ children }: { children: React.Rea
       accent="Building portal"
       user={{ name: session.profile.full_name, sub: session.profile.email, role: session.profile.role }}
       sidebarTop={<BuildingSwitcher current={current} all={all} />}
+      currentPortal="building"
+      portals={session.portals}
     >
       {children}
     </PortalShell>

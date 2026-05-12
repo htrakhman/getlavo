@@ -16,7 +16,7 @@ export default async function OperatorLayout({ children }: { children: React.Rea
   if (!session) redirect('/login');
   if (!session.portals.includes('operator')) redirect('/');
   return (
-    <PortalShell nav={NAV} accent="Operator portal" user={{ name: session.profile.full_name, sub: session.profile.email, role: session.profile.role }}>
+    <PortalShell nav={NAV} accent="Operator portal" user={{ name: session.profile.full_name, sub: session.profile.email, role: session.profile.role }} currentPortal="operator" portals={session.portals}>
       {children}
     </PortalShell>
   );
