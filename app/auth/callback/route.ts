@@ -62,8 +62,15 @@ export async function GET(request: NextRequest) {
            : role === 'operator' ? '/operator/onboarding'
            : '/resident/onboarding';
     } else {
-      // Route to the requested portal, or the first known portal, or legacy role
-      const target = requestedPortal ?? portals[0] ?? null;
+      // Route to: requested portal → preferred portal by profile.role → first portal → pick-role
+      const preferredByRole = profile.role === 'building_manager' ? 'building'
+                            : profile.role === 'operator' ? 'operator'
+                            : profile.role === 'resident' ? 'resident'
+                            : null;
+      const target = requestedPortal
+                  ?? (preferredByRole && portals.includes(preferredByRole) ? preferredByRole : null)
+                  ?? portals[0]
+                  ?? null;
       dest = target === 'building' ? '/building'
            : target === 'operator' ? '/operator'
            : target === 'resident' ? '/resident/onboarding'
