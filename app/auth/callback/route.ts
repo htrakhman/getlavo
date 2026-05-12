@@ -46,12 +46,9 @@ export async function GET(request: NextRequest) {
 
   let dest: string;
 
-  if (profile) {
-    dest = profile.role === 'building_manager' ? '/building'
-         : profile.role === 'operator' ? '/operator'
-         : '/resident/onboarding';
-  } else if (role && ['building_manager', 'operator', 'resident'].includes(role)) {
-    // New Google user — create profile
+  if (role && ['building_manager', 'operator', 'resident'].includes(role)) {
+    // Signup flow: role was passed in the URL.
+    // Upsert so we win over any trigger-created row (which may have defaulted to 'resident').
     const fullName =
       user.user_metadata?.full_name ||
       user.user_metadata?.name ||
@@ -68,7 +65,14 @@ export async function GET(request: NextRequest) {
     dest = role === 'building_manager' ? '/building/onboarding'
          : role === 'operator' ? '/operator/onboarding'
          : '/resident/onboarding';
+  } else if (profile) {
+    // Login flow: no role in URL, route by the stored profile role.
+    dest = profile.role === 'building_manager' ? '/building'
+         : profile.role === 'operator' ? '/operator'
+         : profile.role === 'resident' ? '/resident/onboarding'
+         : '/auth/pick-role';
   } else {
+    // First-time Google login with no profile and no role hint — pick a role.
     dest = '/auth/pick-role';
   }
 

@@ -44,7 +44,7 @@ export default function PickRolePage() {
       user.email?.split('@')[0] ||
       '';
 
-    const { error } = await sb.from('profiles').insert({
+    const { error } = await sb.from('profiles').upsert({
       id: user.id,
       role,
       full_name: fullName,
