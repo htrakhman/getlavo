@@ -39,8 +39,19 @@ export function PortalShell({
       <main className="min-w-0 flex-1">
         <header className="flex items-center justify-between gap-2 border-b border-white/5 px-4 py-3 md:px-10">
           <MobileMenu nav={nav} accent={accent} user={user} />
-          <div className="ml-auto flex items-center gap-2">
+          <div className="ml-auto flex items-center gap-3">
             <NotificationsBell />
+            <div className="hidden md:flex items-center gap-3">
+              <div className="text-right">
+                <div className="text-xs font-medium text-ink-100">{user.name}</div>
+                <div className="text-[11px] text-ink-400 truncate max-w-[160px]">{user.sub}</div>
+              </div>
+              <form action="/api/auth/signout" method="post">
+                <button className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-ink-300 transition hover:bg-white/10 hover:text-ink-100">
+                  Sign out
+                </button>
+              </form>
+            </div>
           </div>
         </header>
         <div className="px-6 py-8 md:px-10">{children}</div>
