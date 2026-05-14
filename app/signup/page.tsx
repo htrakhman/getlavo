@@ -122,14 +122,26 @@ function SignupForm() {
     }
 
     const sb = supabaseBrowser();
+    const confirmUrl = new URL('/auth/confirm', window.location.origin);
+    confirmUrl.searchParams.set('role', role);
     const { data, error } = await sb.auth.signUp({
       email,
       password,
-      options: { data: { full_name: name, role, invite_token: inviteToken } },
+      options: {
+        data: { full_name: name, role, invite_token: inviteToken },
+        emailRedirectTo: confirmUrl.toString(),
+      },
     });
     if (error) {
       setErr(error.message);
       setBusy(false);
+      return;
+    }
+    // Supabase returns an empty identities array when the email is already registered
+    // (instead of an error) to avoid leaking whether an address exists.
+    if (data.user && data.user.identities?.length === 0) {
+      setBusy(false);
+      setErr('An account with that email already exists. Sign in instead.');
       return;
     }
 
@@ -271,7 +283,14 @@ function SignupForm() {
           </div>
           <Turnstile onToken={setCaptcha} />
           {info && <div className="text-sm text-emerald-400/90">{info}</div>}
-          {err && <div className="text-sm text-red-400">{err}</div>}
+          {err && (
+            <div className="text-sm text-red-400">
+              {err}{' '}
+              {err.includes('already exists') && (
+                <a href={`/login?${email ? `next=%2Fresident` : ''}`} className="underline text-gleam">Sign in</a>
+              )}
+            </div>
+          )}
           <button disabled={busy || !captcha || !role} className="btn-primary w-full">
             {busy ? 'Creating…' : 'Create account'}
           </button>
