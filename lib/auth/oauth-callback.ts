@@ -1,6 +1,6 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextRequest, NextResponse } from 'next/server';
-import { homePathForSignupRole, normalizeSignupRole, pickLandingPortal, portalForSignupRole } from '@/lib/portal-routing';
+import { homePathForPortalKind, normalizeSignupRole, pickLandingPortal, portalForSignupRole } from '@/lib/portal-routing';
 
 export type OAuthCallbackOptions = {
   /** Optional segment from `/auth/callback/:signupRole` (legacy / extra allowlist entries). */
@@ -80,7 +80,7 @@ export async function handleOAuthCallback(request: NextRequest, options: OAuthCa
       if (portalErr) {
         return redirectWithSessionCookies(`${origin}/auth/pick-role?error=${encodeURIComponent(portalErr.message)}`);
       }
-      dest = homePathForSignupRole(role);
+      dest = homePathForPortalKind(requestedPortal);
     } else {
       const target =
         requestedPortal && portals.includes(requestedPortal)
@@ -110,7 +110,7 @@ export async function handleOAuthCallback(request: NextRequest, options: OAuthCa
       return redirectWithSessionCookies(`${origin}/auth/pick-role?error=${encodeURIComponent(portalErr.message)}`);
     }
 
-    dest = homePathForSignupRole(role);
+    dest = homePathForPortalKind(requestedPortal);
   } else {
     dest = '/auth/pick-role';
   }
