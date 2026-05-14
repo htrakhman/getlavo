@@ -85,12 +85,12 @@ export function PlacesAutocomplete({
       />
       {busy && <div className="absolute right-3 top-3.5 text-xs text-ink-500">Searching…</div>}
       {open && preds.length > 0 && (
-        <ul className="absolute z-50 mt-2 max-h-64 w-full overflow-auto rounded-xl border border-white/10 bg-ink-900 py-1 shadow-xl">
+        <ul className="absolute z-50 mt-2 max-h-64 w-full overflow-auto rounded-xl border border-white/20 bg-ink-800 py-1 shadow-2xl">
           {preds.map((p, i) => (
             <li key={p.placeId || `${p.mainText}-${i}`}>
               <button
                 type="button"
-                className="w-full px-4 py-3 text-left text-sm hover:bg-white/5"
+                className="w-full px-4 py-3 text-left text-sm hover:bg-white/10"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => {
                   setQ(`${p.mainText} ${p.secondaryText}`.trim());
@@ -99,8 +99,8 @@ export function PlacesAutocomplete({
                   if (p.placeId) onPickPlaceId?.(p.placeId);
                 }}
               >
-                <div className="font-medium text-ink-100">{p.mainText}</div>
-                <div className="text-xs text-ink-500">{p.secondaryText}</div>
+                <div className="font-medium text-white">{p.mainText}</div>
+                <div className="text-xs text-ink-300">{p.secondaryText}</div>
               </button>
             </li>
           ))}
