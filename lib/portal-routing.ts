@@ -8,14 +8,21 @@ export function normalizeSignupRole(value: string | null | undefined): SignupRol
   return null;
 }
 
-export function defaultSignupRole(): SignupRole {
-  return 'building_manager';
-}
-
 export function portalForSignupRole(role: SignupRole): PortalKind {
   if (role === 'building_manager') return 'building';
   if (role === 'operator') return 'operator';
   return 'resident';
+}
+
+/** Main app URL for a portal; onboarding is reached from these routes when setup is incomplete. */
+export function homePathForPortalKind(portal: PortalKind): `/building` | `/operator` | `/resident` {
+  if (portal === 'building') return '/building';
+  if (portal === 'operator') return '/operator';
+  return '/resident';
+}
+
+export function homePathForSignupRole(role: SignupRole): `/building` | `/operator` | `/resident` {
+  return homePathForPortalKind(portalForSignupRole(role));
 }
 
 /** Login / nav `prefer` query uses portal_kind-style slugs (`building` | `operator` | `resident`). */

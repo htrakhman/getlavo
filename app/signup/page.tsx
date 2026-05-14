@@ -2,28 +2,63 @@
 import { Suspense } from 'react';
 import { Logo } from '@/components/Logo';
 import { supabaseBrowser } from '@/lib/supabase/client';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useCallback, useEffect, useState } from 'react';
 import { Turnstile } from '@/components/Turnstile';
-import { defaultSignupRole, normalizeSignupRole, type SignupRole } from '@/lib/portal-routing';
+import { homePathForSignupRole, normalizeSignupRole, type SignupRole } from '@/lib/portal-routing';
 
 const ROLES = [
-  { id: 'building_manager', label: 'Property Manager', sub: 'I manage an apartment building, parking garage, or any property with a parking structure' },
-  { id: 'resident', label: 'Resident', sub: 'My building uses Lavo' },
-  { id: 'operator', label: 'Car Wash Operator', sub: 'I run a mobile crew' },
-] as const;
+  {
+    id: 'building_manager' as const,
+    label: 'Property Manager',
+    sub: 'I manage a building or parking structure that offers Lavo',
+  },
+  {
+    id: 'resident' as const,
+    label: 'Resident',
+    sub: 'My building uses Lavo and I want to book washes',
+  },
+  {
+    id: 'operator' as const,
+    label: 'Car wash operator',
+    sub: 'I run a mobile crew and wash for Lavo buildings',
+  },
+];
 
 function SignupForm() {
-  const params = useSearchParams();
   const router = useRouter();
-  const [role, setRole] = useState<SignupRole>(() => normalizeSignupRole(params.get('role')) ?? defaultSignupRole());
+  const pathname = usePathname();
+  const params = useSearchParams();
+  const [role, setRole] = useState<SignupRole | null>(() => normalizeSignupRole(params.get('role')));
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
   const [inviteToken, setInviteToken] = useState<string | null>(null);
   const [captcha, setCaptcha] = useState<string | null>(null);
+
+  const inviteLocked = Boolean(inviteToken);
+
+  const syncRoleInUrl = useCallback(
+    (next: SignupRole) => {
+      if (inviteLocked) return;
+      const sp = new URLSearchParams(params.toString());
+      sp.set('role', next);
+      router.replace(`${pathname}?${sp.toString()}`, { scroll: false });
+    },
+    [inviteLocked, params, pathname, router]
+  );
+
+  const chooseRole = useCallback(
+    (r: SignupRole) => {
+      if (inviteLocked) return;
+      setRole(r);
+      syncRoleInUrl(r);
+    },
+    [inviteLocked, syncRoleInUrl]
+  );
 
   useEffect(() => {
     const b = params.get('building');
@@ -67,21 +102,36 @@ function SignupForm() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    setBusy(true); setErr(null);
+    if (!role) {
+      setErr('Choose the type of account you are creating.');
+      return;
+    }
+    setBusy(true);
+    setErr(null);
+    setInfo(null);
 
     const ver = await fetch('/api/captcha/verify', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ token: captcha }),
     });
-    if (!ver.ok) { setErr('Please complete the verification.'); setBusy(false); return; }
+    if (!ver.ok) {
+      setErr('Please complete the verification.');
+      setBusy(false);
+      return;
+    }
 
     const sb = supabaseBrowser();
     const { data, error } = await sb.auth.signUp({
-      email, password,
+      email,
+      password,
       options: { data: { full_name: name, role, invite_token: inviteToken } },
     });
-    if (error) { setErr(error.message); setBusy(false); return; }
+    if (error) {
+      setErr(error.message);
+      setBusy(false);
+      return;
+    }
 
     const refCode = typeof window !== 'undefined' ? localStorage.getItem('lavo_referral_code') : null;
     if (refCode && data.session) {
@@ -102,13 +152,20 @@ function SignupForm() {
       if (typeof window !== 'undefined') localStorage.removeItem('lavo_invite_token');
     }
 
-    const dest = role === 'building_manager' ? '/building/onboarding'
-               : role === 'operator' ? '/operator/onboarding'
-               : '/resident/onboarding';
-    router.push(dest);
+    if (!data.session) {
+      setBusy(false);
+      setInfo('Check your email to confirm your address, then sign in. You will land in the portal that matches the account type you chose.');
+      return;
+    }
+
+    window.location.href = homePathForSignupRole(role);
   }
 
   async function signUpWithGoogle() {
+    if (!role) {
+      setErr('Choose the type of account you are creating first.');
+      return;
+    }
     setErr(null);
     setBusy(true);
     try {
@@ -122,7 +179,9 @@ function SignupForm() {
         try {
           const d = (await intent.json()) as { error?: string };
           if (typeof d.error === 'string') msg = d.error;
-        } catch { /* ignore */ }
+        } catch {
+          /* ignore */
+        }
         setErr(msg);
         return;
       }
@@ -130,7 +189,6 @@ function SignupForm() {
       const { error } = await sb.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          // Query param survives OAuth round-trip if the cookie does not; callback reads `role` first.
           redirectTo: `${window.location.origin}/auth/callback?role=${encodeURIComponent(role)}`,
         },
       });
@@ -140,20 +198,27 @@ function SignupForm() {
     }
   }
 
+  const roleLabel = role ? ROLES.find((r) => r.id === role)?.label : null;
+
   return (
     <main className="relative mx-auto flex min-h-screen max-w-md flex-col px-6 py-10">
       <Logo />
       <div className="mt-16">
         <h1 className="font-display text-4xl tracking-tight">Create your account</h1>
-        <p className="mt-2 text-sm text-ink-300">Tell us who you are. You can always change this later.</p>
+        <p className="mt-2 text-sm text-ink-300">
+          {inviteLocked
+            ? 'You are signing up with a building invite as a resident.'
+            : 'Pick the account type that matches how you use Lavo. Each type has its own dashboard.'}
+        </p>
 
         <div className="mt-8 grid grid-cols-1 gap-3">
           {ROLES.map((r) => (
             <button
               key={r.id}
-              onClick={() => setRole(r.id)}
+              onClick={() => chooseRole(r.id)}
               type="button"
-              className={`card p-4 text-left transition hover:border-gleam/30 ${role === r.id ? 'border-gleam/60 shadow-glow' : ''}`}
+              disabled={inviteLocked && r.id !== 'resident'}
+              className={`card p-4 text-left transition hover:border-gleam/30 disabled:cursor-not-allowed disabled:opacity-40 ${role === r.id ? 'border-gleam/60 shadow-glow' : ''}`}
             >
               <div className="font-display text-lg">{r.label}</div>
               <div className="text-xs text-ink-400">{r.sub}</div>
@@ -161,14 +226,18 @@ function SignupForm() {
           ))}
         </div>
 
+        {!inviteLocked && !role && (
+          <p className="mt-3 text-xs text-ink-500">Select one of the options above to continue with Google or email.</p>
+        )}
+
         <button
           type="button"
           onClick={signUpWithGoogle}
-          disabled={busy}
-          className="mt-6 flex w-full items-center justify-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium transition hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={busy || !role}
+          className="mt-6 flex w-full items-center justify-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <GoogleIcon />
-          Continue with Google as {ROLES.find(r => r.id === role)?.label}
+          {roleLabel ? `Continue with Google as ${roleLabel}` : 'Continue with Google'}
         </button>
 
         <div className="relative my-6 flex items-center gap-3">
@@ -188,11 +257,21 @@ function SignupForm() {
           </div>
           <div>
             <label className="label">Password</label>
-            <input className="field" type="password" required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} />
+            <input
+              className="field"
+              type="password"
+              required
+              minLength={8}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
           </div>
           <Turnstile onToken={setCaptcha} />
+          {info && <div className="text-sm text-emerald-400/90">{info}</div>}
           {err && <div className="text-sm text-red-400">{err}</div>}
-          <button disabled={busy || !captcha} className="btn-primary w-full">{busy ? 'Creating…' : 'Create account'}</button>
+          <button disabled={busy || !captcha || !role} className="btn-primary w-full">
+            {busy ? 'Creating…' : 'Create account'}
+          </button>
         </form>
 
         <div className="mt-6 text-center text-sm text-ink-400">
@@ -214,10 +293,22 @@ export default function SignupPage() {
 function GoogleIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden>
-      <path d="M17.64 9.205c0-.639-.057-1.252-.164-1.841H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615Z" fill="#4285F4"/>
-      <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18Z" fill="#34A853"/>
-      <path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332Z" fill="#FBBC05"/>
-      <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58Z" fill="#EA4335"/>
+      <path
+        d="M17.64 9.205c0-.639-.057-1.252-.164-1.841H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615Z"
+        fill="#4285F4"
+      />
+      <path
+        d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18Z"
+        fill="#34A853"
+      />
+      <path
+        d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332Z"
+        fill="#FBBC05"
+      />
+      <path
+        d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58Z"
+        fill="#EA4335"
+      />
     </svg>
   );
 }

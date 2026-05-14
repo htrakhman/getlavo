@@ -9,11 +9,13 @@ export async function POST(req: NextRequest) {
   }
 
   const res = NextResponse.json({ ok: true });
+  const prod = process.env.NODE_ENV === 'production';
+  // SameSite=None so the cookie survives the Google → Supabase → app redirect chain (Lax can drop it).
   res.cookies.set('oauth_signup_role', role, {
     path: '/',
     maxAge: 600,
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
+    sameSite: prod ? 'none' : 'lax',
+    secure: prod,
   });
   return res;
 }
