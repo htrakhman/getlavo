@@ -2,7 +2,7 @@ import { supabaseAdmin } from '@/lib/supabase/server';
 
 export async function getPublicWashPriceRangeCents(): Promise<{ min: number; max: number } | null> {
   try {
-    const { data } = await supabaseAdmin
+    const { data } = await supabaseAdmin()
       .from('operators')
       .select('base_price_cents')
       .eq('live_ok', true)
