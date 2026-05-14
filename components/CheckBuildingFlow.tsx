@@ -165,8 +165,6 @@ function BranchB({ m }: { m: MatchB }) {
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [contact, setContact] = useState<Contact | null>(null);
   const [contactBusy, setContactBusy] = useState(true);
-  const [aiTried, setAiTried] = useState(false);
-
   const buildingName = m.building?.name ?? m.place.displayName ?? 'My building';
   const buildingId = m.building?.id ?? null;
   const placeId = m.place.placeId;
@@ -201,30 +199,6 @@ function BranchB({ m }: { m: MatchB }) {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [placeId]);
-
-  async function findWithAi() {
-    setAiTried(true);
-    setContactBusy(true);
-    try {
-      const res = await fetch('/api/building-funnel/contact-lookup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          placeId,
-          buildingName,
-          formattedAddress: m.place.formattedAddress,
-          useAi: true,
-        }),
-      });
-      const data = (await res.json()) as Contact;
-      setContact(data);
-      if (data?.email && !mgmtEmail) setMgmtEmail(data.email);
-    } catch {
-      // ignore
-    } finally {
-      setContactBusy(false);
-    }
-  }
 
   async function saveLead() {
     await fetch('/api/building-funnel/request', {
@@ -310,29 +284,20 @@ function BranchB({ m }: { m: MatchB }) {
         ) : (
           <>
             <div className="flex flex-wrap gap-2">
-              {contact?.phone ? (
+              {contact?.phone && (
                 <a href={`tel:${contact.phone.replace(/[^\d+]/g, '')}`} className="btn-primary px-4 py-2 text-sm">
                   Call {contact.phone}
                 </a>
-              ) : (
-                !aiTried && (
-                  <button type="button" className="btn-quiet px-4 py-2 text-sm" onClick={findWithAi}>
-                    Find with AI ✨
-                  </button>
-                )
               )}
               {contact?.website && (
                 <a href={contact.website} target="_blank" rel="noreferrer" className="btn-quiet px-4 py-2 text-sm">
                   Visit website
                 </a>
               )}
+              {!contact?.phone && !contact?.website && (
+                <p className="text-xs text-ink-500">No contact info found. Try the email path below or share the neighbor link.</p>
+              )}
             </div>
-            {!contact?.phone && aiTried && (
-              <p className="text-xs text-ink-500">
-                Couldn&apos;t find a phone for this building. Try the email path below or share the neighbor link.
-              </p>
-            )}
-            {contact?.aiSummary && <p className="text-xs text-ink-500">{contact.aiSummary}</p>}
           </>
         )}
       </div>
@@ -356,11 +321,6 @@ function BranchB({ m }: { m: MatchB }) {
             value={mgmtEmail}
             onChange={(e) => setMgmtEmail(e.target.value)}
           />
-          {!mgmtEmail && !contactBusy && !aiTried && (
-            <button type="button" className="btn-quiet px-3 py-2 text-xs" onClick={findWithAi}>
-              Find with AI ✨
-            </button>
-          )}
         </div>
         <button type="button" className="btn-primary w-full py-3 text-sm" onClick={() => emailMgmt()}>
           Send request email
