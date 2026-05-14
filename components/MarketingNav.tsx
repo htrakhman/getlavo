@@ -4,9 +4,9 @@ import { Logo } from './Logo';
 import { useEffect, useRef, useState } from 'react';
 
 const ROLES = [
-  { label: 'Property Manager', href_signin: '/login', href_signup: '/signup?role=building_manager' },
-  { label: 'Car Wash Operator', href_signin: '/login', href_signup: '/signup?role=operator' },
-  { label: 'Resident',          href_signin: '/login', href_signup: '/signup?role=resident' },
+  { label: 'Property Manager', href_signin: '/login' },
+  { label: 'Car Wash Operator', href_signin: '/login' },
+  { label: 'Resident',          href_signin: '/login' },
 ];
 
 function NavDropdown({ trigger, children }: { trigger: React.ReactNode; children: React.ReactNode }) {
@@ -56,26 +56,6 @@ export function MarketingNav() {
             <Link
               key={r.label}
               href={r.href_signin}
-              className="block px-4 py-2.5 text-sm text-ink-200 hover:bg-white/5 hover:text-ink-100"
-            >
-              {r.label}
-            </Link>
-          ))}
-        </NavDropdown>
-
-        <NavDropdown
-          trigger={
-            <button className="btn-primary flex items-center gap-1.5">
-              Get started
-              <ChevronDown />
-            </button>
-          }
-        >
-          <div className="px-3 py-2 text-[10px] uppercase tracking-widest text-ink-500">Sign up as</div>
-          {ROLES.map((r) => (
-            <Link
-              key={r.label}
-              href={r.href_signup}
               className="block px-4 py-2.5 text-sm text-ink-200 hover:bg-white/5 hover:text-ink-100"
             >
               {r.label}

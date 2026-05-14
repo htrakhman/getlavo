@@ -121,15 +121,6 @@ export default function BuildingsPage() {
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="mx-auto max-w-2xl px-6 py-20 text-center">
-        <h2 className="font-display text-4xl mb-4">Add your building in 5 minutes</h2>
-        <p className="text-ink-300 mb-8">No credit card. No contract. Free forever for buildings.</p>
-        <Link href="/signup?role=building_manager" className="btn-primary px-10 py-4 text-base">
-          Get started →
-        </Link>
-      </section>
-
       <MarketingFooter />
     </main>
   );
