@@ -271,73 +271,71 @@ function BranchB({ m }: { m: MatchB }) {
   }
 
   return (
-    <div className="card space-y-5 p-6">
+    <div className="card space-y-6 p-6">
       <div>
         <h3 className="font-display text-2xl">Your building isn&apos;t on Lavo yet.</h3>
-        <p className="mt-2 text-sm text-ink-300">Be the reason it is. {m.requestCount > 0 && <span className="text-gleam">{m.requestCount} neighbors already raised their hand.</span>}</p>
+        <p className="mt-2 text-sm text-ink-300">
+          Be the reason it is.{m.requestCount > 0 && <> <span className="text-gleam">{m.requestCount} {m.requestCount === 1 ? 'neighbor has' : 'neighbors have'} already raised their hand.</span></>}
+        </p>
       </div>
 
-      <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4 space-y-3">
-        <div className="text-xs uppercase tracking-widest text-ink-500">Reach your management</div>
-        {contactBusy ? (
-          <p className="text-sm text-ink-400">Looking up contact info…</p>
-        ) : (
-          <>
-            <div className="flex flex-wrap gap-2">
-              {contact?.phone && (
-                <a href={`tel:${contact.phone.replace(/[^\d+]/g, '')}`} className="btn-primary px-4 py-2 text-sm">
-                  Call {contact.phone}
-                </a>
-              )}
-              {contact?.website && (
-                <a href={contact.website} target="_blank" rel="noreferrer" className="btn-quiet px-4 py-2 text-sm">
-                  Visit website
-                </a>
-              )}
-              {!contact?.phone && !contact?.website && (
-                <p className="text-xs text-ink-500">No contact info found. Try the email path below or share the neighbor link.</p>
-              )}
-            </div>
-          </>
-        )}
-      </div>
-
-      <div className="grid gap-3 sm:grid-cols-2">
-        <input className="w-full rounded-xl border border-white/15 bg-white/[0.06] px-4 py-2.5 text-sm text-ink-100 outline-none ring-gleam/40 focus:ring-2" placeholder="Your name" value={name} onChange={(e) => setName(e.target.value)} />
-        <input className="w-full rounded-xl border border-white/15 bg-white/[0.06] px-4 py-2.5 text-sm text-ink-100 outline-none ring-gleam/40 focus:ring-2" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
-        <input className="w-full rounded-xl border border-white/15 bg-white/[0.06] px-4 py-2.5 text-sm text-ink-100 outline-none ring-gleam/40 focus:ring-2" placeholder="Phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
-        <input className="w-full rounded-xl border border-white/15 bg-white/[0.06] px-4 py-2.5 text-sm text-ink-100 outline-none ring-gleam/40 focus:ring-2" placeholder="Unit" value={unit} onChange={(e) => setUnit(e.target.value)} />
-        <input className="w-full rounded-xl border border-white/15 bg-white/[0.06] px-4 py-2.5 text-sm text-ink-100 outline-none ring-gleam/40 focus:ring-2" placeholder="Vehicle make" value={make} onChange={(e) => setMake(e.target.value)} />
-        <input className="w-full rounded-xl border border-white/15 bg-white/[0.06] px-4 py-2.5 text-sm text-ink-100 outline-none ring-gleam/40 focus:ring-2" placeholder="Model" value={model} onChange={(e) => setModel(e.target.value)} />
-        <input className="w-full rounded-xl border border-white/15 bg-white/[0.06] px-4 py-2.5 text-sm text-ink-100 outline-none ring-gleam/40 focus:ring-2" placeholder="Color" value={color} onChange={(e) => setColor(e.target.value)} />
-        <input className="w-full rounded-xl border border-white/15 bg-white/[0.06] px-4 py-2.5 text-sm text-ink-100 outline-none ring-gleam/40 focus:ring-2" placeholder="Plate (optional)" value={plate} onChange={(e) => setPlate(e.target.value)} />
-      </div>
-      <div className="space-y-3 border-t border-white/10 pt-4">
-        <div className="text-xs uppercase tracking-widest text-ink-500">Email my management</div>
-        <div className="flex flex-wrap items-center gap-2">
-          <input
-            className="flex-1 min-w-0 rounded-xl border border-white/15 bg-white/[0.06] px-4 py-2.5 text-sm text-ink-100 outline-none ring-gleam/40 focus:ring-2"
-            placeholder="Property manager email"
-            value={mgmtEmail}
-            onChange={(e) => setMgmtEmail(e.target.value)}
-          />
+      {/* Primary CTA — waitlist */}
+      <div className="space-y-3">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <input className="field" placeholder="Your name" value={name} onChange={(e) => setName(e.target.value)} />
+          <input className="field" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+          <input className="field" placeholder="Phone (optional)" value={phone} onChange={(e) => setPhone(e.target.value)} />
+          <input className="field" placeholder="Unit number" value={unit} onChange={(e) => setUnit(e.target.value)} />
         </div>
-        <button type="button" className="btn-primary w-full py-3 text-sm" onClick={() => emailMgmt()}>
-          Send request email
-        </button>
-      </div>
-      <div className="space-y-2 border-t border-white/10 pt-4">
-        <div className="text-xs uppercase tracking-widest text-ink-500">Share with neighbors</div>
-        <button type="button" className="btn-quiet w-full py-3 text-sm" onClick={() => makeShare()}>
-          Create neighbor link
-        </button>
-        {shareUrl && <NeighborShare url={shareUrl} />}
-      </div>
-      <div className="border-t border-white/10 pt-4">
         <button type="button" className="btn-primary w-full py-3 text-sm" onClick={() => waitlist()}>
           Notify me when my building joins
         </button>
       </div>
+
+      {/* Only show contact info if we actually found something */}
+      {!contactBusy && (contact?.phone || contact?.website) && (
+        <div className="border-t border-white/10 pt-5 space-y-3">
+          <div className="text-xs uppercase tracking-[0.15em] text-ink-400">Reach your management directly</div>
+          <div className="flex flex-wrap gap-2">
+            {contact.phone && (
+              <a href={`tel:${contact.phone.replace(/[^\d+]/g, '')}`} className="btn-primary px-4 py-2 text-sm">
+                Call {contact.phone}
+              </a>
+            )}
+            {contact.website && (
+              <a href={contact.website} target="_blank" rel="noreferrer" className="btn-quiet px-4 py-2 text-sm">
+                Visit website
+              </a>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Email management */}
+      <div className="border-t border-white/10 pt-5 space-y-3">
+        <div className="text-xs uppercase tracking-[0.15em] text-ink-400">Email your property manager</div>
+        <div className="flex gap-2">
+          <input
+            className="field flex-1"
+            placeholder="Property manager email"
+            value={mgmtEmail}
+            onChange={(e) => setMgmtEmail(e.target.value)}
+          />
+          <button type="button" className="btn-ghost shrink-0 px-4 py-2.5 text-sm" onClick={() => emailMgmt()}>
+            Send
+          </button>
+        </div>
+      </div>
+
+      {/* Share with neighbors */}
+      <div className="border-t border-white/10 pt-5 space-y-3">
+        <div className="text-xs uppercase tracking-[0.15em] text-ink-400">Share with neighbors</div>
+        <button type="button" className="btn-quiet w-full py-2.5 text-sm" onClick={() => makeShare()}>
+          Create neighbor link
+        </button>
+        {shareUrl && <NeighborShare url={shareUrl} />}
+      </div>
+
       {msg && <p className="text-sm text-gleam">{msg}</p>}
     </div>
   );
