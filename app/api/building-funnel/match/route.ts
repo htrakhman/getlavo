@@ -58,16 +58,21 @@ export async function POST(req: NextRequest) {
 
   let building = byPlace;
   if (!building) {
-    const firstPart = (place.displayName || place.formattedAddress).split(',')[0]?.trim() ?? '';
-    if (firstPart.length > 3) {
+    // Autocomplete often returns "Building Name — Street Address" — split on dash first, then comma
+    const rawName = (place.displayName || place.formattedAddress).split(/\s*[—–]\s*/)[0].split(',')[0].trim();
+    // Also extract the street portion (e.g. "1 Shore Lane") from the formatted address
+    const parts = place.formattedAddress.split(',').map((s) => s.trim());
+    const candidates = [rawName, ...parts.slice(0, 2)].filter((s) => s.length > 3);
+
+    for (const candidate of candidates) {
       const { data: nameMatch } = await sb
         .from('buildings')
         .select('id, name, slug, city, region, address_line1, status, wash_day, welcome_message, logo_url, brand_color, google_place_id')
-        .ilike('name', `%${firstPart}%`)
+        .or(`name.ilike.%${candidate}%,address_line1.ilike.%${candidate}%`)
         .in('status', ['prospect', 'pilot', 'active'])
         .limit(1)
         .maybeSingle();
-      building = nameMatch ?? null;
+      if (nameMatch) { building = nameMatch; break; }
     }
   }
 
