@@ -5,6 +5,10 @@ export type PlacePrediction = {
   placeId: string;
   mainText: string;
   secondaryText: string;
+  /** Optional full address — populated by non-Google fallbacks (e.g. Photon) */
+  formattedAddress?: string;
+  lat?: number;
+  lng?: number;
 };
 
 export async function placesAutocomplete(input: string, sessionToken?: string): Promise<PlacePrediction[]> {

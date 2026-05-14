@@ -2,18 +2,30 @@
 
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 
-type Pred = { placeId: string; mainText: string; secondaryText: string };
+export type PlacePick = {
+  placeId: string;
+  mainText: string;
+  secondaryText: string;
+  formattedAddress?: string;
+  lat?: number;
+  lng?: number;
+};
 
 export function PlacesAutocomplete({
+  onPick,
   onPickPlaceId,
   disabled,
+  placeholder = 'Start typing your building address',
 }: {
-  onPickPlaceId: (placeId: string) => void;
+  onPick?: (pick: PlacePick) => void;
+  /** @deprecated prefer onPick which carries the full prediction */
+  onPickPlaceId?: (placeId: string) => void;
   disabled?: boolean;
+  placeholder?: string;
 }) {
   const id = useId();
   const [q, setQ] = useState('');
-  const [preds, setPreds] = useState<Pred[]>([]);
+  const [preds, setPreds] = useState<PlacePick[]>([]);
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const sessionToken = useMemo(() => (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}`), []);
@@ -68,14 +80,14 @@ export function PlacesAutocomplete({
         }}
         onFocus={() => setOpen(true)}
         onBlur={() => setTimeout(() => setOpen(false), 150)}
-        placeholder="Start typing your building address"
-        className="w-full rounded-xl border border-white/15 bg-white/[0.06] px-4 py-3.5 text-base text-ink-100 outline-none ring-gleam/40 focus:ring-2"
+        placeholder={placeholder}
+        className="w-full rounded-xl border border-white/15 bg-white/[0.06] px-4 py-3.5 text-base text-ink-100 outline-none ring-gleam/40 focus:ring-2 placeholder:text-ink-500"
       />
       {busy && <div className="absolute right-3 top-3.5 text-xs text-ink-500">Searching…</div>}
       {open && preds.length > 0 && (
         <ul className="absolute z-50 mt-2 max-h-64 w-full overflow-auto rounded-xl border border-white/10 bg-ink-900 py-1 shadow-xl">
-          {preds.map((p) => (
-            <li key={p.placeId}>
+          {preds.map((p, i) => (
+            <li key={p.placeId || `${p.mainText}-${i}`}>
               <button
                 type="button"
                 className="w-full px-4 py-3 text-left text-sm hover:bg-white/5"
@@ -83,7 +95,8 @@ export function PlacesAutocomplete({
                 onClick={() => {
                   setQ(`${p.mainText} ${p.secondaryText}`.trim());
                   setOpen(false);
-                  onPickPlaceId(p.placeId);
+                  onPick?.(p);
+                  if (p.placeId) onPickPlaceId?.(p.placeId);
                 }}
               >
                 <div className="font-medium text-ink-100">{p.mainText}</div>
