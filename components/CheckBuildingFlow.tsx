@@ -336,7 +336,7 @@ function BranchB({ m }: { m: MatchB }) {
       {/* Share with neighbors */}
       <div className="border-t border-white/10 pt-5 space-y-3">
         <div className="text-xs uppercase tracking-[0.15em] text-ink-400">Share with neighbors</div>
-        <button type="button" className="btn-quiet w-full py-2.5 text-sm" onClick={() => makeShare()}>
+        <button type="button" className="w-full py-2.5 text-sm rounded-full border border-gleam/40 text-gleam hover:bg-gleam/10 transition-colors" onClick={() => makeShare()}>
           Create neighbor link
         </button>
         {shareUrl && <NeighborShare url={shareUrl} />}
