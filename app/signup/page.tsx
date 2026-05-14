@@ -76,13 +76,34 @@ function SignupForm() {
   }
 
   async function signUpWithGoogle() {
-    const sb = supabaseBrowser();
-    await sb.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback?role=${role}`,
-      },
-    });
+    setErr(null);
+    setBusy(true);
+    try {
+      const intent = await fetch('/api/auth/oauth-signup-intent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role }),
+      });
+      if (!intent.ok) {
+        let msg = 'Could not start sign-up — try again.';
+        try {
+          const d = (await intent.json()) as { error?: string };
+          if (typeof d.error === 'string') msg = d.error;
+        } catch { /* ignore */ }
+        setErr(msg);
+        return;
+      }
+      const sb = supabaseBrowser();
+      const { error } = await sb.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+      if (error) setErr(error.message);
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
@@ -107,8 +128,10 @@ function SignupForm() {
         </div>
 
         <button
+          type="button"
           onClick={signUpWithGoogle}
-          className="mt-6 flex w-full items-center justify-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium transition hover:bg-white/10"
+          disabled={busy}
+          className="mt-6 flex w-full items-center justify-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium transition hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <GoogleIcon />
           Continue with Google as {ROLES.find(r => r.id === role)?.label}

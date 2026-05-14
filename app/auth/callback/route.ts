@@ -1,17 +1,31 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextRequest, NextResponse } from 'next/server';
 
+function normalizeSignupRole(value: string | null | undefined): string | null {
+  if (value === 'building_manager' || value === 'operator' || value === 'resident') return value;
+  return null;
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
-  // role is set when coming from the signup page ("Sign up with Google")
-  const role = searchParams.get('role');
-
-  if (!code) {
-    return NextResponse.redirect(`${origin}/login?error=missing_code`);
-  }
+  const roleRaw = searchParams.get('role') ?? request.cookies.get('oauth_signup_role')?.value;
+  const role = normalizeSignupRole(roleRaw);
 
   const pendingCookies: Array<{ name: string; value: string; options: CookieOptions }> = [];
+
+  function redirectWithSessionCookies(targetUrl: string) {
+    const response = NextResponse.redirect(targetUrl);
+    pendingCookies.forEach(({ name, value, options }) => {
+      response.cookies.set(name, value, options as CookieOptions);
+    });
+    response.cookies.delete('oauth_signup_role', { path: '/' });
+    return response;
+  }
+
+  if (!code) {
+    return redirectWithSessionCookies(`${origin}/login?error=missing_code`);
+  }
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -28,12 +42,12 @@ export async function GET(request: NextRequest) {
 
   const { error } = await supabase.auth.exchangeCodeForSession(code);
   if (error) {
-    return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(error.message)}`);
+    return redirectWithSessionCookies(`${origin}/login?error=${encodeURIComponent(error.message)}`);
   }
 
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
-    return NextResponse.redirect(`${origin}/login?error=no_session`);
+    return redirectWithSessionCookies(`${origin}/login?error=no_session`);
   }
 
   // profile_portals is the source of truth post-migration 0006; profiles.role is a nullable legacy hint
@@ -59,7 +73,7 @@ export async function GET(request: NextRequest) {
         supabase.from('profiles').update({ role }).eq('id', user.id),
       ]);
       if (portalErr) {
-        return NextResponse.redirect(`${origin}/auth/pick-role?error=${encodeURIComponent(portalErr.message)}`);
+        return redirectWithSessionCookies(`${origin}/auth/pick-role?error=${encodeURIComponent(portalErr.message)}`);
       }
       dest = role === 'building_manager' ? '/building/onboarding'
            : role === 'operator' ? '/operator/onboarding'
@@ -96,7 +110,7 @@ export async function GET(request: NextRequest) {
     });
     const { error: portalErr } = await supabase.from('profile_portals').upsert({ profile_id: user.id, portal: requestedPortal });
     if (portalErr) {
-      return NextResponse.redirect(`${origin}/auth/pick-role?error=${encodeURIComponent(portalErr.message)}`);
+      return redirectWithSessionCookies(`${origin}/auth/pick-role?error=${encodeURIComponent(portalErr.message)}`);
     }
 
     dest = role === 'building_manager' ? '/building/onboarding'
@@ -106,9 +120,5 @@ export async function GET(request: NextRequest) {
     dest = '/auth/pick-role';
   }
 
-  const response = NextResponse.redirect(`${origin}${dest}`);
-  pendingCookies.forEach(({ name, value, options }) => {
-    response.cookies.set(name, value, options as CookieOptions);
-  });
-  return response;
+  return redirectWithSessionCookies(`${origin}${dest}`);
 }
