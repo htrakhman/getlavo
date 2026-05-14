@@ -53,7 +53,6 @@ export async function POST(req: NextRequest) {
     .from('buildings')
     .select('id, name, slug, city, region, address_line1, status, wash_day, welcome_message, logo_url, brand_color, google_place_id')
     .eq('google_place_id', place.placeId)
-    .in('status', ['prospect', 'pilot', 'active'])
     .maybeSingle();
 
   let building = byPlace;
@@ -71,7 +70,6 @@ export async function POST(req: NextRequest) {
         .from('buildings')
         .select('id, name, slug, city, region, address_line1, status, wash_day, welcome_message, logo_url, brand_color, google_place_id')
         .ilike('address_line1', `%${street}%`)
-        .in('status', ['prospect', 'pilot', 'active'])
         .limit(1)
         .maybeSingle();
       building = addrMatch ?? null;

@@ -239,6 +239,12 @@ function BranchB({ m }: { m: MatchB }) {
   }
 
   async function makeShare() {
+    if (!name.trim() || !email.trim()) {
+      setMsg('Please fill in your name and email first.');
+      return;
+    }
+    setMsg(null);
+    await saveLead();
     const res = await fetch('/api/building-share', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
