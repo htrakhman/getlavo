@@ -265,6 +265,7 @@ function BranchB({ m }: { m: MatchB }) {
   async function waitlist() {
     setMsg(null);
     await saveLead();
+    if (!email.trim()) { setMsg('Please enter your email.'); return; }
     const res = await fetch('/api/building-waitlist', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -279,9 +280,12 @@ function BranchB({ m }: { m: MatchB }) {
         placeId,
       }),
     });
+    const data = await res.json().catch(() => ({}));
     if (res.ok) {
       setMsg('You are on the list. We text and email the moment Lavo turns on for this address. You get a free first wash credit valid 14 days after activation.');
-    } else setMsg('Could not save. Check email or phone.');
+    } else {
+      setMsg(data.error ?? 'Could not save. Try again.');
+    }
   }
 
   return (
