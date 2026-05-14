@@ -3,11 +3,13 @@ import { getSessionUser } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 
 const NAV = [
+  { href: '/operator/today', label: 'Today' },
   { href: '/operator', label: 'Overview' },
   { href: '/operator/buildings', label: 'Buildings' },
   { href: '/operator/wash-days', label: 'Wash days' },
   { href: '/operator/earnings', label: 'Earnings' },
   { href: '/operator/reviews', label: 'Reviews' },
+  { href: '/operator/compliance', label: 'Compliance' },
   { href: '/operator/profile', label: 'Profile' },
 ];
 

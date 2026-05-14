@@ -1,11 +1,20 @@
 import { PageHeader } from '@/components/PortalShell';
-import { supabaseServer } from '@/lib/supabase/server';
+import { supabaseServer, getSessionUser } from '@/lib/supabase/server';
+import { redirect } from 'next/navigation';
 import { dateShort, money } from '@/lib/format';
 
 export default async function Earnings() {
+  const session = await getSessionUser();
+  if (!session) redirect('/login');
   const sb = supabaseServer();
-  const { data: op } = await sb.from('operators').select('id, name').limit(1).maybeSingle();
+  const { data: op } = await sb
+    .from('operators')
+    .select('id, name, payout_reserve_percent')
+    .eq('owner_id', session.user.id)
+    .maybeSingle();
   if (!op) return null;
+
+  const reservePct = Number(op.payout_reserve_percent ?? 5);
 
   const monthStart = new Date().toISOString().slice(0, 8) + '01';
   const last30 = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
@@ -29,6 +38,9 @@ export default async function Earnings() {
   return (
     <>
       <PageHeader eyebrow={op.name} title="Earnings & payouts" />
+      <p className="text-sm text-ink-500 mb-6">
+        A rolling {reservePct}% reserve may be held for dispute coverage. Shown here for transparency with your operator agreement.
+      </p>
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4 mb-8">
         <Stat label="Lifetime net" value={money(lifetimeNet)} />

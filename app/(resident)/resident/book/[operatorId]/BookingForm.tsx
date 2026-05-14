@@ -1,6 +1,8 @@
 'use client';
 import { money } from '@/lib/format';
-import { useState } from 'react';
+import { calculateFee } from '@/lib/fee';
+import { captureEvent } from '@/lib/analytics';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 const TIME_SLOTS = ['8:00 AM', '9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM', '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM'];
@@ -8,6 +10,12 @@ const TIME_SLOTS = ['8:00 AM', '9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM', '1
 function isoDateMin() {
   const d = new Date();
   d.setDate(d.getDate() + 1);
+  return d.toISOString().slice(0, 10);
+}
+
+function isoDateMax() {
+  const d = new Date();
+  d.setDate(d.getDate() + 14);
   return d.toISOString().slice(0, 10);
 }
 
@@ -35,12 +43,21 @@ export function BookingForm({
   const [vehicleId, setVehicleId] = useState(vehicles.find((v) => v.is_primary)?.id ?? vehicles[0]?.id ?? '');
   const [date, setDate] = useState('');
   const [timeSlot, setTimeSlot] = useState(TIME_SLOTS[0]);
+  const [recurring, setRecurring] = useState<'none' | 'weekly' | 'biweekly' | 'monthly'>('none');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [promoCode, setPromoCode] = useState('');
+
+  useEffect(() => {
+    const stored = typeof window !== 'undefined' ? localStorage.getItem('lavo_promo_code') : null;
+    if (stored) setPromoCode(stored);
+  }, []);
 
   const priceCents = bookingType === 'building_day'
     ? basePriceCents
     : (openSlotPriceCents ?? basePriceCents);
+
+  const { fee: feeCents } = calculateFee(priceCents);
 
   async function book() {
     if (!vehicleId || !date) { setErr('Please select a vehicle and date'); return; }
@@ -55,10 +72,13 @@ export function BookingForm({
         timeSlot,
         bookingType,
         partnershipId: partnershipId ?? undefined,
+        recurringCadence: recurring === 'none' ? undefined : recurring,
+        promoCode: promoCode.trim() || undefined,
       }),
     });
     const j = await res.json();
     if (!res.ok) { setErr(j.error ?? 'Booking failed'); setBusy(false); return; }
+    captureEvent('booking_checkout_started', { operatorId, free: !j.checkoutUrl });
     if (j.checkoutUrl) {
       window.location.href = j.checkoutUrl;
     } else {
@@ -120,11 +140,34 @@ export function BookingForm({
       )}
 
       <div>
+        <label className="label">Revisit cadence</label>
+        <select className="field" value={recurring} onChange={(e) => setRecurring(e.target.value as typeof recurring)}>
+          <option value="none">One time</option>
+          <option value="weekly">Every week</option>
+          <option value="biweekly">Every two weeks</option>
+          <option value="monthly">Monthly</option>
+        </select>
+        <p className="mt-1 text-xs text-ink-500">We save your preference for faster rebook. Billing stays per wash at checkout.</p>
+      </div>
+
+      <div>
+        <label className="label">Promo code (optional)</label>
+        <input
+          className="field"
+          value={promoCode}
+          onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+          placeholder="FIRSTWASH"
+          autoCapitalize="characters"
+        />
+      </div>
+
+      <div>
         <label className="label">Date</label>
         <input
           className="field"
           type="date"
           min={isoDateMin()}
+          max={isoDateMax()}
           value={date}
           onChange={(e) => setDate(e.target.value)}
         />
@@ -139,12 +182,12 @@ export function BookingForm({
 
       <div className="rounded-xl border border-white/10 bg-ink-800/50 p-4">
         <div className="flex items-center justify-between text-sm">
-          <span className="text-ink-400">Wash price</span>
+          <span className="text-ink-400">Wash total</span>
           <span>{money(priceCents)}</span>
         </div>
-        <div className="mt-1 flex items-center justify-between text-xs text-ink-500">
-          <span>No hidden fees</span>
-          <span>You pay exactly this</span>
+        <div className="mt-2 flex items-center justify-between text-xs text-ink-500">
+          <span>Includes platform fee</span>
+          <span>{money(feeCents)} to Lavo · {money(priceCents - feeCents)} to your operator</span>
         </div>
       </div>
 

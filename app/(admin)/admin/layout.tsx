@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation';
 const NAV = [
   { href: '/admin', label: 'Overview' },
   { href: '/admin/search', label: 'Search' },
-  { href: '/admin/buildings', label: 'Buildings' },
+  { href: '/admin/building-requests', label: 'Building funnel' },
   { href: '/admin/operators', label: 'Operators' },
   { href: '/admin/insurance', label: 'Insurance' },
   { href: '/admin/wash-days', label: 'Wash days' },

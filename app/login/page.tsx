@@ -4,10 +4,18 @@ import { Logo } from '@/components/Logo';
 import { supabaseBrowser } from '@/lib/supabase/client';
 import { pickLandingPortal, signupRoleFromPortalPrefer } from '@/lib/portal-routing';
 import { useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 function LoginForm() {
   const params = useSearchParams();
+
+  useEffect(() => {
+    const ref = params.get('ref');
+    const promo = params.get('promo');
+    if (typeof window === 'undefined') return;
+    if (ref) localStorage.setItem('lavo_referral_code', ref);
+    if (promo) localStorage.setItem('lavo_promo_code', promo);
+  }, [params]);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [err, setErr] = useState<string | null>(params.get('error') ? 'Sign-in failed — please try again.' : null);

@@ -24,12 +24,15 @@ export default function ResidentOnboarding() {
   const [year, setYear] = useState('');
   const [color, setColor] = useState('White');
   const [plate, setPlate] = useState('');
+  const [vehiclePhotoUrl, setVehiclePhotoUrl] = useState('');
+  const [accessMethod, setAccessMethod] = useState('');
+  const [accessNotes, setAccessNotes] = useState('');
 
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
-    const slug = typeof window !== 'undefined' ? localStorage.getItem('gleam_building_slug') : null;
+    const slug = typeof window !== 'undefined' ? localStorage.getItem('lavo_building_slug') : null;
     sb.from('buildings')
       .select('id, name, address_line1, city, status, slug, wash_day')
       .in('status', ['prospect', 'pilot', 'active'])
@@ -45,12 +48,24 @@ export default function ResidentOnboarding() {
   }, []);
 
   useEffect(() => {
+    const code = typeof window !== 'undefined' ? localStorage.getItem('lavo_referral_code') : null;
+    if (!code) return;
+    void fetch('/api/referrals/attribute', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code }),
+    })
+      .then((r) => (r.ok ? localStorage.removeItem('lavo_referral_code') : null))
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
     if (!buildingId) { setBuilding(null); return; }
     setBuilding(buildings.find((b) => b.id === buildingId) ?? null);
   }, [buildingId, buildings]);
 
   const canStep2 = !!buildingId;
-  const canFinish = canStep2 && unit && floor && make && model && year && color;
+  const canFinish = canStep2 && unit && floor && make && model && year && color && accessMethod;
 
   const totalSteps = 2;
 
@@ -68,6 +83,8 @@ export default function ResidentOnboarding() {
         unit_number: unit,
         floor_number: parseInt(floor, 10),
         spot_label: spotLabel || null,
+        vehicle_access_method: accessMethod,
+        vehicle_access_notes: accessNotes || null,
       }).eq('id', existing.id).select().single();
       if (error) { setErr(error.message); setBusy(false); return; }
       resident = data;
@@ -78,6 +95,8 @@ export default function ResidentOnboarding() {
         unit_number: unit,
         floor_number: parseInt(floor, 10),
         spot_label: spotLabel || null,
+        vehicle_access_method: accessMethod,
+        vehicle_access_notes: accessNotes || null,
       }).select().single();
       if (error) { setErr(error.message); setBusy(false); return; }
       resident = data;
@@ -93,6 +112,7 @@ export default function ResidentOnboarding() {
       year: parseInt(year, 10),
       color,
       is_primary: true,
+      photo_url: vehiclePhotoUrl.trim() || null,
     };
     if (existingVeh?.id) {
       await sb.from('vehicles').update(vehiclePayload).eq('id', existingVeh.id);
@@ -100,7 +120,7 @@ export default function ResidentOnboarding() {
       await sb.from('vehicles').insert(vehiclePayload);
     }
 
-    if (typeof window !== 'undefined') localStorage.removeItem('gleam_building_slug');
+    if (typeof window !== 'undefined') localStorage.removeItem('lavo_building_slug');
     setBusy(false);
     router.push('/resident/washes');
   }
@@ -113,7 +133,7 @@ export default function ResidentOnboarding() {
       </div>
       <h1 className="mt-2 font-display text-4xl tracking-tight">
         {step === 1 && 'Select your building'}
-        {step === 2 && 'Your vehicle and spot'}
+        {step === 2 && 'Your vehicle, access, and spot'}
       </h1>
 
       {/* progress dots */}
@@ -170,8 +190,24 @@ export default function ResidentOnboarding() {
             </div>
           </div>
           <div>
-            <label className="label">Parking spot <span className="text-ink-500">(optional)</span></label>
-            <input className="field" value={spotLabel} onChange={(e) => setSpotLabel(e.target.value)} placeholder="B-14" />
+            <label className="label">Parking spot label for your crew</label>
+            <input className="field" value={spotLabel} onChange={(e) => setSpotLabel(e.target.value)} placeholder="B-14 or green pillar near elevator" />
+          </div>
+
+          <div>
+            <label className="label">How should the operator access your car?</label>
+            <select className="field" value={accessMethod} onChange={(e) => setAccessMethod(e.target.value)} required>
+              <option value="">Select…</option>
+              <option value="guest_spot">Parked in a guest spot</option>
+              <option value="lockbox">Key in lockbox (you will share the code in app chat)</option>
+              <option value="home">I will be home</option>
+              <option value="doorman">Doorman has the key</option>
+              <option value="instructions">Other instructions (describe below)</option>
+            </select>
+          </div>
+          <div>
+            <label className="label">Access details <span className="text-ink-500">(optional)</span></label>
+            <textarea className="field min-h-[88px]" value={accessNotes} onChange={(e) => setAccessNotes(e.target.value)} placeholder="Gate code, lockbox location, anything else the crew needs" />
           </div>
 
           <div className="card p-4">
@@ -207,6 +243,10 @@ export default function ResidentOnboarding() {
                     </button>
                   ))}
                 </div>
+              </div>
+              <div className="col-span-2">
+                <label className="label">Vehicle photo URL <span className="text-ink-500">(optional)</span></label>
+                <input className="field" value={vehiclePhotoUrl} onChange={(e) => setVehiclePhotoUrl(e.target.value)} placeholder="https://…" />
               </div>
             </div>
           </div>

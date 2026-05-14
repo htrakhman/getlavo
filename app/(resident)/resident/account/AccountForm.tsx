@@ -10,9 +10,16 @@ type Prefs = {
   sms_complete: boolean;
 };
 
-export function AccountForm({ profile, residentId, prefs }: {
+type SubState = {
+  stripeSubscriptionId: string | null;
+  tier: string | null;
+  state: string;
+};
+
+export function AccountForm({ profile, residentId, subscription, prefs }: {
   profile: any;
   residentId: string | null;
+  subscription?: SubState;
   prefs: Prefs;
 }) {
   const router = useRouter();
@@ -22,6 +29,7 @@ export function AccountForm({ profile, residentId, prefs }: {
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [subBusy, setSubBusy] = useState<string | null>(null);
 
   async function save() {
     setBusy(true);
@@ -51,6 +59,23 @@ export function AccountForm({ profile, residentId, prefs }: {
 
   function toggle(k: keyof Prefs) {
     setP((prev) => ({ ...prev, [k]: !prev[k] }));
+  }
+
+  async function startSubscription(tier: 'lite' | 'plus') {
+    setSubBusy(tier);
+    setErr(null);
+    const res = await fetch('/api/stripe/subscription-checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tier }),
+    });
+    const j = await res.json().catch(() => ({}));
+    setSubBusy(null);
+    if (!res.ok) {
+      setErr(typeof j.error === 'string' ? j.error : 'Could not start checkout');
+      return;
+    }
+    if (j.checkoutUrl) window.location.href = j.checkoutUrl;
   }
 
   return (
@@ -84,6 +109,39 @@ export function AccountForm({ profile, residentId, prefs }: {
           <Toggle label="Text me when my car is done" checked={p.sms_complete} onChange={() => toggle('sms_complete')} disabled={!phone} />
           {!phone && <p className="text-xs text-ink-500">Add a phone number to enable SMS.</p>}
         </div>
+      </div>
+
+      <div className="card p-6 lg:col-span-2">
+        <h3 className="font-display text-lg mb-2">Lavo membership</h3>
+        <p className="text-sm text-ink-400 mb-4">
+          Optional add-on for residents who wash often. Configure Stripe price IDs{' '}
+          <code className="text-xs text-ink-500">STRIPE_PRICE_LAVO_LITE</code> and{' '}
+          <code className="text-xs text-ink-500">STRIPE_PRICE_LAVO_PLUS</code> in your environment.
+        </p>
+        {subscription?.stripeSubscriptionId ? (
+          <p className="text-sm text-ink-200">
+            Active subscription ({subscription.tier ?? 'plan'}) · status {subscription.state}
+          </p>
+        ) : (
+          <div className="flex flex-wrap gap-3">
+            <button
+              type="button"
+              disabled={!!subBusy || !residentId}
+              onClick={() => startSubscription('lite')}
+              className="btn-ghost text-sm"
+            >
+              {subBusy === 'lite' ? 'Redirecting…' : 'Subscribe — Lite'}
+            </button>
+            <button
+              type="button"
+              disabled={!!subBusy || !residentId}
+              onClick={() => startSubscription('plus')}
+              className="btn-primary text-sm"
+            >
+              {subBusy === 'plus' ? 'Redirecting…' : 'Subscribe — Plus'}
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="lg:col-span-2 flex items-center gap-3">

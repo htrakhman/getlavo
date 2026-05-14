@@ -158,6 +158,7 @@ function VehicleForm({ residentId, vehicle, onDone, onCancel, isFirst }: {
   const [year, setYear] = useState(vehicle?.year ? String(vehicle.year) : '');
   const [color, setColor] = useState(vehicle?.color ?? 'White');
   const [plate, setPlate] = useState(vehicle?.license_plate ?? '');
+  const [photoUrl, setPhotoUrl] = useState(vehicle?.photo_url ?? '');
   const [busy, setBusy] = useState(false);
 
   async function save() {
@@ -170,6 +171,7 @@ function VehicleForm({ residentId, vehicle, onDone, onCancel, isFirst }: {
       year: year ? parseInt(year, 10) : null,
       color,
       license_plate: plate || 'UNKNOWN',
+      photo_url: photoUrl.trim() || null,
     };
     if (vehicle?.id) {
       await sb.from('vehicles').update(payload).eq('id', vehicle.id);
@@ -206,6 +208,10 @@ function VehicleForm({ residentId, vehicle, onDone, onCancel, isFirst }: {
             <button type="button" key={c} onClick={() => setColor(c)} className={`chip ${color === c ? 'border-gleam text-gleam' : ''}`}>{c}</button>
           ))}
         </div>
+      </div>
+      <div className="col-span-2">
+        <label className="label">Vehicle photo URL <span className="text-ink-500">(optional)</span></label>
+        <input className="field" value={photoUrl} onChange={(e) => setPhotoUrl(e.target.value)} placeholder="https://…" />
       </div>
       <div className="col-span-2 flex gap-2">
         <button onClick={save} disabled={busy || !make || !model} className="btn-primary text-sm">{busy ? 'Saving…' : 'Save'}</button>

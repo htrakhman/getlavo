@@ -7,7 +7,8 @@ type NotificationType =
   | 'wash_reminder'
   | 'payment_failed'
   | 'pilot_signed'
-  | 'operator_assigned';
+  | 'operator_assigned'
+  | 'waitlist_building_live';
 
 export async function notify(profileId: string, type: NotificationType, data: Record<string, any>) {
   const sb = supabaseAdmin();
@@ -30,6 +31,7 @@ export async function notify(profileId: string, type: NotificationType, data: Re
     payment_failed: 'Payment issue — update your card',
     pilot_signed: 'Pilot agreement signed',
     operator_assigned: 'Your car wash crew is set',
+    waitlist_building_live: 'Your building is live on Lavo',
   };
 
   const body = renderBody(type, data);
@@ -101,12 +103,12 @@ export async function notify(profileId: string, type: NotificationType, data: Re
 }
 
 function smsEligible(type: NotificationType) {
-  return ['wash_complete', 'wash_flagged', 'wash_reminder'].includes(type);
+  return ['wash_complete', 'wash_flagged', 'wash_reminder', 'waitlist_building_live'].includes(type);
 }
 
 function prefRespects(type: NotificationType, prefs: Record<string, boolean>, channel: 'email' | 'sms') {
   // Operational/account messages always go through.
-  const operational: NotificationType[] = ['payment_failed', 'pilot_signed', 'operator_assigned'];
+  const operational: NotificationType[] = ['payment_failed', 'pilot_signed', 'operator_assigned', 'waitlist_building_live'];
   if (operational.includes(type)) return true;
   const map: Record<string, string> = {
     'wash_reminder:email': 'email_reminder',
@@ -135,6 +137,10 @@ function renderBody(type: NotificationType, data: any) {
       return `New pilot signed: ${data.buildingName ?? 'building'}.`;
     case 'operator_assigned':
       return `Your building's car wash crew has been assigned: ${data.operatorName ?? 'an operator'}.`;
+    case 'waitlist_building_live':
+      return `${data.buildingName ?? 'Your building'} is live on Lavo. Use code ${data.code ?? ''} for your free first wash.`;
+    default:
+      return 'Update from Lavo.';
   }
 }
 

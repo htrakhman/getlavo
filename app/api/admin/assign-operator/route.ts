@@ -3,6 +3,7 @@ import { supabaseServer } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { notify } from '@/lib/notify';
 import { audit } from '@/lib/audit';
+import { onBuildingActivated } from '@/lib/building-activation';
 
 export async function POST(req: Request) {
   const sb = supabaseServer();
@@ -28,6 +29,9 @@ export async function POST(req: Request) {
   }).select().single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  await admin.from('buildings').update({ status: 'active' }).eq('id', buildingId);
+  await onBuildingActivated(buildingId).catch((e) => console.error('onBuildingActivated', e));
 
   // Notify operator owner
   const { data: op } = await admin.from('operators').select('owner_id, name').eq('id', operatorId).maybeSingle();

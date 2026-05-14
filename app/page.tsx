@@ -1,7 +1,10 @@
 import Link from 'next/link';
+import { Suspense } from 'react';
 import { Logo } from '@/components/Logo';
 import { MarketingNav, MarketingFooter } from '@/components/MarketingNav';
-import { BuildingInterestCTA } from '@/components/BuildingInterestCTA';
+import { CheckBuildingFlow } from '@/components/CheckBuildingFlow';
+import { getPublicWashPriceRangeCents } from '@/lib/marketing-pricing';
+import { money } from '@/lib/format';
 import { getSessionUser } from '@/lib/supabase/server';
 import { pickLandingPortal } from '@/lib/portal-routing';
 import { redirect } from 'next/navigation';
@@ -16,6 +19,7 @@ export default async function Home() {
     if (session.profile.role === 'admin') redirect('/admin');
     redirect('/auth/pick-role');
   }
+  const priceRange = await getPublicWashPriceRangeCents();
   return (
     <main className="relative">
       <div className="absolute inset-x-0 top-0 h-[600px] bg-gleam-fade" />
@@ -32,28 +36,47 @@ export default async function Home() {
             <span className="gleam-text">thinking about it.</span>
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-ink-300">
-            Lavo connects apartment residents with local car wash operators. Residents book in-app,
-            operators get steady demand, buildings get a free amenity.
+            Book from your phone. Operators are vetted and insured. Buildings pay nothing.
           </p>
-          <div className="mt-10 mx-auto flex w-full max-w-3xl flex-col gap-3 sm:flex-row sm:justify-center sm:gap-3">
-            <Link
-              href="/signup?role=resident"
-              className="btn-ghost w-full px-6 py-3.5 text-center text-sm font-medium sm:flex-1 sm:text-base bg-white/[0.04] hover:bg-white/[0.08]"
-            >
-              I&apos;m a resident
-            </Link>
-            <Link
-              href="/signup?role=operator"
-              className="btn-ghost w-full px-6 py-3.5 text-center text-sm font-medium sm:flex-1 sm:text-base bg-white/[0.04] hover:bg-white/[0.08]"
-            >
-              I run a wash crew
-            </Link>
-            <Link
-              href="/signup?role=building_manager"
-              className="btn-ghost w-full px-6 py-3.5 text-center text-sm font-medium sm:flex-1 sm:text-base bg-white/[0.04] hover:bg-white/[0.08]"
-            >
-              I manage a property
-            </Link>
+          <div className="mt-10 mx-auto w-full max-w-xl text-center">
+            <p className="mb-3 text-sm font-medium text-ink-200">See if your building is on Lavo.</p>
+            <Suspense fallback={<div className="text-sm text-ink-500">Loading address search…</div>}>
+              <CheckBuildingFlow />
+            </Suspense>
+          </div>
+          <div className="mt-12 border-t border-white/10 pt-10">
+            <p className="text-xs uppercase tracking-[0.18em] text-ink-500 mb-4">Operators and property teams</p>
+            <div className="mx-auto flex max-w-lg flex-col gap-3 sm:flex-row sm:justify-center">
+              <Link href="/signup?role=operator" className="btn-ghost w-full px-5 py-3 text-center text-sm sm:flex-1">
+                I run a wash crew
+              </Link>
+              <Link href="/signup?role=building_manager" className="btn-ghost w-full px-5 py-3 text-center text-sm sm:flex-1">
+                I manage a property
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="relative mx-auto max-w-6xl px-6 py-12">
+        <div className="grid gap-6 md:grid-cols-3">
+          <div className="card p-6 text-center">
+            <div className="text-xs uppercase tracking-widest text-ink-500">Pricing</div>
+            <p className="mt-2 font-display text-2xl text-gleam">
+              {money(priceRange?.min ?? 3500)} to {money(priceRange?.max ?? 6500)}
+            </p>
+            <p className="mt-2 text-sm text-ink-400">Typical wash before add-ons. Your price is always confirmed before payment.</p>
+          </div>
+          <div className="card p-6 text-center">
+            <div className="text-xs uppercase tracking-widest text-ink-500">Coverage</div>
+            <p className="mt-2 text-sm text-ink-200">Launching in Northern NJ first.</p>
+            <p className="mt-1 text-xs text-ink-500">Add your city from the building checker above.</p>
+          </div>
+          <div className="card p-6 text-center">
+            <div className="text-xs uppercase tracking-widest text-ink-500">Trust</div>
+            <p className="mt-2 text-sm text-ink-200">
+              Background-checked operators. Insured crews. Photo proof on every wash. Stripe secure payments.
+            </p>
           </div>
         </div>
       </section>
@@ -168,8 +191,38 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Resident building interest */}
-      <BuildingInterestCTA />
+      <section className="relative mx-auto max-w-3xl px-6 py-16">
+        <div className="text-center mb-10">
+          <div className="text-xs uppercase tracking-[0.18em] text-gleam mb-2">FAQ</div>
+          <h2 className="font-display text-3xl">Questions we hear a lot</h2>
+        </div>
+        <dl className="space-y-6 text-sm text-ink-300">
+          <div>
+            <dt className="font-medium text-ink-100">Do I need to be home?</dt>
+            <dd className="mt-1 leading-relaxed">
+              Usually not. You tell us how to access your garage or spot. Many residents leave keys with concierge or use building protocols your operator already knows.
+            </dd>
+          </div>
+          <div>
+            <dt className="font-medium text-ink-100">How do I know the wash happened?</dt>
+            <dd className="mt-1 leading-relaxed">
+              Operators upload before-and-after photos to your booking. You get a notification when the wash is marked complete.
+            </dd>
+          </div>
+          <div>
+            <dt className="font-medium text-ink-100">What if my building is not listed yet?</dt>
+            <dd className="mt-1 leading-relaxed">
+              Use the checker at the top of this page. We track demand by address and notify you when an operator activates your building.
+            </dd>
+          </div>
+          <div>
+            <dt className="font-medium text-ink-100">Can I cancel?</dt>
+            <dd className="mt-1 leading-relaxed">
+              Yes — cancel from your resident portal up to 24 hours before your scheduled slot, per our terms.
+            </dd>
+          </div>
+        </dl>
+      </section>
 
       {/* Operator pitch */}
       {/* CTA strip */}

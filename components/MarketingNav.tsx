@@ -38,6 +38,7 @@ export function MarketingNav() {
     <header className="relative mx-auto flex max-w-7xl items-center justify-between px-6 py-6">
       <Logo />
       <nav className="hidden items-center gap-8 text-sm text-ink-300 md:flex">
+        <Link href="/help" className="hover:text-ink-100">Help</Link>
         <Link href="/how-it-works" className="hover:text-ink-100">How it works</Link>
         <Link href="/operators" className="hover:text-ink-100">For operators</Link>
         <Link href="/buildings" className="hover:text-ink-100">For properties</Link>
@@ -78,15 +79,23 @@ function ChevronDown() {
 export function MarketingFooter() {
   return (
     <footer className="border-t border-white/5 px-6 py-10 text-sm text-ink-400">
-      <div className="mx-auto flex max-w-7xl items-center justify-between">
+      <div className="mx-auto flex max-w-7xl flex-col gap-6 md:flex-row md:items-start md:justify-between">
         <Logo size="sm" />
-        <div className="flex items-center gap-6">
+        <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs md:text-sm">
           <Link href="/how-it-works" className="hover:text-ink-100">How it works</Link>
+          <Link href="/help" className="hover:text-ink-100">Help</Link>
           <Link href="/operators" className="hover:text-ink-100">Operators</Link>
           <Link href="/buildings" className="hover:text-ink-100">Properties</Link>
+          <Link href="/legal/terms" className="hover:text-ink-100">Terms</Link>
+          <Link href="/legal/privacy" className="hover:text-ink-100">Privacy</Link>
+          <Link href="/legal/damage-policy" className="hover:text-ink-100">Damage</Link>
+          <Link href="/contact" className="hover:text-ink-100">Contact</Link>
+          <Link href="/status" className="hover:text-ink-100">Status</Link>
+          <Link href="/careers" className="hover:text-ink-100">Careers</Link>
+          <Link href="/press" className="hover:text-ink-100">Press</Link>
         </div>
-        <div>© {new Date().getFullYear()} Lavo, Inc.</div>
       </div>
+      <div className="mx-auto mt-8 max-w-7xl text-center text-xs text-ink-500">© {new Date().getFullYear()} Lavo, Inc.</div>
     </footer>
   );
 }

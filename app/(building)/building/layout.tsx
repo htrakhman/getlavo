@@ -6,6 +6,8 @@ import { BuildingSwitcher } from './BuildingSwitcher';
 
 const NAV = [
   { href: '/building', label: 'Overview' },
+  { href: '/building/comms', label: 'Comms kit' },
+  { href: '/building/broadcast', label: 'Broadcast' },
   { href: '/building/marketplace', label: 'My operator' },
   { href: '/building/contract', label: 'Contract' },
   { href: '/building/residents', label: 'Residents' },

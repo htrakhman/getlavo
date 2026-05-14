@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { MarketingNav, MarketingFooter } from '@/components/MarketingNav';
+import { EnterpriseLeadForm } from '@/components/EnterpriseLeadForm';
 
 export const metadata = { title: 'For apartment buildings · Lavo' };
 
@@ -62,8 +63,8 @@ export default function BuildingsPage() {
             },
             {
               icon: '🔒',
-              title: 'No liability',
-              body: "Payments go directly between residents and operators via Stripe. You're not touching money or managing service issues.",
+              title: 'Insurance you can show leadership',
+              body: "Every operator carries general liability and commercial auto insurance, with a COI on file naming your building as additional insured.",
             },
           ].map((item) => (
             <div key={item.title} className="card p-6">
@@ -100,6 +101,10 @@ export default function BuildingsPage() {
             </li>
           ))}
         </ol>
+      </section>
+
+      <section className="mx-auto max-w-4xl px-6 py-16">
+        <EnterpriseLeadForm />
       </section>
 
       {/* FAQ */}

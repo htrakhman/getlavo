@@ -1,6 +1,7 @@
 import { PageHeader } from '@/components/PortalShell';
 import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
 import { dateShort, money } from '@/lib/format';
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { PartnershipRequests } from './PartnershipRequests';
 
@@ -92,6 +93,9 @@ export default async function OperatorBookings() {
                         <div className={`mt-1 text-xs font-medium ${b.status === 'confirmed' ? 'text-gleam' : 'text-yellow-300'}`}>
                           {STATUS_LABEL[b.status] ?? b.status}
                         </div>
+                        <Link href={`/operator/bookings/${b.id}`} className="mt-2 inline-block text-xs text-gleam hover:underline">
+                          Photos & complete →
+                        </Link>
                       </div>
                     </div>
                   </div>

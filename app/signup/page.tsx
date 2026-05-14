@@ -26,6 +26,21 @@ function SignupForm() {
   const [captcha, setCaptcha] = useState<string | null>(null);
 
   useEffect(() => {
+    const b = params.get('building');
+    if (b && typeof window !== 'undefined') {
+      localStorage.setItem('lavo_building_slug', b);
+    }
+  }, [params]);
+
+  useEffect(() => {
+    const ref = params.get('ref');
+    const promo = params.get('promo');
+    if (typeof window === 'undefined') return;
+    if (ref) localStorage.setItem('lavo_referral_code', ref);
+    if (promo) localStorage.setItem('lavo_promo_code', promo);
+  }, [params]);
+
+  useEffect(() => {
     const tokenFromUrl = params.get('invite');
     const tokenFromStorage = typeof window !== 'undefined' ? localStorage.getItem('lavo_invite_token') : null;
     const token = tokenFromUrl ?? tokenFromStorage;
@@ -67,6 +82,16 @@ function SignupForm() {
       options: { data: { full_name: name, role, invite_token: inviteToken } },
     });
     if (error) { setErr(error.message); setBusy(false); return; }
+
+    const refCode = typeof window !== 'undefined' ? localStorage.getItem('lavo_referral_code') : null;
+    if (refCode && data.session) {
+      const r = await fetch('/api/referrals/attribute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: refCode }),
+      }).catch(() => null);
+      if (r?.ok && typeof window !== 'undefined') localStorage.removeItem('lavo_referral_code');
+    }
 
     if (inviteToken) {
       fetch('/api/building/invites/accept', {
