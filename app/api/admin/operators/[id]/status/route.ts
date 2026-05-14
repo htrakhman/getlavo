@@ -12,6 +12,10 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   if (profile?.role !== 'admin') return NextResponse.json({ error: 'forbidden' }, { status: 403 });
 
   const { status, rejectionReason } = await req.json();
+  const allowed = ['pending_review', 'approved', 'suspended', 'rejected'] as const;
+  if (!allowed.includes(status)) {
+    return NextResponse.json({ error: 'invalid status' }, { status: 400 });
+  }
   const admin = supabaseAdmin();
   await admin.from('operators').update({ status }).eq('id', params.id);
 

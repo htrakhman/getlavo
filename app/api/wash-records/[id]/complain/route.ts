@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { audit } from '@/lib/audit';
+import { escapeHtml } from '@/lib/html';
 
 export async function POST(req: Request, { params }: { params: { id: string } }) {
   const session = await getSessionUser();
@@ -40,7 +41,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         from: process.env.RESEND_FROM_EMAIL || 'Lavo <hello@getlavo.io>',
         to: process.env.ADMIN_EMAIL,
         subject: `Resident complaint: ${reason}`,
-        html: `<p>${details ?? ''}</p><p>Wash: ${params.id}</p><p>Resident: ${session.profile.email}</p>`,
+        html: `<p>${escapeHtml(details ?? '')}</p><p>Wash: ${escapeHtml(params.id)}</p><p>Resident: ${escapeHtml(session.profile.email)}</p>`,
       });
     } catch {}
   }
