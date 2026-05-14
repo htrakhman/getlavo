@@ -65,8 +65,11 @@ export default async function Home({
             </Suspense>
           </div>
           <div className="mt-12 border-t border-white/10 pt-10">
-            <p className="text-xs uppercase tracking-[0.18em] text-ink-300 mb-5">Operators and property teams</p>
-            <div className="mx-auto flex max-w-lg flex-col gap-3 sm:flex-row sm:justify-center">
+            <p className="text-xs uppercase tracking-[0.18em] text-ink-300 mb-5">Who are you?</p>
+            <div className="mx-auto flex max-w-2xl flex-col gap-3 sm:flex-row sm:justify-center">
+              <Link href="/signup?role=resident" className="w-full sm:flex-1 rounded-full border border-white/25 bg-white/5 px-5 py-3 text-center text-sm text-ink-100 transition-colors hover:border-white/40 hover:bg-white/10">
+                I&apos;m a resident
+              </Link>
               <Link href="/signup?role=operator" className="w-full sm:flex-1 rounded-full border border-white/25 bg-white/5 px-5 py-3 text-center text-sm text-ink-100 transition-colors hover:border-white/40 hover:bg-white/10">
                 I run a wash crew
               </Link>
