@@ -110,7 +110,7 @@ export default function OperatorsPage() {
         <div className="card p-6 space-y-3 text-sm text-ink-300">
           {[
             'Licensed and insured mobile detailing or car wash operation',
-            'Coverage area within the Lavo service region',
+            'Service radius you can reliably cover for wash days and on-demand bookings',
             'Ability to service a consistent weekly or bi-weekly schedule for partnered buildings',
             'A smartphone for the crew tool',
             'A Stripe-compatible bank account for payouts',

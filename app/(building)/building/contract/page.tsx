@@ -218,7 +218,7 @@ export default async function ContractPage() {
             <section>
               <h3 className="mb-3 font-display text-lg text-white">7. Governing Law</h3>
               <p>
-                This Agreement shall be governed by the laws of the State of New Jersey.
+                This Agreement shall be governed by the laws of the State of Delaware, without regard to its conflict of law principles.
               </p>
             </section>
 

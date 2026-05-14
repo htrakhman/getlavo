@@ -1,8 +1,9 @@
 import Link from 'next/link';
 import { Suspense } from 'react';
-import { Logo } from '@/components/Logo';
 import { MarketingNav, MarketingFooter } from '@/components/MarketingNav';
 import { CheckBuildingFlow } from '@/components/CheckBuildingFlow';
+import { getPublicWashPriceRangeCents } from '@/lib/marketing-pricing';
+import { money } from '@/lib/format';
 import { getSessionUser } from '@/lib/supabase/server';
 import { pickLandingPortal } from '@/lib/portal-routing';
 import { redirect } from 'next/navigation';
@@ -41,6 +42,7 @@ export default async function Home({
     if (session.profile.role === 'admin') redirect('/admin');
     redirect('/auth/pick-role');
   }
+  const priceRange = await getPublicWashPriceRangeCents();
   return (
     <main className="relative">
       <div className="absolute inset-x-0 top-0 h-[600px] bg-gleam-fade" />
@@ -79,18 +81,39 @@ export default async function Home({
         </div>
       </section>
 
-      <section className="relative mx-auto max-w-6xl px-6 py-12">
-        <div className="grid gap-6 md:grid-cols-2">
-          <div className="card p-6 text-center">
-            <div className="text-xs uppercase tracking-widest text-ink-500">Coverage</div>
-            <p className="mt-2 text-sm text-ink-200">Launching in Northern NJ first.</p>
-            <p className="mt-1 text-xs text-ink-500">Add your city from the building checker above.</p>
-          </div>
-          <div className="card p-6 text-center">
-            <div className="text-xs uppercase tracking-widest text-ink-500">Trust</div>
-            <p className="mt-2 text-sm text-ink-200">
-              Background-checked operators. Insured crews. Photo proof on every wash. Stripe secure payments.
+      <section className="relative mx-auto max-w-6xl px-6 py-14">
+        <div className="grid gap-5 md:grid-cols-3 md:gap-6">
+          <div className="card p-7 text-left ring-1 ring-inset ring-white/[0.04] transition-colors hover:border-white/10">
+            <div className="text-xs font-medium uppercase tracking-widest text-ink-500">Pricing</div>
+            <p className="mt-4 font-display text-2xl text-gleam leading-tight">
+              {money(priceRange?.min ?? 3500)} to {money(priceRange?.max ?? 6500)}
             </p>
+            <p className="mt-4 text-sm leading-relaxed text-ink-400">
+              Typical wash before add-ons. Your price is always confirmed before payment.
+            </p>
+          </div>
+          <div className="card p-7 text-left ring-1 ring-inset ring-white/[0.04] transition-colors hover:border-white/10">
+            <div className="text-xs font-medium uppercase tracking-widest text-ink-500">Coverage</div>
+            <p className="mt-4 font-display text-2xl text-gleam leading-tight">Nationwide</p>
+            <p className="mt-4 text-sm leading-relaxed text-ink-400">
+              We onboard buildings across the U.S. Search your address above—if yours is not live yet, we use it to route demand to operators in your market.
+            </p>
+          </div>
+          <div className="card p-7 text-left ring-1 ring-inset ring-white/[0.04] transition-colors hover:border-white/10">
+            <div className="text-xs font-medium uppercase tracking-widest text-ink-500">Trust</div>
+            <ul className="mt-4 space-y-3 text-sm text-ink-300">
+              {[
+                'Background-checked operators',
+                'Insured crews',
+                'Photo proof on every wash',
+                'Stripe secure payments',
+              ].map((line) => (
+                <li key={line} className="flex gap-3">
+                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-gleam/70" aria-hidden />
+                  <span className="leading-relaxed">{line}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </section>
