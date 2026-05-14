@@ -2,6 +2,7 @@
 import { Suspense } from 'react';
 import { Logo } from '@/components/Logo';
 import { supabaseBrowser } from '@/lib/supabase/client';
+import { pickLandingPortal, signupRoleFromPortalPrefer } from '@/lib/portal-routing';
 import { useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 
@@ -26,10 +27,11 @@ function LoginForm() {
     ]);
     if (pe) { setErr(`Profile error: ${pe.message}`); setBusy(false); return; }
     const portals = (portalRows ?? []).map((r: { portal: string }) => r.portal);
-    const firstPortal = portals[0] ?? null;
-    const dest = firstPortal === 'building' ? '/building'
-               : firstPortal === 'operator' ? '/operator'
-               : firstPortal === 'resident' ? '/resident'
+    const prefer = signupRoleFromPortalPrefer(params.get('prefer'));
+    const landing = pickLandingPortal(portals, prefer ?? p?.role ?? undefined);
+    const dest = landing === 'building' ? '/building'
+               : landing === 'operator' ? '/operator'
+               : landing === 'resident' ? '/resident'
                : p?.role === 'admin' ? '/admin'
                : '/auth/pick-role';
     window.location.href = dest;

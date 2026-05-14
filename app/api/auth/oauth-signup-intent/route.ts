@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-const ALLOWED = new Set(['building_manager', 'operator', 'resident']);
+import { normalizeSignupRole } from '@/lib/portal-routing';
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
-  const role = typeof body?.role === 'string' ? body.role : '';
-  if (!ALLOWED.has(role)) {
+  const role = normalizeSignupRole(typeof body?.role === 'string' ? body.role : undefined);
+  if (!role) {
     return NextResponse.json({ error: 'Invalid role' }, { status: 400 });
   }
 

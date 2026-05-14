@@ -1,10 +1,6 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextRequest, NextResponse } from 'next/server';
-
-function normalizeSignupRole(value: string | null | undefined): string | null {
-  if (value === 'building_manager' || value === 'operator' || value === 'resident') return value;
-  return null;
-}
+import { normalizeSignupRole, pickLandingPortal, portalForSignupRole } from '@/lib/portal-routing';
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
@@ -58,10 +54,7 @@ export async function GET(request: NextRequest) {
 
   const portals: string[] = (portalRows ?? []).map((r: { portal: string }) => r.portal);
 
-  const requestedPortal = role === 'building_manager' ? 'building'
-                        : role === 'operator' ? 'operator'
-                        : role === 'resident' ? 'resident'
-                        : null;
+  const requestedPortal = role ? portalForSignupRole(role) : null;
 
   let dest: string;
 
@@ -79,15 +72,10 @@ export async function GET(request: NextRequest) {
            : role === 'operator' ? '/operator/onboarding'
            : '/resident/onboarding';
     } else {
-      // Route to: requested portal → preferred portal by profile.role → first portal → pick-role
-      const preferredByRole = profile.role === 'building_manager' ? 'building'
-                            : profile.role === 'operator' ? 'operator'
-                            : profile.role === 'resident' ? 'resident'
-                            : null;
-      const target = requestedPortal
-                  ?? (preferredByRole && portals.includes(preferredByRole) ? preferredByRole : null)
-                  ?? portals[0]
-                  ?? null;
+      const target =
+        requestedPortal && portals.includes(requestedPortal)
+          ? requestedPortal
+          : pickLandingPortal(portals, profile.role);
       dest = target === 'building' ? '/building'
            : target === 'operator' ? '/operator'
            : target === 'resident' ? '/resident'

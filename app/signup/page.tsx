@@ -5,6 +5,7 @@ import { supabaseBrowser } from '@/lib/supabase/client';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Turnstile } from '@/components/Turnstile';
+import { defaultSignupRole, normalizeSignupRole, type SignupRole } from '@/lib/portal-routing';
 
 const ROLES = [
   { id: 'building_manager', label: 'Property Manager', sub: 'I manage an apartment building, parking garage, or any property with a parking structure' },
@@ -15,9 +16,7 @@ const ROLES = [
 function SignupForm() {
   const params = useSearchParams();
   const router = useRouter();
-  const [role, setRole] = useState<typeof ROLES[number]['id']>(
-    (params.get('role') as any) || 'building_manager'
-  );
+  const [role, setRole] = useState<SignupRole>(() => normalizeSignupRole(params.get('role')) ?? defaultSignupRole());
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -40,6 +39,15 @@ function SignupForm() {
         if (d.fullName) setName(d.fullName);
       })
       .catch(() => {});
+  }, [params]);
+
+  useEffect(() => {
+    const invite =
+      params.get('invite') ??
+      (typeof window !== 'undefined' ? localStorage.getItem('lavo_invite_token') : null);
+    if (invite) return;
+    const parsed = normalizeSignupRole(params.get('role'));
+    if (parsed) setRole(parsed);
   }, [params]);
 
   async function submit(e: React.FormEvent) {
@@ -97,7 +105,8 @@ function SignupForm() {
       const { error } = await sb.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          // Query param survives OAuth round-trip if the cookie does not; callback reads `role` first.
+          redirectTo: `${window.location.origin}/auth/callback?role=${encodeURIComponent(role)}`,
         },
       });
       if (error) setErr(error.message);

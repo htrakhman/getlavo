@@ -3,12 +3,13 @@ import { Logo } from '@/components/Logo';
 import { MarketingNav, MarketingFooter } from '@/components/MarketingNav';
 import { BuildingInterestCTA } from '@/components/BuildingInterestCTA';
 import { getSessionUser } from '@/lib/supabase/server';
+import { pickLandingPortal } from '@/lib/portal-routing';
 import { redirect } from 'next/navigation';
 
 export default async function Home() {
   const session = await getSessionUser();
   if (session) {
-    const portal = session.portals[0] ?? null;
+    const portal = pickLandingPortal(session.portals, session.profile.role);
     if (portal === 'building') redirect('/building');
     if (portal === 'operator') redirect('/operator');
     if (portal === 'resident') redirect('/resident');

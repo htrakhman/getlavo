@@ -4,9 +4,9 @@ import { Logo } from './Logo';
 import { useEffect, useRef, useState } from 'react';
 
 const ROLES = [
-  { label: 'Property Manager', href_signin: '/login' },
-  { label: 'Car Wash Operator', href_signin: '/login' },
-  { label: 'Resident',          href_signin: '/login' },
+  { label: 'Property Manager', href_signin: '/login?prefer=building' },
+  { label: 'Car Wash Operator', href_signin: '/login?prefer=operator' },
+  { label: 'Resident', href_signin: '/login?prefer=resident' },
 ];
 
 function NavDropdown({ trigger, children }: { trigger: React.ReactNode; children: React.ReactNode }) {
