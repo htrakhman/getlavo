@@ -9,7 +9,31 @@ import { getSessionUser } from '@/lib/supabase/server';
 import { pickLandingPortal } from '@/lib/portal-routing';
 import { redirect } from 'next/navigation';
 
-export default async function Home() {
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Record<string, string | string[] | undefined>;
+}) {
+  // Supabase may redirect to SITE_URL (this page) instead of /auth/callback when
+  // the callback URL isn't in its allowlist. Forward the params so the session
+  // gets established correctly.
+  const code = typeof searchParams.code === 'string' ? searchParams.code : null;
+  const tokenHash = typeof searchParams.token_hash === 'string' ? searchParams.token_hash : null;
+  const type = typeof searchParams.type === 'string' ? searchParams.type : null;
+  const role = typeof searchParams.role === 'string' ? searchParams.role : null;
+
+  if (code) {
+    const qs = new URLSearchParams({ code });
+    if (role) qs.set('role', role);
+    redirect(`/auth/callback?${qs.toString()}`);
+  }
+
+  if (tokenHash && type) {
+    const qs = new URLSearchParams({ token_hash: tokenHash, type });
+    if (role) qs.set('role', role);
+    redirect(`/auth/confirm?${qs.toString()}`);
+  }
+
   const session = await getSessionUser();
   if (session) {
     const portal = pickLandingPortal(session.portals, session.profile.role);

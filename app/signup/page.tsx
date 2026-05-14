@@ -122,10 +122,15 @@ function SignupForm() {
     }
 
     const sb = supabaseBrowser();
+    const confirmUrl = new URL('/auth/confirm', window.location.origin);
+    confirmUrl.searchParams.set('role', role);
     const { data, error } = await sb.auth.signUp({
       email,
       password,
-      options: { data: { full_name: name, role, invite_token: inviteToken } },
+      options: {
+        data: { full_name: name, role, invite_token: inviteToken },
+        emailRedirectTo: confirmUrl.toString(),
+      },
     });
     if (error) {
       setErr(error.message);
