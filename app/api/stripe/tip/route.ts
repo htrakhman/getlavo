@@ -32,14 +32,17 @@ export async function POST(req: Request) {
   const dest = op?.stripe_account_id;
   if (!dest) return NextResponse.json({ error: 'operator not connected' }, { status: 400 });
 
-  const pi = await stripe.paymentIntents.create({
-    amount: amountCents,
-    currency: 'usd',
-    automatic_payment_methods: { enabled: true },
-    application_fee_amount: 0,
-    transfer_data: { destination: dest },
-    metadata: { booking_id: bookingId, kind: 'tip' },
-  });
+  const pi = await stripe.paymentIntents.create(
+    {
+      amount: amountCents,
+      currency: 'usd',
+      automatic_payment_methods: { enabled: true },
+      application_fee_amount: 0,
+      transfer_data: { destination: dest },
+      metadata: { booking_id: bookingId, kind: 'tip' },
+    },
+    { idempotencyKey: `tip:${bookingId}:${amountCents}` }
+  );
 
   await admin.from('bookings').update({ tip_cents: amountCents }).eq('id', bookingId);
 

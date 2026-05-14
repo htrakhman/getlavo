@@ -62,10 +62,7 @@ export default async function AdminOverview() {
               ))}
             </ul>
           ) : (
-            <div className="text-sm text-ink-400">
-              <p>No buildings yet.</p>
-              <a href="/admin/buildings/new" className="mt-2 inline-block text-xs text-gleam">Add first building →</a>
-            </div>
+            <p className="text-sm text-ink-400">No buildings yet.</p>
           )}
         </div>
       </div>

@@ -1,29 +1,30 @@
 import { NextResponse } from 'next/server';
+import { getSessionUser } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { notify } from '@/lib/notify';
+import { loadWashForOperator } from '@/lib/auth/wash-ownership';
+import { escapeHtml } from '@/lib/html';
 
 export async function POST(req: Request, { params }: { params: { id: string } }) {
+  const session = await getSessionUser();
+  if (!session) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+
   const { reason, notes } = await req.json().catch(() => ({}));
-  const sb = supabaseAdmin();
 
-  const { data: wash } = await sb
-    .from('washes')
-    .select('resident:residents(profile_id)')
-    .eq('id', params.id)
-    .maybeSingle();
+  const admin = supabaseAdmin();
+  const check = await loadWashForOperator(admin, params.id, session.user.id);
+  if (!check.ok) return NextResponse.json({ error: check.error }, { status: check.status });
 
-  await sb.from('washes').update({
+  await admin.from('washes').update({
     status: 'flagged',
     flag_reason: reason,
     crew_notes: notes ?? null,
   }).eq('id', params.id);
 
-  const profileId = (wash?.resident as any)?.profile_id;
-  if (profileId) {
-    await notify(profileId, 'wash_flagged', { reason });
+  if (check.ctx.residentProfileId) {
+    await notify(check.ctx.residentProfileId, 'wash_flagged', { reason });
   }
 
-  // Best-effort admin email
   if (process.env.ADMIN_EMAIL && process.env.RESEND_API_KEY) {
     try {
       const { Resend } = await import('resend');
@@ -32,7 +33,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         from: process.env.RESEND_FROM_EMAIL || 'Lavo <hello@getlavo.io>',
         to: process.env.ADMIN_EMAIL,
         subject: 'Wash flagged',
-        html: `<p>A wash record was flagged.</p><p>Reason: ${reason}</p><p>Notes: ${notes ?? ''}</p>`,
+        html: `<p>A wash record was flagged.</p><p>Reason: ${escapeHtml(reason)}</p><p>Notes: ${escapeHtml(notes ?? '')}</p>`,
       });
     } catch {}
   }
