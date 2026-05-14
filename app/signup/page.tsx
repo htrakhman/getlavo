@@ -2,7 +2,7 @@
 import { Suspense } from 'react';
 import { Logo } from '@/components/Logo';
 import { supabaseBrowser } from '@/lib/supabase/client';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Turnstile } from '@/components/Turnstile';
 import { defaultSignupRole, normalizeSignupRole, type SignupRole } from '@/lib/portal-routing';
@@ -15,13 +15,13 @@ const ROLES = [
 
 function SignupForm() {
   const params = useSearchParams();
-  const router = useRouter();
   const [role, setRole] = useState<SignupRole>(() => normalizeSignupRole(params.get('role')) ?? defaultSignupRole());
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
   const [inviteToken, setInviteToken] = useState<string | null>(null);
   const [captcha, setCaptcha] = useState<string | null>(null);
 
@@ -52,7 +52,7 @@ function SignupForm() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    setBusy(true); setErr(null);
+    setBusy(true); setErr(null); setInfo(null);
 
     const ver = await fetch('/api/captcha/verify', {
       method: 'POST',
@@ -77,10 +77,16 @@ function SignupForm() {
       if (typeof window !== 'undefined') localStorage.removeItem('lavo_invite_token');
     }
 
+    if (!data.session) {
+      setBusy(false);
+      setInfo('Check your email to confirm your address, then sign in. After you confirm, you will be sent to the right portal.');
+      return;
+    }
+
     const dest = role === 'building_manager' ? '/building/onboarding'
                : role === 'operator' ? '/operator/onboarding'
                : '/resident/onboarding';
-    router.push(dest);
+    window.location.href = dest;
   }
 
   async function signUpWithGoogle() {
@@ -105,8 +111,8 @@ function SignupForm() {
       const { error } = await sb.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          // Query param survives OAuth round-trip if the cookie does not; callback reads `role` first.
-          redirectTo: `${window.location.origin}/auth/callback?role=${encodeURIComponent(role)}`,
+          // Path-based callback so redirect allowlists cannot drop a query string; cookie + metadata are fallbacks.
+          redirectTo: `${window.location.origin}/auth/callback/${encodeURIComponent(role)}`,
         },
       });
       if (error) setErr(error.message);
@@ -166,6 +172,7 @@ function SignupForm() {
             <input className="field" type="password" required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} />
           </div>
           <Turnstile onToken={setCaptcha} />
+          {info && <div className="text-sm text-emerald-400/90">{info}</div>}
           {err && <div className="text-sm text-red-400">{err}</div>}
           <button disabled={busy || !captcha} className="btn-primary w-full">{busy ? 'Creating…' : 'Create account'}</button>
         </form>
