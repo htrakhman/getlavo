@@ -30,6 +30,8 @@ export default function ResidentOnboarding() {
 
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [buildingNotFound, setBuildingNotFound] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const slug = typeof window !== 'undefined' ? localStorage.getItem('lavo_building_slug') : null;
@@ -160,9 +162,53 @@ export default function ResidentOnboarding() {
                 <option key={b.id} value={b.id}>{b.name} — {b.city}</option>
               ))}
             </select>
-            <p className="mt-1 text-xs text-ink-500">
-              Don't see your building? Ask your property manager to add it at getlavo.io.
-            </p>
+            <button
+              type="button"
+              onClick={() => setBuildingNotFound((v) => !v)}
+              className="mt-1 text-xs text-gleam underline underline-offset-2 hover:opacity-80"
+            >
+              Don't see your building?
+            </button>
+
+            {buildingNotFound && (
+              <div className="mt-3 rounded-xl border border-gleam/30 bg-white/5 p-4 text-sm space-y-3">
+                <p className="text-ink-200">
+                  Forward this message to your property manager so they can add your building to Lavo:
+                </p>
+                <div className="rounded-lg bg-black/40 p-3 text-xs text-ink-300 leading-relaxed whitespace-pre-wrap">
+{`Hi,
+
+I'd love to use Lavo for car care at our building, but it isn't listed yet on their resident portal.
+
+Could you reach out to the Lavo team to get our property set up? It's free for the building — residents just pay for the service.
+
+More info for property managers: https://getlavo.io
+
+Thanks!`}
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(
+                        `Hi,\n\nI'd love to use Lavo for car care at our building, but it isn't listed yet on their resident portal.\n\nCould you reach out to the Lavo team to get our property set up? It's free for the building — residents just pay for the service.\n\nMore info for property managers: https://getlavo.io\n\nThanks!`
+                      );
+                      setCopied(true);
+                      setTimeout(() => setCopied(false), 2000);
+                    }}
+                    className="btn-secondary text-xs px-3 py-1.5"
+                  >
+                    {copied ? 'Copied!' : 'Copy message'}
+                  </button>
+                  <a
+                    href={`mailto:?subject=Lavo%20Car%20Care%20for%20Our%20Building&body=${encodeURIComponent(`Hi,\n\nI'd love to use Lavo for car care at our building, but it isn't listed yet on their resident portal.\n\nCould you reach out to the Lavo team to get our property set up? It's free for the building — residents just pay for the service.\n\nMore info for property managers: https://getlavo.io\n\nThanks!`)}`}
+                    className="btn-secondary text-xs px-3 py-1.5"
+                  >
+                    Open in email
+                  </a>
+                </div>
+              </div>
+            )}
           </div>
 
           {building && (
