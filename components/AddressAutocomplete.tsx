@@ -89,8 +89,7 @@ export function AddressAutocomplete({
     const t = setTimeout(async () => {
       lastQuery.current = q;
       try {
-        const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=6&lang=en`;
-        const res = await fetch(url);
+        const res = await fetch(`/api/address/suggest?q=${encodeURIComponent(q)}`);
         if (!res.ok) return;
         const data = await res.json();
         let feats: PhotonFeature[] = data.features ?? [];
