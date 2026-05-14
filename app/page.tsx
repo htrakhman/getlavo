@@ -66,12 +66,12 @@ export default async function Home({
             </Suspense>
           </div>
           <div className="mt-12 border-t border-white/10 pt-10">
-            <p className="text-xs uppercase tracking-[0.18em] text-ink-500 mb-4">Operators and property teams</p>
+            <p className="text-xs uppercase tracking-[0.18em] text-ink-400 mb-5">Operators and property teams</p>
             <div className="mx-auto flex max-w-lg flex-col gap-3 sm:flex-row sm:justify-center">
-              <Link href="/signup?role=operator" className="btn-ghost w-full px-5 py-3 text-center text-sm sm:flex-1">
+              <Link href="/signup?role=operator" className="w-full rounded-xl border border-white/20 bg-white/8 px-5 py-3.5 text-center text-sm font-medium text-white transition hover:border-white/40 hover:bg-white/12 sm:flex-1">
                 I run a wash crew
               </Link>
-              <Link href="/signup?role=building_manager" className="btn-ghost w-full px-5 py-3 text-center text-sm sm:flex-1">
+              <Link href="/signup?role=building_manager" className="w-full rounded-xl border border-white/20 bg-white/8 px-5 py-3.5 text-center text-sm font-medium text-white transition hover:border-white/40 hover:bg-white/12 sm:flex-1">
                 I manage a property
               </Link>
             </div>
@@ -83,8 +83,8 @@ export default async function Home({
         <div className="grid gap-6 md:grid-cols-2">
           <div className="card p-6 text-center">
             <div className="text-xs uppercase tracking-widest text-ink-500">Coverage</div>
-            <p className="mt-2 text-sm text-ink-200">Launching in Northern NJ first.</p>
-            <p className="mt-1 text-xs text-ink-500">Add your city from the building checker above.</p>
+            <p className="mt-2 text-sm text-ink-200">Expanding to new cities.</p>
+            <p className="mt-1 text-xs text-ink-500">Add your building from the checker above.</p>
           </div>
           <div className="card p-6 text-center">
             <div className="text-xs uppercase tracking-widest text-ink-500">Trust</div>
