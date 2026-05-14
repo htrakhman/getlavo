@@ -3,8 +3,6 @@ import { Suspense } from 'react';
 import { Logo } from '@/components/Logo';
 import { MarketingNav, MarketingFooter } from '@/components/MarketingNav';
 import { CheckBuildingFlow } from '@/components/CheckBuildingFlow';
-import { getPublicWashPriceRangeCents } from '@/lib/marketing-pricing';
-import { money } from '@/lib/format';
 import { getSessionUser } from '@/lib/supabase/server';
 import { pickLandingPortal } from '@/lib/portal-routing';
 import { redirect } from 'next/navigation';
@@ -43,7 +41,6 @@ export default async function Home({
     if (session.profile.role === 'admin') redirect('/admin');
     redirect('/auth/pick-role');
   }
-  const priceRange = await getPublicWashPriceRangeCents();
   return (
     <main className="relative">
       <div className="absolute inset-x-0 top-0 h-[600px] bg-gleam-fade" />
@@ -83,14 +80,7 @@ export default async function Home({
       </section>
 
       <section className="relative mx-auto max-w-6xl px-6 py-12">
-        <div className="grid gap-6 md:grid-cols-3">
-          <div className="card p-6 text-center">
-            <div className="text-xs uppercase tracking-widest text-ink-500">Pricing</div>
-            <p className="mt-2 font-display text-2xl text-gleam">
-              {money(priceRange?.min ?? 3500)} to {money(priceRange?.max ?? 6500)}
-            </p>
-            <p className="mt-2 text-sm text-ink-400">Typical wash before add-ons. Your price is always confirmed before payment.</p>
-          </div>
+        <div className="grid gap-6 md:grid-cols-2">
           <div className="card p-6 text-center">
             <div className="text-xs uppercase tracking-widest text-ink-500">Coverage</div>
             <p className="mt-2 text-sm text-ink-200">Launching in Northern NJ first.</p>
