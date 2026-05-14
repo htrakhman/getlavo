@@ -166,6 +166,9 @@ export default async function Home({
             <p className="text-ink-300 text-sm leading-relaxed">
               Scan your building's QR, pick a date, pay. Your car gets washed at the building wash day rate, or book an on-demand slot any day the operator is available.
             </p>
+            <Link href="/signup?role=resident" className="mt-5 inline-block text-sm text-gleam hover:text-gleam-300 transition-colors">
+              Residents →
+            </Link>
           </div>
         </div>
       </section>
