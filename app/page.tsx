@@ -222,7 +222,105 @@ export default async function Home({
         </div>
       </section>
 
-      <section className="relative mx-auto max-w-3xl px-6 py-16">
+      {/* Operator features */}
+      <section className="relative mx-auto max-w-6xl px-6 py-20 border-t border-white/10">
+        <div className="grid grid-cols-1 gap-12 lg:grid-cols-2 items-center">
+          <div>
+            <div className="text-xs uppercase tracking-[0.18em] text-gleam mb-3">For operators</div>
+            <h2 className="font-display text-4xl font-semibold tracking-tight leading-[1.1] md:text-5xl mb-3">
+              Recurring revenue, <span className="gleam-text">no marketing</span>
+            </h2>
+            <p className="text-ink-400 text-sm leading-relaxed max-w-md mb-8">
+              Partner with apartment buildings and get a guaranteed customer base. Fill open slots with on-demand bookings between visits.
+            </p>
+            <ul className="space-y-5 text-sm text-ink-300">
+              {[
+                'Buildings bring the residents — you show up and wash',
+                'Set your own rates for scheduled wash days and open slots',
+                'Stripe payouts directly to your account after each wash',
+                'Manage your schedule, capacity, and service radius from your dashboard',
+                'Build your reputation with verified reviews from real residents',
+              ].map((text) => (
+                <li key={text} className="flex gap-3.5">
+                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-gleam/70" aria-hidden />
+                  <span className="leading-relaxed">{text}</span>
+                </li>
+              ))}
+            </ul>
+            <Link href="/signup?role=operator" className="mt-8 inline-block text-sm text-gleam hover:text-gleam-300 transition-colors">
+              Apply as an operator →
+            </Link>
+          </div>
+          <div className="rounded-2xl border border-white/15 bg-ink-900/85 p-8 shadow-card backdrop-blur-xl ring-1 ring-inset ring-white/[0.06] space-y-5">
+            <div>
+              <div className="text-xs font-medium uppercase tracking-[0.18em] text-gleam">Building partnerships</div>
+              <p className="mt-2 text-sm leading-relaxed text-ink-200">
+                Apply to partner with buildings in your area. Once approved, you run scheduled wash days and get direct access to their residents.
+              </p>
+            </div>
+            <div className="border-t border-white/15 pt-5">
+              <div className="text-xs font-medium uppercase tracking-[0.18em] text-gleam">Open-slot bookings</div>
+              <p className="mt-2 text-sm leading-relaxed text-ink-200">
+                Residents can book you on any day you mark available — at your open-slot rate. Fill dead days without lifting a finger on marketing.
+              </p>
+            </div>
+            <p className="text-xs leading-relaxed text-ink-400">
+              Background check required. Stripe Connect onboarding takes under 10 minutes.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Property manager features */}
+      <section className="relative mx-auto max-w-6xl px-6 py-20 border-t border-white/10">
+        <div className="grid grid-cols-1 gap-12 lg:grid-cols-2 items-center">
+          <div>
+            <div className="text-xs uppercase tracking-[0.18em] text-gleam mb-3">For property managers</div>
+            <h2 className="font-display text-4xl font-semibold tracking-tight leading-[1.1] md:text-5xl mb-3">
+              A premium amenity, <span className="gleam-text">zero cost</span>
+            </h2>
+            <p className="text-ink-400 text-sm leading-relaxed max-w-md mb-8">
+              Add Lavo to your building in minutes. Residents get a curated car wash experience. You get a talking point for every lease renewal.
+            </p>
+            <ul className="space-y-5 text-sm text-ink-300">
+              {[
+                'Free to add — Lavo never charges the building',
+                'We vet and insure every operator before they set foot on your property',
+                'Share a QR code or link — residents sign up themselves',
+                'Monthly wash-day summary you can drop into your resident newsletter',
+                'Works with any garage or surface lot setup',
+              ].map((text) => (
+                <li key={text} className="flex gap-3.5">
+                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-gleam/70" aria-hidden />
+                  <span className="leading-relaxed">{text}</span>
+                </li>
+              ))}
+            </ul>
+            <Link href="/signup?role=building_manager" className="mt-8 inline-block text-sm text-gleam hover:text-gleam-300 transition-colors">
+              Get your building link →
+            </Link>
+          </div>
+          <div className="rounded-2xl border border-white/15 bg-ink-900/85 p-8 shadow-card backdrop-blur-xl ring-1 ring-inset ring-white/[0.06] space-y-5">
+            <div>
+              <div className="text-xs font-medium uppercase tracking-[0.18em] text-gleam">Setup</div>
+              <p className="mt-2 text-sm leading-relaxed text-ink-200">
+                Create your building profile, set your garage layout, and generate a shareable resident link — all in under 5 minutes.
+              </p>
+            </div>
+            <div className="border-t border-white/15 pt-5">
+              <div className="text-xs font-medium uppercase tracking-[0.18em] text-gleam">Ongoing</div>
+              <p className="mt-2 text-sm leading-relaxed text-ink-200">
+                Operators handle scheduling, payments, and resident communication. You just watch the amenity run itself.
+              </p>
+            </div>
+            <p className="text-xs leading-relaxed text-ink-400">
+              No contracts. No fees. Cancel any time.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="relative mx-auto max-w-3xl px-6 py-16 border-t border-white/10">
         <div className="text-center mb-10">
           <div className="text-xs uppercase tracking-[0.18em] text-gleam mb-2">FAQ</div>
           <h2 className="font-display text-3xl">Questions we hear a lot</h2>
