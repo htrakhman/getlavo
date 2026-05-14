@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
+import { portalKindFromProfileRole } from '@/lib/portal-routing';
 
 export function supabaseServer() {
   const cookieStore = cookies();
@@ -32,6 +33,11 @@ export function supabaseAdmin() {
 
 export type Portal = 'building' | 'operator' | 'resident';
 
+function portalsFromProfileRole(role: string | null | undefined): Portal[] {
+  const k = portalKindFromProfileRole(role);
+  return k ? [k] : [];
+}
+
 export async function getSessionUser() {
   const sb = supabaseServer();
   const { data: { user } } = await sb.auth.getUser();
@@ -41,6 +47,7 @@ export async function getSessionUser() {
     sb.from('profile_portals').select('portal').eq('profile_id', user.id),
   ]);
   if (!profile) return null;
-  const portals = (portalRows ?? []).map((r) => r.portal as Portal);
+  const fromJunction = (portalRows ?? []).map((r) => r.portal as Portal);
+  const portals = fromJunction.length > 0 ? fromJunction : portalsFromProfileRole(profile.role as string | null);
   return { user, profile, portals };
 }

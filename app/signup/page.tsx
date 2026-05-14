@@ -158,7 +158,10 @@ function SignupForm() {
       return;
     }
 
-    window.location.href = homePathForSignupRole(role);
+    // Let the browser client persist the session to cookies before a hard navigation (SSR reads them on /resident, etc.).
+    await sb.auth.getSession();
+    setBusy(false);
+    window.location.assign(homePathForSignupRole(role));
   }
 
   async function signUpWithGoogle() {

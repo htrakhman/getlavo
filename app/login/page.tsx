@@ -2,7 +2,7 @@
 import { Suspense } from 'react';
 import { Logo } from '@/components/Logo';
 import { supabaseBrowser } from '@/lib/supabase/client';
-import { pickLandingPortal, signupRoleFromPortalPrefer } from '@/lib/portal-routing';
+import { pickLandingPortal, signupHrefFromPortalPrefer, signupRoleFromPortalPrefer } from '@/lib/portal-routing';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
@@ -85,7 +85,10 @@ function LoginForm() {
         </div>
 
         <div className="mt-6 text-center text-sm text-ink-400">
-          New here? <a href="/signup" className="text-gleam">Create an account</a>
+          New here?{' '}
+          <a href={signupHrefFromPortalPrefer(params.get('prefer'))} className="text-gleam">
+            Create an account
+          </a>
         </div>
       </div>
     </main>

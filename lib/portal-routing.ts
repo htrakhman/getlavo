@@ -33,6 +33,22 @@ export function signupRoleFromPortalPrefer(value: string | null | undefined): Si
   return null;
 }
 
+/** Sign-up URL that matches “Sign in as …” (`?prefer=`) from the marketing nav. */
+export function signupHrefFromPortalPrefer(prefer: string | null | undefined): string {
+  const r = signupRoleFromPortalPrefer(prefer);
+  return r ? `/signup?role=${encodeURIComponent(r)}` : '/signup';
+}
+
+/**
+ * Infer portal_kind from profiles.role when profile_portals has no rows yet.
+ */
+export function portalKindFromProfileRole(role: string | null | undefined): PortalKind | null {
+  if (role === 'building_manager') return 'building';
+  if (role === 'operator') return 'operator';
+  if (role === 'resident') return 'resident';
+  return null;
+}
+
 /**
  * Pick which portal to open when a user has one or more portals.
  * Prefer the role hint when that portal is present; otherwise a stable priority (not arbitrary DB order).
@@ -51,5 +67,7 @@ export function pickLandingPortal(
   for (const p of priority) {
     if (portals.includes(p)) return p;
   }
+  // profile.role can be set while profile_portals is still empty (trigger timing / legacy rows).
+  if (preferred) return preferred;
   return null;
 }
