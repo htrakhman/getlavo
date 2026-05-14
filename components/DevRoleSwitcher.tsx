@@ -8,7 +8,7 @@ const PORTALS = [
 ] as const;
 
 // Shown in the sidebar when the user has multiple portals (e.g. a dev/admin account).
-export function DevRoleSwitcher({ currentPortal }: { currentPortal: string }) {
+export function DevRoleSwitcher({ currentPortal, portals }: { currentPortal: string; portals?: string[] }) {
   const [busy, setBusy] = useState(false);
 
   function switchTo(dest: string) {
@@ -17,13 +17,19 @@ export function DevRoleSwitcher({ currentPortal }: { currentPortal: string }) {
     window.location.href = dest;
   }
 
+  const available = portals && portals.length > 0
+    ? PORTALS.filter((p) => portals.includes(p.portal))
+    : PORTALS;
+
+  if (available.length < 2) return null;
+
   return (
     <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/10 p-3">
       <div className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-yellow-400">
         Switch portal
       </div>
       <div className="flex flex-col gap-1">
-        {PORTALS.map((p) => (
+        {available.map((p) => (
           <button
             key={p.portal}
             onClick={() => switchTo(p.dest)}

@@ -8,7 +8,14 @@ import { redirect } from 'next/navigation';
 export default async function Home() {
   const session = await getSessionUser();
   if (session) {
-    const portal = session.portals[0] ?? null;
+    const portals = session.portals;
+    const preferredByRole = session.profile.role === 'building_manager' ? 'building'
+                          : session.profile.role === 'operator' ? 'operator'
+                          : session.profile.role === 'resident' ? 'resident'
+                          : null;
+    const portal = (preferredByRole && portals.includes(preferredByRole) ? preferredByRole : null)
+                ?? portals[0]
+                ?? null;
     if (portal === 'building') redirect('/building');
     if (portal === 'operator') redirect('/operator');
     if (portal === 'resident') redirect('/resident');

@@ -25,7 +25,7 @@ export function PortalShell({
         </nav>
         <div className="mt-auto flex flex-col gap-3">
           {portals && portals.length > 1 && currentPortal && (
-            <DevRoleSwitcher currentPortal={currentPortal} />
+            <DevRoleSwitcher currentPortal={currentPortal} portals={portals} />
           )}
           <div className="rounded-xl border border-white/5 bg-white/5 p-3">
             <div className="text-sm font-medium text-ink-100">{user.name}</div>

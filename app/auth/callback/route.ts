@@ -54,12 +54,13 @@ export async function GET(request: NextRequest) {
   if (profile) {
     if (requestedPortal && !portals.includes(requestedPortal)) {
       // Existing user accessing a new portal type — add it and send to onboarding
-      const [{ error: portalErr }] = await Promise.all([
+      const [{ error: portalErr }, { error: roleErr }] = await Promise.all([
         supabase.from('profile_portals').upsert({ profile_id: user.id, portal: requestedPortal }),
         supabase.from('profiles').update({ role }).eq('id', user.id),
       ]);
-      if (portalErr) {
-        return NextResponse.redirect(`${origin}/auth/pick-role?error=${encodeURIComponent(portalErr.message)}`);
+      if (portalErr || roleErr) {
+        const msg = (portalErr ?? roleErr)!.message;
+        return NextResponse.redirect(`${origin}/auth/pick-role?error=${encodeURIComponent(msg)}`);
       }
       dest = role === 'building_manager' ? '/building/onboarding'
            : role === 'operator' ? '/operator/onboarding'
@@ -88,12 +89,15 @@ export async function GET(request: NextRequest) {
       user.email?.split('@')[0] ||
       '';
 
-    await supabase.from('profiles').upsert({
+    const { error: profileErr } = await supabase.from('profiles').upsert({
       id: user.id,
       role,
       full_name: fullName,
       email: user.email!,
     });
+    if (profileErr) {
+      return NextResponse.redirect(`${origin}/auth/pick-role?error=${encodeURIComponent(profileErr.message)}`);
+    }
     const { error: portalErr } = await supabase.from('profile_portals').upsert({ profile_id: user.id, portal: requestedPortal });
     if (portalErr) {
       return NextResponse.redirect(`${origin}/auth/pick-role?error=${encodeURIComponent(portalErr.message)}`);

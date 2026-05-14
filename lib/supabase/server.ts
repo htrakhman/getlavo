@@ -37,7 +37,7 @@ export async function getSessionUser() {
   const { data: { user } } = await sb.auth.getUser();
   if (!user) return null;
   const [{ data: profile }, { data: portalRows }] = await Promise.all([
-    sb.from('profiles').select('*').eq('id', user.id).single(),
+    sb.from('profiles').select('*').eq('id', user.id).maybeSingle(),
     sb.from('profile_portals').select('portal').eq('profile_id', user.id),
   ]);
   if (!profile) return null;

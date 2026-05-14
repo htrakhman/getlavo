@@ -26,10 +26,16 @@ function LoginForm() {
     ]);
     if (pe) { setErr(`Profile error: ${pe.message}`); setBusy(false); return; }
     const portals = (portalRows ?? []).map((r: { portal: string }) => r.portal);
-    const firstPortal = portals[0] ?? null;
-    const dest = firstPortal === 'building' ? '/building'
-               : firstPortal === 'operator' ? '/operator'
-               : firstPortal === 'resident' ? '/resident'
+    const preferredByRole = p?.role === 'building_manager' ? 'building'
+                          : p?.role === 'operator' ? 'operator'
+                          : p?.role === 'resident' ? 'resident'
+                          : null;
+    const target = (preferredByRole && portals.includes(preferredByRole) ? preferredByRole : null)
+                ?? portals[0]
+                ?? null;
+    const dest = target === 'building' ? '/building'
+               : target === 'operator' ? '/operator'
+               : target === 'resident' ? '/resident'
                : p?.role === 'admin' ? '/admin'
                : '/auth/pick-role';
     window.location.href = dest;
