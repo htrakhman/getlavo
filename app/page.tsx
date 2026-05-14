@@ -201,6 +201,9 @@ export default async function Home({
                 </li>
               ))}
             </ul>
+            <Link href="/signup?role=resident" className="mt-8 inline-block text-sm text-gleam hover:text-gleam-300 transition-colors">
+              Sign up as a resident →
+            </Link>
           </div>
           <div className="rounded-2xl border border-white/15 bg-ink-900/85 p-8 shadow-card backdrop-blur-xl ring-1 ring-inset ring-white/[0.06] space-y-5">
             <div>
