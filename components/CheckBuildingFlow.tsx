@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { PlacesAutocomplete } from '@/components/PlacesAutocomplete';
+import { AddressAutocomplete, type ParsedAddress } from '@/components/AddressAutocomplete';
 import { money } from '@/lib/format';
 
 type MatchA = {
@@ -31,18 +31,21 @@ type Match = MatchA | MatchB | MatchC;
 
 export function CheckBuildingFlow() {
   const sessionToken = useMemo(() => (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}`), []);
+  const [addressInput, setAddressInput] = useState('');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [match, setMatch] = useState<Match | null>(null);
 
-  async function resolvePlace(placeId: string) {
+  async function resolveAddress(parsed: ParsedAddress) {
+    const formattedAddress = [parsed.street, parsed.city, parsed.state, parsed.postal].filter(Boolean).join(', ');
+    const displayName = parsed.name || parsed.street;
     setBusy(true);
     setErr(null);
     try {
       const res = await fetch('/api/building-funnel/match', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ placeId, sessionToken }),
+        body: JSON.stringify({ formattedAddress, displayName, lat: parsed.lat, lng: parsed.lng, sessionToken }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -56,7 +59,6 @@ export function CheckBuildingFlow() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           buildingCandidateKey: data.candidateKey,
-          placeId: data.place?.placeId,
           formattedAddress: data.place?.formattedAddress,
           buildingName: data.place?.displayName,
           channel: 'check_flow',
@@ -74,7 +76,16 @@ export function CheckBuildingFlow() {
     <div className="mx-auto w-full max-w-lg space-y-6 text-left">
       {!match && (
         <>
-          <PlacesAutocomplete disabled={busy} onPickPlaceId={(pid) => resolvePlace(pid)} />
+          <AddressAutocomplete
+            value={addressInput}
+            onChange={setAddressInput}
+            onSelect={(parsed) => {
+              setAddressInput([parsed.street, parsed.city, parsed.state].filter(Boolean).join(', '));
+              resolveAddress(parsed);
+            }}
+            placeholder="Start typing your building address"
+            className="w-full rounded-xl border border-white/15 bg-white/[0.06] px-4 py-3.5 text-base text-ink-100 outline-none ring-gleam/40 focus:ring-2 placeholder:text-ink-500 disabled:opacity-50"
+          />
           {busy && <p className="text-sm text-ink-500">Checking this address on Lavo…</p>}
           {err && <p className="text-sm text-red-400">{err}</p>}
         </>

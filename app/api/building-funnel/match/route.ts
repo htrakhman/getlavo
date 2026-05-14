@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { buildingCandidateKey } from '@/lib/building-candidate';
-import { classifyProperty, placeDetails } from '@/lib/places-google';
+import { classifyProperty, placeDetails, type PlaceDetails } from '@/lib/places-google';
 import { rateLimit, clientIp, rateLimitResponse } from '@/lib/rate-limit';
 
 export async function POST(req: NextRequest) {
@@ -10,18 +10,34 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json().catch(() => ({}));
   const placeId = typeof body.placeId === 'string' ? body.placeId : '';
+  const formattedAddressParam = typeof body.formattedAddress === 'string' ? body.formattedAddress.trim() : '';
+  const displayNameParam = typeof body.displayName === 'string' ? body.displayName.trim() : '';
   const sessionToken = typeof body.sessionToken === 'string' ? body.sessionToken : undefined;
-  if (!placeId) return NextResponse.json({ error: 'placeId required' }, { status: 400 });
 
-  if (!process.env.GOOGLE_PLACES_API_KEY) {
+  if (!placeId && !formattedAddressParam) {
+    return NextResponse.json({ error: 'placeId or formattedAddress required' }, { status: 400 });
+  }
+
+  let place: PlaceDetails | null = null;
+
+  if (placeId && process.env.GOOGLE_PLACES_API_KEY) {
+    place = await placeDetails(placeId, sessionToken);
+    if (!place) return NextResponse.json({ error: 'Place not found' }, { status: 404 });
+  } else if (formattedAddressParam) {
+    place = {
+      placeId: '',
+      formattedAddress: formattedAddressParam,
+      displayName: displayNameParam || formattedAddressParam.split(',')[0]?.trim() ?? formattedAddressParam,
+      types: ['establishment'],
+      lat: typeof body.lat === 'number' ? body.lat : undefined,
+      lng: typeof body.lng === 'number' ? body.lng : undefined,
+    };
+  } else {
     return NextResponse.json({ error: 'Address search is not configured' }, { status: 503 });
   }
 
-  const place = await placeDetails(placeId, sessionToken);
-  if (!place) return NextResponse.json({ error: 'Place not found' }, { status: 404 });
-
   const cls = classifyProperty(place.types);
-  const candidateKey = buildingCandidateKey(place.placeId, place.formattedAddress);
+  const candidateKey = buildingCandidateKey(place.placeId || null, place.formattedAddress);
 
   if (cls === 'likely_single_family') {
     return NextResponse.json({
