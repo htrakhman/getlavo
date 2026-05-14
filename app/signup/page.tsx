@@ -158,10 +158,10 @@ function SignupForm() {
       return;
     }
 
-    // Let the browser client persist the session to cookies before a hard navigation (SSR reads them on /resident, etc.).
     await sb.auth.getSession();
     setBusy(false);
-    window.location.assign(homePathForSignupRole(role));
+    const home = homePathForSignupRole(role);
+    window.location.assign(`/auth/continue?next=${encodeURIComponent(home)}`);
   }
 
   async function signUpWithGoogle() {

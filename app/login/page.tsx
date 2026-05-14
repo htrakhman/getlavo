@@ -34,6 +34,12 @@ function LoginForm() {
       sb.from('profile_portals').select('portal').eq('profile_id', user.id),
     ]);
     if (pe) { setErr(`Profile error: ${pe.message}`); setBusy(false); return; }
+    const nextRaw = params.get('next');
+    if (nextRaw === '/resident' || nextRaw === '/building' || nextRaw === '/operator') {
+      setBusy(false);
+      window.location.href = `/auth/continue?next=${encodeURIComponent(nextRaw)}`;
+      return;
+    }
     const portals = (portalRows ?? []).map((r: { portal: string }) => r.portal);
     const prefer = signupRoleFromPortalPrefer(params.get('prefer'));
     const landing = pickLandingPortal(portals, prefer ?? p?.role ?? undefined);
