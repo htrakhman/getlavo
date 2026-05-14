@@ -29,7 +29,7 @@ function LoginForm() {
     const firstPortal = portals[0] ?? null;
     const dest = firstPortal === 'building' ? '/building'
                : firstPortal === 'operator' ? '/operator'
-               : firstPortal === 'resident' ? '/resident/onboarding'
+               : firstPortal === 'resident' ? '/resident'
                : p?.role === 'admin' ? '/admin'
                : '/auth/pick-role';
     window.location.href = dest;
