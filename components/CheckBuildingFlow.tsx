@@ -245,13 +245,21 @@ function BranchB({ m }: { m: MatchB }) {
     }
     setMsg(null);
     await saveLead();
-    const res = await fetch('/api/building-share', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ buildingCandidateKey: m.candidateKey, buildingId }),
-    });
-    const data = await res.json();
-    if (data.url) setShareUrl(data.url);
+    try {
+      const res = await fetch('/api/building-share', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ buildingCandidateKey: m.candidateKey, buildingId }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        setShareUrl(data.url);
+      } else {
+        setMsg(data.error ?? 'Could not create link. Try again.');
+      }
+    } catch {
+      setMsg('Network error. Try again.');
+    }
   }
 
   async function waitlist() {
