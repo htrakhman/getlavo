@@ -2,8 +2,19 @@ import Link from 'next/link';
 import { Logo } from '@/components/Logo';
 import { MarketingNav, MarketingFooter } from '@/components/MarketingNav';
 import { BuildingInterestCTA } from '@/components/BuildingInterestCTA';
+import { getSessionUser } from '@/lib/supabase/server';
+import { redirect } from 'next/navigation';
 
-export default function Home() {
+export default async function Home() {
+  const session = await getSessionUser();
+  if (session) {
+    const portal = session.portals[0] ?? null;
+    if (portal === 'building') redirect('/building');
+    if (portal === 'operator') redirect('/operator');
+    if (portal === 'resident') redirect('/resident');
+    if (session.profile.role === 'admin') redirect('/admin');
+    redirect('/auth/pick-role');
+  }
   return (
     <main className="relative">
       <div className="absolute inset-x-0 top-0 h-[600px] bg-gleam-fade" />
