@@ -58,21 +58,23 @@ export async function POST(req: NextRequest) {
 
   let building = byPlace;
   if (!building) {
-    // Autocomplete often returns "Building Name — Street Address" — split on dash first, then comma
-    const rawName = (place.displayName || place.formattedAddress).split(/\s*[—–]\s*/)[0].split(',')[0].trim();
-    // Also extract the street portion (e.g. "1 Shore Lane") from the formatted address
-    const parts = place.formattedAddress.split(',').map((s) => s.trim());
-    const candidates = [rawName, ...parts.slice(0, 2)].filter((s) => s.length > 3);
+    // Autocomplete often returns "Building Name — 1 Shore Lane, City, State"
+    // Strip the building name prefix (everything before the dash) to get the raw street address
+    const afterDash = (place.displayName || '').split(/\s*[—–]\s*/)[1] ?? '';
+    const streetFromDisplay = afterDash.split(',')[0].trim();
+    // Also grab the first comma-segment of formattedAddress as a fallback
+    const streetFromFormatted = place.formattedAddress.split(',')[0].trim();
+    const street = (streetFromDisplay.length > 3 ? streetFromDisplay : streetFromFormatted);
 
-    for (const candidate of candidates) {
-      const { data: nameMatch } = await sb
+    if (street.length > 3) {
+      const { data: addrMatch } = await sb
         .from('buildings')
         .select('id, name, slug, city, region, address_line1, status, wash_day, welcome_message, logo_url, brand_color, google_place_id')
-        .or(`name.ilike.%${candidate}%,address_line1.ilike.%${candidate}%`)
+        .ilike('address_line1', `%${street}%`)
         .in('status', ['prospect', 'pilot', 'active'])
         .limit(1)
         .maybeSingle();
-      if (nameMatch) { building = nameMatch; break; }
+      building = addrMatch ?? null;
     }
   }
 
