@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { normalizeSignupRole, pickLandingPortal, portalForSignupRole } from '@/lib/portal-routing';
 
 export type OAuthCallbackOptions = {
-  /** From `/auth/callback/:signupRole` — survives stricter OAuth redirect allowlists better than query params. */
+  /** Optional segment from `/auth/callback/:signupRole` (legacy / extra allowlist entries). */
   roleFromPath?: string | null;
 };
 
@@ -52,14 +52,13 @@ export async function handleOAuthCallback(request: NextRequest, options: OAuthCa
     return redirectWithSessionCookies(`${origin}/login?error=no_session`);
   }
 
-  const metaRoleRaw =
-    user.user_metadata?.role != null ? String(user.user_metadata.role) : null;
-
-  const pathRole =
-    pathRoleCandidate && normalizeSignupRole(pathRoleCandidate) ? pathRoleCandidate : null;
-
-  const roleRaw = pathRole ?? roleFromQuery ?? cookieRole ?? metaRoleRaw;
-  const role = normalizeSignupRole(roleRaw);
+  const role =
+    normalizeSignupRole(roleFromQuery) ??
+    normalizeSignupRole(pathRoleCandidate) ??
+    normalizeSignupRole(cookieRole) ??
+    normalizeSignupRole(
+      user.user_metadata?.role != null ? String(user.user_metadata.role) : null
+    );
 
   const [{ data: profile }, { data: portalRows }] = await Promise.all([
     supabase.from('profiles').select('role').eq('id', user.id).maybeSingle(),
@@ -118,6 +117,10 @@ export async function handleOAuthCallback(request: NextRequest, options: OAuthCa
          : '/resident/onboarding';
   } else {
     dest = '/auth/pick-role';
+  }
+
+  if (role) {
+    await supabase.auth.updateUser({ data: { role } }).catch(() => {});
   }
 
   return redirectWithSessionCookies(`${origin}${dest}`);

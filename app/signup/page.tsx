@@ -111,8 +111,8 @@ function SignupForm() {
       const { error } = await sb.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          // Path-based callback so redirect allowlists cannot drop a query string; cookie + metadata are fallbacks.
-          redirectTo: `${window.location.origin}/auth/callback/${encodeURIComponent(role)}`,
+          // Single /auth/callback URL matches typical Supabase allowlists; cookie + metadata back up ?role=.
+          redirectTo: `${window.location.origin}/auth/callback?role=${encodeURIComponent(role)}`,
         },
       });
       if (error) setErr(error.message);
