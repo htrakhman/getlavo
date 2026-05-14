@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     pendingCookies.forEach(({ name, value, options }) => {
       response.cookies.set(name, value, options as CookieOptions);
     });
-    response.cookies.delete('oauth_signup_role', { path: '/' });
+    response.cookies.set('oauth_signup_role', '', { path: '/', maxAge: 0 });
     return response;
   }
 
