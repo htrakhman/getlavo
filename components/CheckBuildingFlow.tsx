@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { PlacesAutocomplete } from '@/components/PlacesAutocomplete';
+import { PlacesAutocomplete, type PlacePick } from '@/components/PlacesAutocomplete';
 import { money } from '@/lib/format';
 
 type Place = { placeId?: string; formattedAddress: string; displayName: string };
@@ -37,14 +37,28 @@ export function CheckBuildingFlow() {
   const [err, setErr] = useState<string | null>(null);
   const [match, setMatch] = useState<Match | null>(null);
 
-  async function resolveByPlaceId(placeId: string) {
+  async function resolveByPick(pick: PlacePick) {
     setBusy(true);
     setErr(null);
     try {
+      // If the autocomplete returned a real Google placeId, the match endpoint
+      // will fetch full details. Otherwise (Photon fallback) hand it the
+      // formattedAddress + display name so it can still resolve.
+      const fallbackAddress =
+        pick.formattedAddress || [pick.mainText, pick.secondaryText].filter(Boolean).join(', ');
+      const payload: Record<string, unknown> = {
+        sessionToken,
+        displayName: pick.mainText,
+      };
+      if (pick.placeId) payload.placeId = pick.placeId;
+      if (fallbackAddress) payload.formattedAddress = fallbackAddress;
+      if (typeof pick.lat === 'number') payload.lat = pick.lat;
+      if (typeof pick.lng === 'number') payload.lng = pick.lng;
+
       const res = await fetch('/api/building-funnel/match', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ placeId, sessionToken }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -76,7 +90,7 @@ export function CheckBuildingFlow() {
     <div className="mx-auto w-full max-w-lg space-y-6 text-left">
       {!match && (
         <>
-          <PlacesAutocomplete onPickPlaceId={resolveByPlaceId} disabled={busy} />
+          <PlacesAutocomplete onPick={resolveByPick} disabled={busy} />
           {busy && <p className="text-sm text-ink-500">Checking this address on Lavo…</p>}
           {err && <p className="text-sm text-red-400">{err}</p>}
         </>
