@@ -1,14 +1,16 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { AddressAutocomplete, type ParsedAddress } from '@/components/AddressAutocomplete';
+import { PlacesAutocomplete } from '@/components/PlacesAutocomplete';
 import { money } from '@/lib/format';
+
+type Place = { placeId?: string; formattedAddress: string; displayName: string };
 
 type MatchA = {
   branch: 'A';
   candidateKey: string;
-  place: { formattedAddress: string; displayName: string };
+  place: Place;
   building: { id: string; name: string; slug: string; wash_day?: string | null };
   operator: { id: string; name: string; description?: string | null } | null;
   packages: { id: string; name: string; description?: string | null; price_cents: number; est_minutes?: number | null }[];
@@ -18,34 +20,31 @@ type MatchA = {
 type MatchB = {
   branch: 'B';
   candidateKey: string;
-  place: { formattedAddress: string; displayName: string };
+  place: Place;
   building: { id: string; name: string; slug: string } | null;
   operator: unknown;
   packages: unknown[];
   requestCount: number;
 };
 
-type MatchC = { branch: 'C'; candidateKey: string; place: { formattedAddress: string } };
+type MatchC = { branch: 'C'; candidateKey: string; place: Place };
 
 type Match = MatchA | MatchB | MatchC;
 
 export function CheckBuildingFlow() {
   const sessionToken = useMemo(() => (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}`), []);
-  const [addressInput, setAddressInput] = useState('');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [match, setMatch] = useState<Match | null>(null);
 
-  async function resolveAddress(parsed: ParsedAddress) {
-    const formattedAddress = [parsed.street, parsed.city, parsed.state, parsed.postal].filter(Boolean).join(', ');
-    const displayName = parsed.name || parsed.street;
+  async function resolveByPlaceId(placeId: string) {
     setBusy(true);
     setErr(null);
     try {
       const res = await fetch('/api/building-funnel/match', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ formattedAddress, displayName, lat: parsed.lat, lng: parsed.lng, sessionToken }),
+        body: JSON.stringify({ placeId, sessionToken }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -59,6 +58,7 @@ export function CheckBuildingFlow() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           buildingCandidateKey: data.candidateKey,
+          placeId: data.place?.placeId,
           formattedAddress: data.place?.formattedAddress,
           buildingName: data.place?.displayName,
           channel: 'check_flow',
@@ -76,16 +76,7 @@ export function CheckBuildingFlow() {
     <div className="mx-auto w-full max-w-lg space-y-6 text-left">
       {!match && (
         <>
-          <AddressAutocomplete
-            value={addressInput}
-            onChange={setAddressInput}
-            onSelect={(parsed) => {
-              setAddressInput([parsed.street, parsed.city, parsed.state].filter(Boolean).join(', '));
-              resolveAddress(parsed);
-            }}
-            placeholder="Start typing your building address"
-            className="w-full rounded-xl border border-white/15 bg-white/[0.06] px-4 py-3.5 text-base text-ink-100 outline-none ring-gleam/40 focus:ring-2 placeholder:text-ink-500 disabled:opacity-50"
-          />
+          <PlacesAutocomplete onPickPlaceId={resolveByPlaceId} disabled={busy} />
           {busy && <p className="text-sm text-ink-500">Checking this address on Lavo…</p>}
           {err && <p className="text-sm text-red-400">{err}</p>}
         </>
@@ -144,6 +135,8 @@ function BranchA({ m }: { m: MatchA }) {
   );
 }
 
+type Contact = { phone?: string; website?: string; email?: string; aiSummary?: string };
+
 function BranchB({ m }: { m: MatchB }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -156,9 +149,68 @@ function BranchB({ m }: { m: MatchB }) {
   const [mgmtEmail, setMgmtEmail] = useState('');
   const [msg, setMsg] = useState<string | null>(null);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const [contact, setContact] = useState<Contact | null>(null);
+  const [contactBusy, setContactBusy] = useState(true);
+  const [aiTried, setAiTried] = useState(false);
 
   const buildingName = m.building?.name ?? m.place.displayName ?? 'My building';
   const buildingId = m.building?.id ?? null;
+  const placeId = m.place.placeId;
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setContactBusy(true);
+      try {
+        const res = await fetch('/api/building-funnel/contact-lookup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            placeId,
+            buildingName,
+            formattedAddress: m.place.formattedAddress,
+            useAi: false,
+          }),
+        });
+        const data = await res.json();
+        if (cancelled) return;
+        setContact(data);
+        if (data?.email && !mgmtEmail) setMgmtEmail(data.email);
+      } catch {
+        if (!cancelled) setContact({});
+      } finally {
+        if (!cancelled) setContactBusy(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [placeId]);
+
+  async function findWithAi() {
+    setAiTried(true);
+    setContactBusy(true);
+    try {
+      const res = await fetch('/api/building-funnel/contact-lookup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          placeId,
+          buildingName,
+          formattedAddress: m.place.formattedAddress,
+          useAi: true,
+        }),
+      });
+      const data = (await res.json()) as Contact;
+      setContact(data);
+      if (data?.email && !mgmtEmail) setMgmtEmail(data.email);
+    } catch {
+      // ignore
+    } finally {
+      setContactBusy(false);
+    }
+  }
 
   async function saveLead() {
     await fetch('/api/building-funnel/request', {
@@ -168,7 +220,7 @@ function BranchB({ m }: { m: MatchB }) {
         buildingCandidateKey: m.candidateKey,
         buildingId,
         buildingName,
-        placeId: (m.place as { placeId?: string }).placeId,
+        placeId,
         formattedAddress: m.place.formattedAddress,
         residentName: name,
         residentEmail: email,
@@ -191,7 +243,7 @@ function BranchB({ m }: { m: MatchB }) {
         residentName: name || 'A resident',
         residentEmail: email,
         buildingCandidateKey: m.candidateKey,
-        placeId: (m.place as { placeId?: string }).placeId,
+        placeId,
       }),
     });
     if (res.ok) setMsg('Sent. Your property team has the request.');
@@ -222,7 +274,7 @@ function BranchB({ m }: { m: MatchB }) {
         fullName: name,
         formattedAddress: m.place.formattedAddress,
         buildingName,
-        placeId: (m.place as { placeId?: string }).placeId,
+        placeId,
       }),
     });
     if (res.ok) {
@@ -236,6 +288,41 @@ function BranchB({ m }: { m: MatchB }) {
         <h3 className="font-display text-2xl">Your building isn&apos;t on Lavo yet.</h3>
         <p className="mt-2 text-sm text-ink-300">Be the reason it is. {m.requestCount > 0 && <span className="text-gleam">{m.requestCount} neighbors already raised their hand.</span>}</p>
       </div>
+
+      <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4 space-y-3">
+        <div className="text-xs uppercase tracking-widest text-ink-500">Reach your management</div>
+        {contactBusy ? (
+          <p className="text-sm text-ink-400">Looking up contact info…</p>
+        ) : (
+          <>
+            <div className="flex flex-wrap gap-2">
+              {contact?.phone ? (
+                <a href={`tel:${contact.phone.replace(/[^\d+]/g, '')}`} className="btn-primary px-4 py-2 text-sm">
+                  Call {contact.phone}
+                </a>
+              ) : (
+                !aiTried && (
+                  <button type="button" className="btn-quiet px-4 py-2 text-sm" onClick={findWithAi}>
+                    Find with AI ✨
+                  </button>
+                )
+              )}
+              {contact?.website && (
+                <a href={contact.website} target="_blank" rel="noreferrer" className="btn-quiet px-4 py-2 text-sm">
+                  Visit website
+                </a>
+              )}
+            </div>
+            {!contact?.phone && aiTried && (
+              <p className="text-xs text-ink-500">
+                Couldn&apos;t find a phone for this building. Try the email path below or share the neighbor link.
+              </p>
+            )}
+            {contact?.aiSummary && <p className="text-xs text-ink-500">{contact.aiSummary}</p>}
+          </>
+        )}
+      </div>
+
       <div className="grid gap-3 sm:grid-cols-2">
         <input className="w-full rounded-xl border border-white/15 bg-white/[0.06] px-4 py-2.5 text-sm text-ink-100 outline-none ring-gleam/40 focus:ring-2" placeholder="Your name" value={name} onChange={(e) => setName(e.target.value)} />
         <input className="w-full rounded-xl border border-white/15 bg-white/[0.06] px-4 py-2.5 text-sm text-ink-100 outline-none ring-gleam/40 focus:ring-2" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
@@ -248,7 +335,19 @@ function BranchB({ m }: { m: MatchB }) {
       </div>
       <div className="space-y-3 border-t border-white/10 pt-4">
         <div className="text-xs uppercase tracking-widest text-ink-500">Email my management</div>
-        <input className="w-full rounded-xl border border-white/15 bg-white/[0.06] px-4 py-2.5 text-sm text-ink-100 outline-none ring-gleam/40 focus:ring-2" placeholder="Property manager email" value={mgmtEmail} onChange={(e) => setMgmtEmail(e.target.value)} />
+        <div className="flex flex-wrap items-center gap-2">
+          <input
+            className="flex-1 min-w-0 rounded-xl border border-white/15 bg-white/[0.06] px-4 py-2.5 text-sm text-ink-100 outline-none ring-gleam/40 focus:ring-2"
+            placeholder="Property manager email"
+            value={mgmtEmail}
+            onChange={(e) => setMgmtEmail(e.target.value)}
+          />
+          {!mgmtEmail && !contactBusy && !aiTried && (
+            <button type="button" className="btn-quiet px-3 py-2 text-xs" onClick={findWithAi}>
+              Find with AI ✨
+            </button>
+          )}
+        </div>
         <button type="button" className="btn-primary w-full py-3 text-sm" onClick={() => emailMgmt()}>
           Send request email
         </button>
@@ -299,7 +398,7 @@ function BranchC({ m }: { m: MatchC }) {
     const res = await fetch('/api/homeowner-waitlist', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, placeId: (m.place as { placeId?: string }).placeId }),
+      body: JSON.stringify({ email, placeId: m.place.placeId }),
     });
     if (res.ok) setDone(true);
   }

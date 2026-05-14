@@ -60,13 +60,15 @@ export type PlaceDetails = {
   types: string[];
   lat?: number;
   lng?: number;
+  phone?: string;
+  website?: string;
 };
 
 export async function placeDetails(placeId: string, _sessionToken?: string): Promise<PlaceDetails | null> {
   const key = process.env.GOOGLE_PLACES_API_KEY;
   if (!key) return null;
 
-  const fieldMask = 'id,formattedAddress,displayName,types,location';
+  const fieldMask = 'id,formattedAddress,displayName,types,location,nationalPhoneNumber,internationalPhoneNumber,websiteUri';
   const pid = placeId.replace(/^places\//, '');
   const res = await fetch(`${PLACES_DETAILS}/${encodeURIComponent(pid)}`, {
     method: 'GET',
@@ -86,6 +88,9 @@ export async function placeDetails(placeId: string, _sessionToken?: string): Pro
     displayName?: { text?: string };
     types?: string[];
     location?: { latitude?: number; longitude?: number };
+    nationalPhoneNumber?: string;
+    internationalPhoneNumber?: string;
+    websiteUri?: string;
   };
   if (!d.id) return null;
   const shortId = d.id.replace(/^places\//, '');
@@ -96,6 +101,8 @@ export async function placeDetails(placeId: string, _sessionToken?: string): Pro
     types: d.types ?? [],
     lat: d.location?.latitude,
     lng: d.location?.longitude,
+    phone: d.nationalPhoneNumber || d.internationalPhoneNumber,
+    website: d.websiteUri,
   };
 }
 
