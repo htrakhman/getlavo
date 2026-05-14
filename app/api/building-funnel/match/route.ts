@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
     place = {
       placeId: '',
       formattedAddress: formattedAddressParam,
-      displayName: displayNameParam || formattedAddressParam.split(',')[0]?.trim() ?? formattedAddressParam,
+      displayName: displayNameParam || (formattedAddressParam.split(',')[0]?.trim() ?? formattedAddressParam),
       types: ['establishment'],
       lat: typeof body.lat === 'number' ? body.lat : undefined,
       lng: typeof body.lng === 'number' ? body.lng : undefined,
