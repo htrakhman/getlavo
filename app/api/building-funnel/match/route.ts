@@ -4,6 +4,25 @@ import { buildingCandidateKey } from '@/lib/building-candidate';
 import { classifyProperty, placeDetails, type PlaceDetails } from '@/lib/places-google';
 import { rateLimit, clientIp, rateLimitResponse } from '@/lib/rate-limit';
 
+const STREET_ABBREVS: [RegExp, string][] = [
+  [/\blane\b/gi, 'Ln'], [/\bln\b/gi, 'Lane'],
+  [/\bstreet\b/gi, 'St'], [/\bst\b/gi, 'Street'],
+  [/\bavenue\b/gi, 'Ave'], [/\bave\b/gi, 'Avenue'],
+  [/\bboulevard\b/gi, 'Blvd'], [/\bblvd\b/gi, 'Boulevard'],
+  [/\bdrive\b/gi, 'Dr'], [/\bdr\b/gi, 'Drive'],
+  [/\broad\b/gi, 'Rd'], [/\brd\b/gi, 'Road'],
+  [/\bcourt\b/gi, 'Ct'], [/\bct\b/gi, 'Court'],
+  [/\bplace\b/gi, 'Pl'], [/\bpl\b/gi, 'Place'],
+];
+
+function streetVariants(s: string): string[] {
+  const variants = new Set([s]);
+  for (const [re, rep] of STREET_ABBREVS) {
+    if (re.test(s)) variants.add(s.replace(re, rep));
+  }
+  return [...variants];
+}
+
 export async function POST(req: NextRequest) {
   const rl = rateLimit(`bf-match:${clientIp(req)}`, { limit: 40, windowMs: 60_000 });
   if (!rl.ok) return rateLimitResponse(rl);
@@ -64,20 +83,38 @@ export async function POST(req: NextRequest) {
     const streetFromFormatted = place.formattedAddress.split(',')[0].trim();
     const street = afterDash.length > 3 ? afterDash : streetFromFormatted;
 
-    // Try address first, then fall back to name match
-    const searches = [
-      street.length > 3 ? { col: 'address_line1', val: street } : null,
-      namePart.length > 3 ? { col: 'name', val: namePart } : null,
-      streetFromFormatted.length > 3 ? { col: 'address_line1', val: streetFromFormatted } : null,
-    ].filter(Boolean) as { col: string; val: string }[];
+    // Derive city from formattedAddress for cross-city collision avoidance
+    const addrParts = place.formattedAddress.split(',').map((s) => s.trim());
+    const cityFromAddr = addrParts.length >= 3 ? addrParts[addrParts.length - 3] : '';
 
-    for (const { col, val } of searches) {
-      const { data } = await sb
+    // Candidate (col, val) pairs ordered by specificity
+    type Search = { col: string; val: string; city?: string };
+    const searches: Search[] = [];
+
+    const allStreetVals = new Set<string>();
+    if (street.length > 3) streetVariants(street).forEach((v) => allStreetVals.add(v));
+    if (streetFromFormatted.length > 3 && streetFromFormatted !== street)
+      streetVariants(streetFromFormatted).forEach((v) => allStreetVals.add(v));
+
+    for (const v of allStreetVals) {
+      if (cityFromAddr.length > 2) searches.push({ col: 'address_line1', val: v, city: cityFromAddr });
+    }
+    if (namePart.length > 3) {
+      if (cityFromAddr.length > 2) searches.push({ col: 'name', val: namePart, city: cityFromAddr });
+      searches.push({ col: 'name', val: namePart });
+    }
+    for (const v of allStreetVals) {
+      searches.push({ col: 'address_line1', val: v });
+    }
+
+    for (const { col, val, city } of searches) {
+      let q = sb
         .from('buildings')
         .select('id, name, slug, city, region, address_line1, status, wash_day, welcome_message, logo_url, brand_color, google_place_id')
         .ilike(col, `%${val}%`)
-        .limit(1)
-        .maybeSingle();
+        .in('status', ['prospect', 'pilot', 'active']);
+      if (city) q = q.ilike('city', `%${city}%`);
+      const { data } = await q.limit(1).maybeSingle();
       if (data) { building = data; break; }
     }
   }
