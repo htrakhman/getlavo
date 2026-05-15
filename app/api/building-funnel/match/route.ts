@@ -80,7 +80,14 @@ export async function POST(req: NextRequest) {
     const parts = (place.displayName || '').split(/\s*[—–]\s*/);
     const namePart = parts[0].split(',')[0].trim();          // "The Shore North"
     const afterDash = (parts[1] ?? '').split(',')[0].trim(); // "1 Shore Lane"
-    const streetFromFormatted = place.formattedAddress.split(',')[0].trim();
+
+    // When placeDetails returns formattedAddress like "The Shore North, 1 Shore Lane, City, ST"
+    // the first comma segment is the building name, not the street. Strip it if it matches namePart.
+    let addrForStreet = place.formattedAddress;
+    if (namePart && addrForStreet.toLowerCase().startsWith(namePart.toLowerCase())) {
+      addrForStreet = addrForStreet.slice(namePart.length).replace(/^,\s*/, '');
+    }
+    const streetFromFormatted = addrForStreet.split(',')[0].trim();
     const street = afterDash.length > 3 ? afterDash : streetFromFormatted;
 
     // Derive city from formattedAddress for cross-city collision avoidance
@@ -112,7 +119,7 @@ export async function POST(req: NextRequest) {
         .from('buildings')
         .select('id, name, slug, city, region, address_line1, status, wash_day, welcome_message, logo_url, brand_color, google_place_id')
         .ilike(col, `%${val}%`)
-        .in('status', ['prospect', 'pilot', 'active']);
+        .not('status', 'eq', 'churned');
       if (city) q = q.ilike('city', `%${city}%`);
       const { data } = await q.limit(1).maybeSingle();
       if (data) { building = data; break; }
