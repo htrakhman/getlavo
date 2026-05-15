@@ -14,7 +14,7 @@ export default async function AdminSearch({ searchParams }: { searchParams: { q?
     const like = `%${q}%`;
     const [u, b, o] = await Promise.all([
       sb.from('profiles').select('id, full_name, email, role').or(`full_name.ilike.${like},email.ilike.${like}`).limit(20),
-      sb.from('buildings').select('id, name, city, status').or(`name.ilike.${like},city.ilike.${like},slug.ilike.${like}`).limit(20),
+      sb.from('buildings').select('id, name, city, address_line1, status').or(`name.ilike.${like},city.ilike.${like},slug.ilike.${like},address_line1.ilike.${like}`).limit(20),
       sb.from('operators').select('id, name, status').ilike('name', like).limit(20),
     ]);
     users = u.data ?? [];
@@ -51,7 +51,7 @@ export default async function AdminSearch({ searchParams }: { searchParams: { q?
             {buildings.map((b) => (
               <Link key={b.id} href={`/admin/buildings/${b.id}`} className="block py-2 text-sm hover:text-gleam">
                 <div>{b.name}</div>
-                <div className="text-xs text-ink-500">{b.city} · {b.status}</div>
+                <div className="text-xs text-ink-500">{b.address_line1 ? `${b.address_line1} · ` : ''}{b.city} · {b.status}</div>
               </Link>
             ))}
           </Section>
