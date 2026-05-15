@@ -75,11 +75,13 @@ export async function POST(req: NextRequest) {
     .maybeSingle();
 
   let building = byPlace;
+  const _debug: Record<string, unknown> = {};
+
   if (!building) {
     // Autocomplete mainText is often "Building Name — 1 Shore Lane" (with em-dash).
     const parts = (place.displayName || '').split(/\s*[—–]\s*/);
-    const namePart = parts[0].split(',')[0].trim();          // "The Shore North"
-    const afterDash = (parts[1] ?? '').split(',')[0].trim(); // "1 Shore Lane"
+    const namePart = parts[0].split(',')[0].trim();
+    const afterDash = (parts[1] ?? '').split(',')[0].trim();
 
     // Strip building name prefix from formattedAddress before taking street segment.
     let addrForStreet = place.formattedAddress;
@@ -89,9 +91,13 @@ export async function POST(req: NextRequest) {
     const streetFromFormatted = addrForStreet.split(',')[0].trim();
     const street = afterDash.length > 3 ? afterDash : streetFromFormatted;
 
+    _debug.displayName = place.displayName;
+    _debug.formattedAddress = place.formattedAddress;
+    _debug.namePart = namePart;
+    _debug.street = street;
+
     const sel = 'id, name, slug, city, region, address_line1, status, wash_day, welcome_message, logo_url, brand_color, google_place_id';
 
-    // Sequential ilike queries — try name first, then all street variants.
     const candidates: { col: string; val: string }[] = [];
     if (namePart.length > 3) candidates.push({ col: 'name', val: namePart });
     for (const v of (street.length > 3 ? streetVariants(street) : [])) {
@@ -101,12 +107,17 @@ export async function POST(req: NextRequest) {
       for (const v of streetVariants(streetFromFormatted)) candidates.push({ col: 'address_line1', val: v });
     }
 
+    _debug.candidates = candidates;
+    const results: unknown[] = [];
+
     for (const { col, val } of candidates) {
-      const { data } = await sb.from('buildings').select(sel)
+      const { data, error } = await sb.from('buildings').select(sel)
         .ilike(col, `%${val}%`)
         .limit(1).maybeSingle();
+      results.push({ col, val, found: !!data, error: error?.message });
       if (data) { building = data; break; }
     }
+    _debug.results = results;
   }
 
   if (!building) {
@@ -116,6 +127,7 @@ export async function POST(req: NextRequest) {
       place,
       building: null,
       requestCount: await countDemand(sb, candidateKey),
+      _debug,
     });
   }
 
