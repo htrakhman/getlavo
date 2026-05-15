@@ -76,7 +76,6 @@ export async function POST(req: NextRequest) {
 
   let building = byPlace;
   if (!building) {
-    // Parse the two useful tokens: building name and street number+name.
     // Autocomplete mainText is often "Building Name — 1 Shore Lane" (with em-dash).
     const parts = (place.displayName || '').split(/\s*[—–]\s*/);
     const namePart = parts[0].split(',')[0].trim();          // "The Shore North"
@@ -90,39 +89,23 @@ export async function POST(req: NextRequest) {
     const streetFromFormatted = addrForStreet.split(',')[0].trim();
     const street = afterDash.length > 3 ? afterDash : streetFromFormatted;
 
-    // Build OR filter across name + address_line1 for all street variants.
     const sel = 'id, name, slug, city, region, address_line1, status, wash_day, welcome_message, logo_url, brand_color, google_place_id';
-    const streetVals = street.length > 3 ? streetVariants(street) : [];
 
-    const orClauses: string[] = [];
-    if (namePart.length > 3) orClauses.push(`name.ilike.%${namePart}%`);
-    for (const v of streetVals) orClauses.push(`address_line1.ilike.%${v}%`);
-
-    // Also try street variants from formattedAddress if different from above
+    // Sequential ilike queries — try name first, then all street variants.
+    const candidates: { col: string; val: string }[] = [];
+    if (namePart.length > 3) candidates.push({ col: 'name', val: namePart });
+    for (const v of (street.length > 3 ? streetVariants(street) : [])) {
+      candidates.push({ col: 'address_line1', val: v });
+    }
     if (streetFromFormatted.length > 3 && streetFromFormatted !== street) {
-      for (const v of streetVariants(streetFromFormatted)) orClauses.push(`address_line1.ilike.%${v}%`);
+      for (const v of streetVariants(streetFromFormatted)) candidates.push({ col: 'address_line1', val: v });
     }
 
-    if (orClauses.length > 0) {
-      // Try with city filter first to avoid cross-city collisions
-      const addrParts = place.formattedAddress.split(',').map((s) => s.trim());
-      const cityFromAddr = addrParts.length >= 3 ? addrParts[addrParts.length - 3] : '';
-
-      if (cityFromAddr.length > 2) {
-        const { data } = await sb.from('buildings').select(sel)
-          .or(orClauses.join(','))
-          .ilike('city', `%${cityFromAddr}%`)
-          .limit(1).maybeSingle();
-        if (data) building = data;
-      }
-
-      // Broader fallback with no city filter
-      if (!building) {
-        const { data } = await sb.from('buildings').select(sel)
-          .or(orClauses.join(','))
-          .limit(1).maybeSingle();
-        if (data) building = data;
-      }
+    for (const { col, val } of candidates) {
+      const { data } = await sb.from('buildings').select(sel)
+        .ilike(col, `%${val}%`)
+        .limit(1).maybeSingle();
+      if (data) { building = data; break; }
     }
   }
 
