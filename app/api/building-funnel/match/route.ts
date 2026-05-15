@@ -71,6 +71,25 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // Final fallback: match by street address. The display name from Google
+  // Places is often the street ("1 Shore Lane"), while the building row's
+  // `name` is the marketing name ("The Shore North"). Looking at
+  // `address_line1` lets us find the right row whenever a manager onboarded
+  // without a Google place ID being persisted.
+  if (!building) {
+    const streetPart = (place.formattedAddress.split(',')[0] ?? '').trim();
+    if (streetPart.length > 3) {
+      const { data: addrMatch } = await sb
+        .from('buildings')
+        .select('id, name, slug, city, region, address_line1, status, wash_day, welcome_message, logo_url, brand_color, google_place_id')
+        .ilike('address_line1', `%${streetPart}%`)
+        .in('status', ['prospect', 'pilot', 'active'])
+        .limit(1)
+        .maybeSingle();
+      building = addrMatch ?? null;
+    }
+  }
+
   if (!building) {
     return NextResponse.json({
       branch: 'B',
