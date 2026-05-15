@@ -102,7 +102,7 @@ export default function HowItWorksPage() {
           </div>
           <div className="card p-6 text-center">
             <div className="text-2xl mb-3">🧑‍🔧</div>
-            <h3 className="font-display text-xl mb-2">Run a car wash</h3>
+            <h3 className="font-display text-xl mb-2">Run a mobile car wash or detailing business</h3>
             <p className="text-sm text-ink-400 mb-4">Apply to join the operator network.</p>
             <Link href="/signup?role=operator" className="btn-ghost w-full">Apply</Link>
           </div>
