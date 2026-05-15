@@ -366,7 +366,7 @@ export default async function Home({
             <Link href="/signup?role=building_manager" className="btn-primary">Get your building link →</Link>
           </div>
           <div className="card p-8">
-            <h3 className="font-display text-2xl mb-2">Run a car wash?</h3>
+            <h3 className="font-display text-2xl mb-2">Run a mobile car wash or detailing business?</h3>
             <p className="text-sm text-ink-300 mb-6">Apply to join our operator network and start receiving building partnerships.</p>
             <Link href="/signup?role=operator" className="btn-ghost">Apply as an operator →</Link>
           </div>
