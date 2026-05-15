@@ -94,6 +94,8 @@ export async function POST(req: NextRequest) {
     const addrParts = place.formattedAddress.split(',').map((s) => s.trim());
     const cityFromAddr = addrParts.length >= 3 ? addrParts[addrParts.length - 3] : '';
 
+    console.log('[match] fallback search', { displayName: place.displayName, formattedAddress: place.formattedAddress, namePart, afterDash, street, streetFromFormatted, cityFromAddr });
+
     // Candidate (col, val) pairs ordered by specificity
     type Search = { col: string; val: string; city?: string };
     const searches: Search[] = [];
@@ -114,6 +116,8 @@ export async function POST(req: NextRequest) {
       searches.push({ col: 'address_line1', val: v });
     }
 
+    console.log('[match] searches', searches);
+
     for (const { col, val, city } of searches) {
       let q = sb
         .from('buildings')
@@ -121,7 +125,8 @@ export async function POST(req: NextRequest) {
         .ilike(col, `%${val}%`)
         .not('status', 'eq', 'churned');
       if (city) q = q.ilike('city', `%${city}%`);
-      const { data } = await q.limit(1).maybeSingle();
+      const { data, error } = await q.limit(1).maybeSingle();
+      console.log('[match] tried', { col, val, city, found: !!data, error: error?.message });
       if (data) { building = data; break; }
     }
   }
