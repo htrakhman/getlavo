@@ -76,58 +76,53 @@ export async function POST(req: NextRequest) {
 
   let building = byPlace;
   if (!building) {
-    // Autocomplete often returns "Building Name — 1 Shore Lane, City, State"
+    // Parse the two useful tokens: building name and street number+name.
+    // Autocomplete mainText is often "Building Name — 1 Shore Lane" (with em-dash).
     const parts = (place.displayName || '').split(/\s*[—–]\s*/);
     const namePart = parts[0].split(',')[0].trim();          // "The Shore North"
     const afterDash = (parts[1] ?? '').split(',')[0].trim(); // "1 Shore Lane"
 
-    // When placeDetails returns formattedAddress like "The Shore North, 1 Shore Lane, City, ST"
-    // the first comma segment is the building name, not the street. Strip it if it matches namePart.
+    // Strip building name prefix from formattedAddress before taking street segment.
     let addrForStreet = place.formattedAddress;
     if (namePart && addrForStreet.toLowerCase().startsWith(namePart.toLowerCase())) {
-      addrForStreet = addrForStreet.slice(namePart.length).replace(/^,\s*/, '');
+      addrForStreet = addrForStreet.slice(namePart.length).replace(/^[,\s—–]+/, '');
     }
     const streetFromFormatted = addrForStreet.split(',')[0].trim();
     const street = afterDash.length > 3 ? afterDash : streetFromFormatted;
 
-    // Derive city from formattedAddress for cross-city collision avoidance
-    const addrParts = place.formattedAddress.split(',').map((s) => s.trim());
-    const cityFromAddr = addrParts.length >= 3 ? addrParts[addrParts.length - 3] : '';
+    // Build OR filter across name + address_line1 for all street variants.
+    const sel = 'id, name, slug, city, region, address_line1, status, wash_day, welcome_message, logo_url, brand_color, google_place_id';
+    const streetVals = street.length > 3 ? streetVariants(street) : [];
 
-    console.log('[match] fallback search', { displayName: place.displayName, formattedAddress: place.formattedAddress, namePart, afterDash, street, streetFromFormatted, cityFromAddr });
+    const orClauses: string[] = [];
+    if (namePart.length > 3) orClauses.push(`name.ilike.%${namePart}%`);
+    for (const v of streetVals) orClauses.push(`address_line1.ilike.%${v}%`);
 
-    // Candidate (col, val) pairs ordered by specificity
-    type Search = { col: string; val: string; city?: string };
-    const searches: Search[] = [];
-
-    const allStreetVals = new Set<string>();
-    if (street.length > 3) streetVariants(street).forEach((v) => allStreetVals.add(v));
-    if (streetFromFormatted.length > 3 && streetFromFormatted !== street)
-      streetVariants(streetFromFormatted).forEach((v) => allStreetVals.add(v));
-
-    for (const v of allStreetVals) {
-      if (cityFromAddr.length > 2) searches.push({ col: 'address_line1', val: v, city: cityFromAddr });
-    }
-    if (namePart.length > 3) {
-      if (cityFromAddr.length > 2) searches.push({ col: 'name', val: namePart, city: cityFromAddr });
-      searches.push({ col: 'name', val: namePart });
-    }
-    for (const v of allStreetVals) {
-      searches.push({ col: 'address_line1', val: v });
+    // Also try street variants from formattedAddress if different from above
+    if (streetFromFormatted.length > 3 && streetFromFormatted !== street) {
+      for (const v of streetVariants(streetFromFormatted)) orClauses.push(`address_line1.ilike.%${v}%`);
     }
 
-    console.log('[match] searches', searches);
+    if (orClauses.length > 0) {
+      // Try with city filter first to avoid cross-city collisions
+      const addrParts = place.formattedAddress.split(',').map((s) => s.trim());
+      const cityFromAddr = addrParts.length >= 3 ? addrParts[addrParts.length - 3] : '';
 
-    for (const { col, val, city } of searches) {
-      let q = sb
-        .from('buildings')
-        .select('id, name, slug, city, region, address_line1, status, wash_day, welcome_message, logo_url, brand_color, google_place_id')
-        .ilike(col, `%${val}%`)
-        .not('status', 'eq', 'churned');
-      if (city) q = q.ilike('city', `%${city}%`);
-      const { data, error } = await q.limit(1).maybeSingle();
-      console.log('[match] tried', { col, val, city, found: !!data, error: error?.message });
-      if (data) { building = data; break; }
+      if (cityFromAddr.length > 2) {
+        const { data } = await sb.from('buildings').select(sel)
+          .or(orClauses.join(','))
+          .ilike('city', `%${cityFromAddr}%`)
+          .limit(1).maybeSingle();
+        if (data) building = data;
+      }
+
+      // Broader fallback with no city filter
+      if (!building) {
+        const { data } = await sb.from('buildings').select(sel)
+          .or(orClauses.join(','))
+          .limit(1).maybeSingle();
+        if (data) building = data;
+      }
     }
   }
 
