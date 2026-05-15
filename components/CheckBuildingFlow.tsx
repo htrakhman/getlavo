@@ -172,6 +172,7 @@ function BranchB({ m }: { m: MatchB }) {
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      if (m.building) { setContactBusy(false); return; }
       setContactBusy(true);
       try {
         const res = await fetch('/api/building-funnel/contact-lookup', {
@@ -199,6 +200,36 @@ function BranchB({ m }: { m: MatchB }) {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [placeId]);
+
+  // Building is already in our DB (a manager onboarded it).
+  // Skip the demand-capture flow and offer resident signup.
+  if (m.building) {
+    const slug = m.building.slug;
+    return (
+      <div className="card space-y-5 p-6">
+        <div>
+          <div className="text-xs uppercase tracking-widest text-gleam">Your building is registered</div>
+          <h3 className="mt-2 font-display text-2xl">{m.building.name}</h3>
+          <p className="mt-1 text-sm text-ink-400">{m.place.formattedAddress}</p>
+        </div>
+        <p className="text-sm text-ink-300">
+          Good news — your property is already on Lavo. Create a resident account to claim a unit and stay updated when wash days are scheduled. Your first wash is on us when service activates.
+        </p>
+        <Link
+          href={`/signup?role=resident&building=${encodeURIComponent(slug)}&promo=FIRSTWASH`}
+          className="btn-primary block w-full py-4 text-center text-base"
+        >
+          Sign up as a resident
+        </Link>
+        <Link
+          href={`/login?building=${encodeURIComponent(slug)}`}
+          className="btn-quiet block w-full py-3 text-center text-sm"
+        >
+          I already have an account
+        </Link>
+      </div>
+    );
+  }
 
   async function saveLead() {
     await fetch('/api/building-funnel/request', {
