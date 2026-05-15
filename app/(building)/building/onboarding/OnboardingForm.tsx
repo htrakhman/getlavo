@@ -1,12 +1,31 @@
 'use client';
 import { Logo } from '@/components/Logo';
 import { AddressAutocomplete, type ParsedAddress } from '@/components/AddressAutocomplete';
+import { PlacesAutocomplete, type PlacePick } from '@/components/PlacesAutocomplete';
 import { supabaseBrowser } from '@/lib/supabase/client';
 import { generateSlug } from '@/lib/geo';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 type Step = 1 | 2;
+
+function parseFormattedAddress(formattedAddress: string, buildingName: string) {
+  let addr = formattedAddress;
+  const prefix = buildingName ? buildingName + ', ' : '';
+  if (prefix && addr.startsWith(prefix)) addr = addr.slice(prefix.length);
+  const parts = addr.split(',').map((s) => s.trim()).filter(Boolean);
+  const filtered = parts.filter((p) => !/^(usa|united states)$/i.test(p));
+  const street = filtered[0] ?? '';
+  const city = filtered[1] ?? '';
+  const stateZip = filtered[2] ?? '';
+  const m = stateZip.match(/^([A-Z]{2})\s+(\d{5}(?:-\d{4})?)$/);
+  return {
+    street,
+    city,
+    state: m?.[1] ?? stateZip.split(' ')[0] ?? '',
+    postal: m?.[2] ?? '',
+  };
+}
 
 export default function OnboardingForm() {
   const router = useRouter();
@@ -16,6 +35,7 @@ export default function OnboardingForm() {
 
   // Step 1: property details
   const [name, setName]     = useState('');
+  const [placeId, setPlaceId] = useState('');
   const [addr1, setAddr1]   = useState('');
   const [addr2, setAddr2]   = useState('');
   const [city, setCity]     = useState('');
@@ -44,6 +64,30 @@ export default function OnboardingForm() {
     if (a.lng !== null) setLng(a.lng);
   }
 
+  async function handlePickFromPlaces(pick: PlacePick) {
+    setName(pick.mainText);
+    setPlaceId(pick.placeId ?? '');
+    try {
+      const res = await fetch('/api/places/details', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ placeId: pick.placeId }),
+      });
+      if (res.ok) {
+        const { place } = await res.json();
+        const parsed = parseFormattedAddress(place.formattedAddress ?? '', pick.mainText);
+        if (parsed.street) setAddr1(parsed.street);
+        if (parsed.city) setCity(parsed.city);
+        if (parsed.state) setRegion(parsed.state);
+        if (parsed.postal) setPostal(parsed.postal);
+        if (typeof place.lat === 'number') setLat(place.lat);
+        if (typeof place.lng === 'number') setLng(place.lng);
+      }
+    } catch {
+      // user can fill in address manually
+    }
+  }
+
   async function finish() {
     setBusy(true); setErr(null);
     const sb = supabaseBrowser();
@@ -65,6 +109,7 @@ export default function OnboardingForm() {
       lat: lat ?? null,
       lng: lng ?? null,
       onboarded_at: new Date().toISOString(),
+      google_place_id: placeId || null,
     }).select().single();
 
     if (be || !building) {
@@ -95,13 +140,16 @@ export default function OnboardingForm() {
           <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="md:col-span-2">
               <label className="label">Building name</label>
-              <AddressAutocomplete
-                mode="place"
-                value={name}
-                onChange={setName}
-                onSelect={handlePlaceSelect}
-                placeholder="The Beacon Residences"
-              />
+              {name ? (
+                <div className="flex items-center gap-2">
+                  <div className="field flex-1 text-ink-200">{name}</div>
+                  <button type="button" className="btn-quiet shrink-0 px-3 text-xs" onClick={() => { setName(''); setPlaceId(''); }}>
+                    Change
+                  </button>
+                </div>
+              ) : (
+                <PlacesAutocomplete onPick={handlePickFromPlaces} placeholder="The Beacon Residences" />
+              )}
             </div>
             <div className="md:col-span-2">
               <label className="label">Street address</label>
