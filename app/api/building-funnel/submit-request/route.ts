@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
-import { randomShareToken } from '@/lib/building-candidate';
 import {
   sendInternalBuildingRequestEmail,
   sendBuildingContactOutreachEmail,
   userBuildingLabel,
 } from '@/lib/email/building-request';
 import { insertBuildingRequestRow } from '@/lib/building-request-insert';
+import { createBuildingShareToken } from '@/lib/building-share-insert';
 import { rateLimit, clientIp, rateLimitResponse } from '@/lib/rate-limit';
 import { getSessionUser } from '@/lib/supabase/server';
 
@@ -92,24 +92,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Could not log request' }, { status: 500 });
   }
 
-  const token = randomShareToken(10);
-  const { data: shareRow, error: shareError } = await sb
-    .from('building_share_links')
-    .insert({
-      token,
-      building_candidate_key: buildingCandidateKey,
-      building_id: buildingId,
-      created_by_request_id: requestRow.id,
-    })
-    .select('token')
-    .single();
+  const shareToken = await createBuildingShareToken(sb, {
+    building_candidate_key: buildingCandidateKey,
+    building_id: buildingId,
+    created_by_request_id: requestRow.id,
+  });
 
-  if (shareError || !shareRow) {
-    console.error('building_share_links submit-request', shareError);
-    return NextResponse.json({ error: 'Could not create share link' }, { status: 500 });
-  }
-
-  const shareUrl = `${appOrigin(req)}/join/${shareRow.token}`;
+  const shareUrl = shareToken ? `${appOrigin(req)}/join/${shareToken}` : null;
   const displayLabel = userBuildingLabel(buildingLabel, formattedAddress);
 
   const emailPayload = {
@@ -122,7 +111,7 @@ export async function POST(req: NextRequest) {
     notes: notes || null,
     source,
     submittedAt,
-    shareUrl,
+    shareUrl: shareUrl ?? 'Not created',
   };
 
   const internalEmailSent = await sendInternalBuildingRequestEmail(emailPayload);
@@ -146,6 +135,7 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({
     ok: true,
     shareUrl,
+    shareLinkCreated: !!shareUrl,
     buildingLabel: displayLabel,
     mgmtEmailSent,
     events: {

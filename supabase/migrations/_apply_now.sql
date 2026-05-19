@@ -815,6 +815,81 @@ create policy portfolio_public_read_storage
   using (bucket_id = 'operator-portfolio');
 
 -- ============================================================
+-- 0020 funnel catch-up (share links + related)
+-- ============================================================
+
+do $$ begin
+  create type building_request_source as enum ('organic', 'ad', 'referral');
+exception when duplicate_object then null;
+end $$;
+
+do $$ begin
+  create type building_request_channel as enum (
+    'check_flow', 'email_mgmt', 'neighbor_share', 'waitlist_join', 'homeowner_waitlist', 'plus_one'
+  );
+exception when duplicate_object then null;
+end $$;
+
+create table if not exists building_requests (
+  id uuid primary key default gen_random_uuid(),
+  building_id uuid references buildings(id) on delete set null,
+  resident_id uuid references residents(id) on delete set null,
+  profile_id uuid references profiles(id) on delete set null,
+  requested_at timestamptz not null default now(),
+  source building_request_source not null default 'organic',
+  channel building_request_channel not null default 'check_flow',
+  building_candidate_key text not null,
+  place_id text,
+  formatted_address text,
+  building_display_name text,
+  unit text,
+  vehicle_json jsonb,
+  mgmt_email text,
+  mgmt_email_sent_at timestamptz,
+  resident_name text,
+  resident_email text,
+  resident_phone text,
+  utm_source text,
+  utm_medium text,
+  utm_campaign text
+);
+
+create table if not exists building_waitlist (
+  id uuid primary key default gen_random_uuid(),
+  building_id uuid references buildings(id) on delete cascade,
+  building_candidate_key text not null,
+  profile_id uuid references profiles(id) on delete set null,
+  email text,
+  phone text,
+  full_name text,
+  notify_sms boolean not null default true,
+  notify_email boolean not null default true,
+  activation_promo_code text,
+  notified_activation_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists building_share_links (
+  id uuid primary key default gen_random_uuid(),
+  token text not null unique,
+  building_id uuid references buildings(id) on delete set null,
+  building_candidate_key text not null,
+  created_by_request_id uuid references building_requests(id) on delete set null,
+  click_count int not null default 0,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists building_share_links_token_idx on building_share_links (token);
+
+alter table building_share_links enable row level security;
+
+drop policy if exists building_share_links_admin on building_share_links;
+create policy building_share_links_admin on building_share_links
+  for all using (
+    exists (select 1 from profiles p where p.id = auth.uid() and p.role = 'admin')
+  );
+
+-- ============================================================
 -- 0024 — building request form fields
 -- ============================================================
 
@@ -824,7 +899,7 @@ alter table building_requests
 
 do $$
 begin
-  alter type building_request_channel add value if not exists 'building_request';
+  alter type building_request_channel add value 'building_request';
 exception
   when duplicate_object then null;
 end $$;
