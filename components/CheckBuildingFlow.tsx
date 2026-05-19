@@ -362,7 +362,7 @@ function BranchB({ m }: { m: MatchB }) {
 
       {/* Email management */}
       <div className="border-t border-white/10 pt-5 space-y-3">
-        <div className="text-xs uppercase tracking-[0.15em] text-ink-400">Email your property manager</div>
+        <div className="text-xs uppercase tracking-[0.15em] text-ink-400">Property managers / community manager</div>
         <div className="flex gap-2">
           <input
             className="field flex-1"
