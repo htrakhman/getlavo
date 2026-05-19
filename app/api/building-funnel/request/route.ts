@@ -15,7 +15,12 @@ export async function POST(req: NextRequest) {
   const { error } = await sb.from('building_requests').insert({
     building_candidate_key: buildingCandidateKey,
     building_id: typeof body.buildingId === 'string' ? body.buildingId : null,
-    channel: body.channel === 'neighbor_share' ? 'neighbor_share' : 'check_flow',
+    channel:
+      body.channel === 'neighbor_share'
+        ? 'neighbor_share'
+        : body.channel === 'building_request'
+          ? 'building_request'
+          : 'check_flow',
     source: body.source === 'ad' || body.source === 'referral' ? body.source : 'organic',
     place_id: typeof body.placeId === 'string' ? body.placeId : null,
     formatted_address: typeof body.formattedAddress === 'string' ? body.formattedAddress : null,

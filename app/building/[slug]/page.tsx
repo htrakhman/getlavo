@@ -4,8 +4,7 @@ import { money } from '@/lib/format';
 import Link from 'next/link';
 import { BuildingAttributor } from '@/app/b/[slug]/BuildingAttributor';
 import { Logo } from '@/components/Logo';
-import { NotifyMeForm } from '@/app/b/[slug]/NotifyMeForm';
-import { JoinPlusOne } from '@/app/join/[token]/JoinPlusOne';
+import { BuildingRequestForm } from '@/components/BuildingRequestForm';
 
 export default async function BuildingCanonicalPage({ params }: { params: { slug: string } }) {
   const sb = supabaseServer();
@@ -134,14 +133,17 @@ export default async function BuildingCanonicalPage({ params }: { params: { slug
               </div>
             </div>
           ) : (
-            <div className="mt-10 space-y-6">
-              <div className="card p-8 text-center">
-                <h2 className="font-display text-xl">Launching soon</h2>
-                <p className="mt-2 text-sm text-ink-300 leading-relaxed">The program is launching soon at {building.name}.</p>
-                <p className="mt-1 text-sm text-ink-400">Leave your email and we will notify you when registration opens.</p>
-                <NotifyMeForm buildingId={building.id} />
-              </div>
-              <JoinPlusOne buildingCandidateKey={candidateKey} buildingId={building.id} />
+            <div className="mt-10 card p-6">
+              <BuildingRequestForm
+                buildingCandidateKey={candidateKey}
+                buildingId={building.id}
+                placeId={building.google_place_id}
+                formattedAddress={
+                  [building.address_line1, building.city, building.region].filter(Boolean).join(', ') || undefined
+                }
+                defaultBuildingLabel={building.name}
+                registeredBuildingSlug={params.slug}
+              />
             </div>
           )}
         </div>

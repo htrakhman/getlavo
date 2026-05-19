@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { PlacesAutocomplete, type PlacePick } from '@/components/PlacesAutocomplete';
+import { BuildingRequestForm } from '@/components/BuildingRequestForm';
 import { money } from '@/lib/format';
 
 type Place = { placeId?: string; formattedAddress: string; displayName: string };
@@ -41,9 +42,6 @@ export function CheckBuildingFlow() {
     setBusy(true);
     setErr(null);
     try {
-      // If the autocomplete returned a real Google placeId, the match endpoint
-      // will fetch full details. Otherwise (Photon fallback) hand it the
-      // formattedAddress + display name so it can still resolve.
       const fallbackAddress =
         pick.formattedAddress || [pick.mainText, pick.secondaryText].filter(Boolean).join(', ');
       const payload: Record<string, unknown> = {
@@ -149,264 +147,30 @@ function BranchA({ m }: { m: MatchA }) {
   );
 }
 
-type Contact = { phone?: string; website?: string; email?: string; aiSummary?: string };
-
 function BranchB({ m }: { m: MatchB }) {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [unit, setUnit] = useState('');
-  const [make, setMake] = useState('');
-  const [model, setModel] = useState('');
-  const [color, setColor] = useState('');
-  const [plate, setPlate] = useState('');
-  const [mgmtEmail, setMgmtEmail] = useState('');
-  const [msg, setMsg] = useState<string | null>(null);
-  const [shareUrl, setShareUrl] = useState<string | null>(null);
-  const [contact, setContact] = useState<Contact | null>(null);
-  const [contactBusy, setContactBusy] = useState(true);
-  const buildingName = m.building?.name ?? m.place.displayName ?? 'My building';
-  const buildingId = m.building?.id ?? null;
-  const placeId = m.place.placeId;
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      if (m.building) { setContactBusy(false); return; }
-      setContactBusy(true);
-      try {
-        const res = await fetch('/api/building-funnel/contact-lookup', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            placeId,
-            buildingName,
-            formattedAddress: m.place.formattedAddress,
-            useAi: false,
-          }),
-        });
-        const data = await res.json();
-        if (cancelled) return;
-        setContact(data);
-        if (data?.email && !mgmtEmail) setMgmtEmail(data.email);
-      } catch {
-        if (!cancelled) setContact({});
-      } finally {
-        if (!cancelled) setContactBusy(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [placeId]);
-
-  // Building is already in our DB (a manager onboarded it).
-  // Skip the demand-capture flow and offer resident signup.
-  if (m.building) {
-    const slug = m.building.slug;
-    return (
-      <div className="card space-y-5 p-6">
-        <div>
-          <div className="text-xs uppercase tracking-widest text-gleam">Your building is registered</div>
-          <h3 className="mt-2 font-display text-2xl">{m.building.name}</h3>
-          <p className="mt-1 text-sm text-ink-400">{m.place.formattedAddress}</p>
-        </div>
-        <p className="text-sm text-ink-300">
-          Good news — your property is already on Lavo. Create a resident account to claim a unit and stay updated when wash days are scheduled. Your first wash is on us when service activates.
-        </p>
-        <Link
-          href={`/signup?role=resident&building=${encodeURIComponent(slug)}&promo=FIRSTWASH`}
-          className="btn-primary block w-full py-4 text-center text-base"
-        >
-          Sign up as a resident
-        </Link>
-        <Link
-          href={`/login?building=${encodeURIComponent(slug)}`}
-          className="btn-quiet block w-full py-3 text-center text-sm"
-        >
-          I already have an account
-        </Link>
-      </div>
-    );
-  }
-
-  async function saveLead() {
-    await fetch('/api/building-funnel/request', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        buildingCandidateKey: m.candidateKey,
-        buildingId,
-        buildingName,
-        placeId,
-        formattedAddress: m.place.formattedAddress,
-        residentName: name,
-        residentEmail: email,
-        residentPhone: phone,
-        unit,
-        vehicle: { make, model, color, plate },
-      }),
-    }).catch(() => {});
-  }
-
-  async function emailMgmt() {
-    setMsg(null);
-    await saveLead();
-    const res = await fetch('/api/building-funnel/email-mgmt', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        mgmtEmail,
-        buildingName,
-        residentName: name || 'A resident',
-        residentEmail: email,
-        buildingCandidateKey: m.candidateKey,
-        placeId,
-      }),
-    });
-    if (res.ok) setMsg('Sent. Your property team has the request.');
-    else setMsg('Could not send. Try again or share the link instead.');
-  }
-
-  async function makeShare() {
-    if (!name.trim() || !email.trim()) {
-      setMsg('Please fill in your name and email first.');
-      return;
-    }
-    setMsg(null);
-    await saveLead();
-    try {
-      const res = await fetch('/api/building-share', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ buildingCandidateKey: m.candidateKey, buildingId }),
-      });
-      const data = await res.json();
-      if (data.url) {
-        setShareUrl(data.url);
-      } else {
-        setMsg(data.error ?? 'Could not create link. Try again.');
-      }
-    } catch {
-      setMsg('Network error. Try again.');
-    }
-  }
-
-  async function waitlist() {
-    setMsg(null);
-    await saveLead();
-    if (!email.trim()) { setMsg('Please enter your email.'); return; }
-    const res = await fetch('/api/building-waitlist', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        buildingCandidateKey: m.candidateKey,
-        buildingId,
-        email,
-        phone,
-        fullName: name,
-        formattedAddress: m.place.formattedAddress,
-        buildingName,
-        placeId,
-      }),
-    });
-    const data = await res.json().catch(() => ({}));
-    if (res.ok) {
-      setMsg('You are on the list. We text and email the moment Lavo turns on for this address. You get a free first wash credit valid 14 days after activation.');
-    } else {
-      setMsg(data.error ?? 'Could not save. Try again.');
-    }
-  }
+  const defaultBuildingLabel =
+    m.building?.name?.trim() ||
+    m.place.displayName?.trim() ||
+    m.place.formattedAddress?.trim() ||
+    '';
 
   return (
     <div className="card space-y-6 p-6">
-      <div>
-        <h3 className="font-display text-2xl">Your building isn&apos;t on Lavo yet.</h3>
-        <p className="mt-2 text-sm text-ink-300">
-          Be the reason it is.{m.requestCount > 0 && <> <span className="text-gleam">{m.requestCount} {m.requestCount === 1 ? 'neighbor has' : 'neighbors have'} already raised their hand.</span></>}
+      {m.requestCount > 0 && (
+        <p className="text-sm text-ink-400">
+          <span className="text-gleam">
+            {m.requestCount} {m.requestCount === 1 ? 'neighbor has' : 'neighbors have'} already requested Lavo here.
+          </span>
         </p>
-      </div>
-
-      {/* Primary CTA — waitlist */}
-      <div className="space-y-3">
-        <div className="grid gap-3 sm:grid-cols-2">
-          <input className="field" placeholder="Your name" value={name} onChange={(e) => setName(e.target.value)} />
-          <input className="field" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
-          <input className="field" placeholder="Phone (optional)" value={phone} onChange={(e) => setPhone(e.target.value)} />
-          <input className="field" placeholder="Unit number" value={unit} onChange={(e) => setUnit(e.target.value)} />
-        </div>
-        <button type="button" className="btn-primary w-full py-3 text-sm" onClick={() => waitlist()}>
-          Notify me when my building joins
-        </button>
-      </div>
-
-      {/* Only show contact info if we actually found something */}
-      {!contactBusy && (contact?.phone || contact?.website) && (
-        <div className="border-t border-white/10 pt-5 space-y-3">
-          <div className="text-xs uppercase tracking-[0.15em] text-ink-400">Reach your management directly</div>
-          <div className="flex flex-wrap gap-2">
-            {contact.phone && (
-              <a href={`tel:${contact.phone.replace(/[^\d+]/g, '')}`} className="btn-primary px-4 py-2 text-sm">
-                Call {contact.phone}
-              </a>
-            )}
-            {contact.website && (
-              <a href={contact.website} target="_blank" rel="noreferrer" className="btn-quiet px-4 py-2 text-sm">
-                Visit website
-              </a>
-            )}
-          </div>
-        </div>
       )}
-
-      {/* Email management */}
-      <div className="border-t border-white/10 pt-5 space-y-3">
-        <div className="text-xs uppercase tracking-[0.15em] text-ink-400">Property managers / community manager</div>
-        <div className="flex gap-2">
-          <input
-            className="field flex-1"
-            placeholder="Property manager email"
-            value={mgmtEmail}
-            onChange={(e) => setMgmtEmail(e.target.value)}
-          />
-          <button type="button" className="btn-ghost shrink-0 px-4 py-2.5 text-sm" onClick={() => emailMgmt()}>
-            Send
-          </button>
-        </div>
-      </div>
-
-      {/* Share with neighbors */}
-      <div className="border-t border-white/10 pt-5 space-y-3">
-        <div className="text-xs uppercase tracking-[0.15em] text-ink-400">Share with neighbors</div>
-        <button type="button" className="w-full py-2.5 text-sm rounded-full border border-gleam/40 text-gleam hover:bg-gleam/10 transition-colors" onClick={() => makeShare()}>
-          Create neighbor link
-        </button>
-        {shareUrl && <NeighborShare url={shareUrl} />}
-      </div>
-
-      {msg && <p className="text-sm text-gleam">{msg}</p>}
-    </div>
-  );
-}
-
-function NeighborShare({ url }: { url: string }) {
-  const text = encodeURIComponent(`We're trying to get Lavo car washes at our building. Add your name: ${url}`);
-  return (
-    <div className="flex flex-wrap gap-2">
-      <a className="btn-quiet px-3 py-2 text-xs" href={`sms:&body=${text}`}>
-        SMS
-      </a>
-      <a className="btn-quiet px-3 py-2 text-xs" href={`https://wa.me/?text=${text}`} target="_blank" rel="noreferrer">
-        WhatsApp
-      </a>
-      <button
-        type="button"
-        className="btn-quiet px-3 py-2 text-xs"
-        onClick={() => navigator.clipboard.writeText(url).catch(() => {})}
-      >
-        Copy link
-      </button>
+      <BuildingRequestForm
+        buildingCandidateKey={m.candidateKey}
+        placeId={m.place.placeId}
+        formattedAddress={m.place.formattedAddress}
+        defaultBuildingLabel={defaultBuildingLabel}
+        buildingId={m.building?.id ?? null}
+        registeredBuildingSlug={m.building?.slug ?? null}
+      />
     </div>
   );
 }
