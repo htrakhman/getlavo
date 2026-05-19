@@ -129,7 +129,9 @@ export async function sendBuildingContactOutreachEmail(payload: {
     paragraph('Here is the info:'),
     '<p style="margin:0 0 16px 0;"><a href="https://www.getlavo.io/" style="color:#00e5c8;text-decoration:none;">https://www.getlavo.io/</a></p>',
     paragraph('Would you be open to taking a look?'),
-    paragraph('Best,<br/>Harold<br/>Lavo'),
+    '<p style="margin:16px 0 4px 0;">Best,</p>',
+    '<p style="margin:0 0 4px 0;">Harold</p>',
+    '<p style="margin:0 0 16px 0;">Lavo</p>',
   ].join('');
 
   try {
