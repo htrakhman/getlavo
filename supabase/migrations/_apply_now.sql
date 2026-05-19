@@ -813,3 +813,18 @@ drop policy if exists portfolio_public_read_storage on storage.objects;
 create policy portfolio_public_read_storage
   on storage.objects for select
   using (bucket_id = 'operator-portfolio');
+
+-- ============================================================
+-- 0024 — building request form fields
+-- ============================================================
+
+alter table building_requests
+  add column if not exists notes text,
+  add column if not exists mgmt_contact_name text;
+
+do $$
+begin
+  alter type building_request_channel add value if not exists 'building_request';
+exception
+  when duplicate_object then null;
+end $$;

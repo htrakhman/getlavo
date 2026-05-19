@@ -6,6 +6,7 @@ import {
   sendBuildingContactOutreachEmail,
   userBuildingLabel,
 } from '@/lib/email/building-request';
+import { insertBuildingRequestRow } from '@/lib/building-request-insert';
 import { rateLimit, clientIp, rateLimitResponse } from '@/lib/rate-limit';
 import { getSessionUser } from '@/lib/supabase/server';
 
@@ -36,9 +37,9 @@ export async function POST(req: NextRequest) {
   const placeId = typeof body.placeId === 'string' ? body.placeId : null;
   const formattedAddress =
     typeof body.formattedAddress === 'string' ? body.formattedAddress.trim() : '';
-  const channel =
-    body.channel === 'neighbor_share' ? 'neighbor_share' : ('building_request' as const);
-  const source =
+  const channel: 'neighbor_share' | 'building_request' =
+    body.channel === 'neighbor_share' ? 'neighbor_share' : 'building_request';
+  const source: 'organic' | 'ad' | 'referral' =
     body.source === 'ad' || body.source === 'referral' ? body.source : 'organic';
 
   if (!buildingCandidateKey || buildingCandidateKey.length < 4) {
@@ -71,28 +72,23 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Could not save request' }, { status: 500 });
   }
 
-  const { data: requestRow, error: requestError } = await sb
-    .from('building_requests')
-    .insert({
-      building_candidate_key: buildingCandidateKey,
-      building_id: buildingId,
-      channel,
-      source,
-      place_id: placeId,
-      formatted_address: formattedAddress || null,
-      building_display_name: buildingLabel,
-      resident_name: residentFirstName || null,
-      resident_email: residentEmail,
-      mgmt_email: mgmtEmail.includes('@') ? mgmtEmail : null,
-      mgmt_contact_name: mgmtContactName || null,
-      notes: notes || null,
-      profile_id: profileId,
-    })
-    .select('id')
-    .single();
+  const requestRow = await insertBuildingRequestRow(sb, {
+    building_candidate_key: buildingCandidateKey,
+    building_id: buildingId,
+    channel,
+    source,
+    place_id: placeId,
+    formatted_address: formattedAddress || null,
+    building_display_name: buildingLabel,
+    resident_name: residentFirstName || null,
+    resident_email: residentEmail,
+    mgmt_email: mgmtEmail.includes('@') ? mgmtEmail : null,
+    mgmt_contact_name: mgmtContactName || null,
+    notes: notes || null,
+    profile_id: profileId,
+  });
 
-  if (requestError || !requestRow) {
-    console.error('building_requests submit-request', requestError);
+  if (!requestRow) {
     return NextResponse.json({ error: 'Could not log request' }, { status: 500 });
   }
 
