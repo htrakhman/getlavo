@@ -348,7 +348,7 @@ function BranchB({ m }: { m: MatchB }) {
         <input className="w-full rounded-xl border border-white/15 bg-white/[0.06] px-4 py-2.5 text-sm text-ink-100 outline-none ring-gleam/40 focus:ring-2" placeholder="Plate (optional)" value={plate} onChange={(e) => setPlate(e.target.value)} />
       </div>
       <div className="space-y-3 border-t border-white/10 pt-4">
-        <div className="text-xs uppercase tracking-widest text-ink-500">Email my management</div>
+        <div className="text-xs uppercase tracking-widest text-ink-500">Property managers / community manager</div>
         <div className="flex flex-wrap items-center gap-2">
           <input
             className="flex-1 min-w-0 rounded-xl border border-white/15 bg-white/[0.06] px-4 py-2.5 text-sm text-ink-100 outline-none ring-gleam/40 focus:ring-2"
