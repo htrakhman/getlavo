@@ -1,5 +1,9 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { buildingCandidateKey } from '@/lib/building-candidate';
+import {
+  buildingCandidateKey,
+  candidateKeysFromText,
+  locationTextsMatch,
+} from '@/lib/building-candidate';
 
 export type BuildingForMatch = {
   id: string;
@@ -17,6 +21,9 @@ export type WaitlistRow = {
   phone: string | null;
   profile_id: string | null;
   full_name: string | null;
+  building_label?: string | null;
+  formatted_address?: string | null;
+  building_candidate_key?: string;
 };
 
 /** Candidate keys used to tie pre-launch requests to a buildings row. */
@@ -25,18 +32,32 @@ export function candidateKeysForBuilding(building: BuildingForMatch): string[] {
   const pid = building.google_place_id?.trim();
   if (pid) keys.add(`place:${pid}`);
 
-  const parts = [building.address_line1, building.city, building.region].filter(Boolean) as string[];
-  const combos = [
-    building.address_line1,
-    parts.join(', '),
-    building.name,
-  ].filter((s): s is string => typeof s === 'string' && s.trim().length > 3);
+  const fullAddress = [building.address_line1, building.city, building.region].filter(Boolean).join(', ');
 
-  for (const line of combos) {
-    keys.add(buildingCandidateKey(null, line.trim()));
+  for (const key of candidateKeysFromText(
+    building.address_line1,
+    fullAddress,
+    building.name,
+  )) {
+    keys.add(key);
   }
 
   return [...keys];
+}
+
+function waitlistRowMatchesBuilding(row: WaitlistRow, building: BuildingForMatch, keys: Set<string>) {
+  if (row.building_candidate_key && keys.has(row.building_candidate_key)) return true;
+
+  const fullAddress = [building.address_line1, building.city, building.region].filter(Boolean).join(', ');
+
+  if (locationTextsMatch(row.building_label, building.name)) return true;
+  if (locationTextsMatch(row.building_label, building.address_line1)) return true;
+  if (locationTextsMatch(row.building_label, fullAddress)) return true;
+  if (locationTextsMatch(row.formatted_address, building.address_line1)) return true;
+  if (locationTextsMatch(row.formatted_address, fullAddress)) return true;
+  if (locationTextsMatch(row.formatted_address, building.name)) return true;
+
+  return false;
 }
 
 /** Link orphan waitlist rows to this building before notify. */
@@ -44,20 +65,37 @@ export async function backfillWaitlistBuildingId(
   sb: SupabaseClient,
   building: BuildingForMatch,
 ): Promise<void> {
-  const keys = candidateKeysForBuilding(building);
-  if (keys.length === 0) return;
+  const keys = new Set(candidateKeysForBuilding(building));
 
-  await sb
-    .from('building_waitlist')
-    .update({ building_id: building.id })
-    .in('building_candidate_key', keys)
-    .is('building_id', null);
-
-  const { data: requests } = await sb
+  const { data: byBuildingId } = await sb
     .from('building_requests')
-    .select('resident_email, building_candidate_key')
-    .in('building_candidate_key', keys)
-    .not('resident_email', 'is', null);
+    .select('building_candidate_key, formatted_address, building_display_name, resident_email')
+    .eq('building_id', building.id);
+
+  const { data: byKeys } =
+    keys.size > 0
+      ? await sb
+          .from('building_requests')
+          .select('building_candidate_key, formatted_address, building_display_name, resident_email')
+          .in('building_candidate_key', [...keys])
+      : { data: [] as typeof byBuildingId };
+
+  const requests = [...(byBuildingId ?? []), ...(byKeys ?? [])];
+
+  for (const r of requests) {
+    if (typeof r.building_candidate_key === 'string') keys.add(r.building_candidate_key);
+    for (const k of candidateKeysFromText(r.formatted_address, r.building_display_name)) {
+      keys.add(k);
+    }
+  }
+
+  if (keys.size > 0) {
+    await sb
+      .from('building_waitlist')
+      .update({ building_id: building.id })
+      .in('building_candidate_key', [...keys])
+      .is('building_id', null);
+  }
 
   const emails = [
     ...new Set(
@@ -74,6 +112,18 @@ export async function backfillWaitlistBuildingId(
       .in('email', emails)
       .is('building_id', null);
   }
+
+  const { data: unlinked } = await sb
+    .from('building_waitlist')
+    .select('id, building_label, formatted_address, building_candidate_key')
+    .is('building_id', null)
+    .is('notified_activation_at', null);
+
+  for (const row of unlinked ?? []) {
+    if (waitlistRowMatchesBuilding(row, building, keys)) {
+      await sb.from('building_waitlist').update({ building_id: building.id }).eq('id', row.id);
+    }
+  }
 }
 
 /** All waitlist rows for this building who have not been notified yet. */
@@ -83,7 +133,20 @@ export async function findUnnotifiedWaitlist(
 ): Promise<WaitlistRow[]> {
   await backfillWaitlistBuildingId(sb, building);
 
-  const keys = candidateKeysForBuilding(building);
+  const keys = new Set(candidateKeysForBuilding(building));
+
+  const { data: requests } = await sb
+    .from('building_requests')
+    .select('building_candidate_key, formatted_address, building_display_name, resident_email')
+    .eq('building_id', building.id);
+
+  for (const r of requests ?? []) {
+    if (typeof r.building_candidate_key === 'string') keys.add(r.building_candidate_key);
+    for (const k of candidateKeysFromText(r.formatted_address, r.building_display_name)) {
+      keys.add(k);
+    }
+  }
+
   const byId = new Map<string, WaitlistRow>();
 
   const merge = (rows: WaitlistRow[] | null) => {
@@ -94,24 +157,19 @@ export async function findUnnotifiedWaitlist(
 
   const { data: byBuilding } = await sb
     .from('building_waitlist')
-    .select('id, email, phone, profile_id, full_name')
+    .select('id, email, phone, profile_id, full_name, building_label, formatted_address, building_candidate_key')
     .eq('building_id', building.id)
     .is('notified_activation_at', null);
   merge(byBuilding);
 
-  for (const key of keys) {
+  if (keys.size > 0) {
     const { data: byKey } = await sb
       .from('building_waitlist')
-      .select('id, email, phone, profile_id, full_name')
-      .eq('building_candidate_key', key)
+      .select('id, email, phone, profile_id, full_name, building_label, formatted_address, building_candidate_key')
+      .in('building_candidate_key', [...keys])
       .is('notified_activation_at', null);
     merge(byKey);
   }
-
-  const { data: requests } = await sb
-    .from('building_requests')
-    .select('resident_email')
-    .eq('building_id', building.id);
 
   const requestEmails = [
     ...new Set(
@@ -124,10 +182,21 @@ export async function findUnnotifiedWaitlist(
   if (requestEmails.length > 0) {
     const { data: byEmail } = await sb
       .from('building_waitlist')
-      .select('id, email, phone, profile_id, full_name')
+      .select('id, email, phone, profile_id, full_name, building_label, formatted_address, building_candidate_key')
       .in('email', requestEmails)
       .is('notified_activation_at', null);
     merge(byEmail);
+  }
+
+  const { data: pending } = await sb
+    .from('building_waitlist')
+    .select('id, email, phone, profile_id, full_name, building_label, formatted_address, building_candidate_key')
+    .is('notified_activation_at', null);
+
+  for (const row of pending ?? []) {
+    if (!byId.has(row.id) && waitlistRowMatchesBuilding(row, building, keys)) {
+      byId.set(row.id, row);
+    }
   }
 
   return [...byId.values()];

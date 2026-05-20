@@ -903,3 +903,7 @@ begin
 exception
   when duplicate_object then null;
 end $$;
+
+alter table building_waitlist
+  add column if not exists building_label text,
+  add column if not exists formatted_address text;
