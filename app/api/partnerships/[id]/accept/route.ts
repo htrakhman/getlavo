@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { sendPartnershipAccepted } from '@/lib/email/resend';
+import { maybeNotifyBuildingLive } from '@/lib/building-activation';
 
 export async function POST(_req: Request, { params }: { params: { id: string } }) {
   const session = await getSessionUser();
@@ -54,6 +55,11 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
       operatorName: operator.name,
     }).catch(() => {});
   }
+
+  await admin.from('buildings').update({ status: 'active' }).eq('id', partnership.building_id);
+  await maybeNotifyBuildingLive(partnership.building_id).catch((e) =>
+    console.error('maybeNotifyBuildingLive', e),
+  );
 
   return NextResponse.json({ ok: true });
 }

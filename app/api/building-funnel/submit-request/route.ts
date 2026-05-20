@@ -57,9 +57,19 @@ export async function POST(req: NextRequest) {
   const sb = supabaseAdmin();
   const submittedAt = new Date().toISOString();
 
+  let resolvedBuildingId = buildingId;
+  if (!resolvedBuildingId && placeId) {
+    const { data: byPlace } = await sb
+      .from('buildings')
+      .select('id')
+      .eq('google_place_id', placeId)
+      .maybeSingle();
+    resolvedBuildingId = byPlace?.id ?? null;
+  }
+
   const { error: waitlistError } = await sb.from('building_waitlist').insert({
     building_candidate_key: buildingCandidateKey,
-    building_id: buildingId,
+    building_id: resolvedBuildingId,
     email: residentEmail,
     full_name: residentFirstName || null,
     profile_id: profileId,
@@ -74,7 +84,7 @@ export async function POST(req: NextRequest) {
 
   const requestRow = await insertBuildingRequestRow(sb, {
     building_candidate_key: buildingCandidateKey,
-    building_id: buildingId,
+    building_id: resolvedBuildingId,
     channel,
     source,
     place_id: placeId,
@@ -94,7 +104,7 @@ export async function POST(req: NextRequest) {
 
   const shareToken = await createBuildingShareToken(sb, {
     building_candidate_key: buildingCandidateKey,
-    building_id: buildingId,
+    building_id: resolvedBuildingId,
     created_by_request_id: requestRow.id,
   });
 
