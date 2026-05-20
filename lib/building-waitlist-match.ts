@@ -45,7 +45,17 @@ export function candidateKeysForBuilding(building: BuildingForMatch): string[] {
   return [...keys];
 }
 
-function waitlistRowMatchesBuilding(row: WaitlistRow, building: BuildingForMatch, keys: Set<string>) {
+type WaitlistMatchFields = {
+  building_candidate_key?: string | null;
+  building_label?: string | null;
+  formatted_address?: string | null;
+};
+
+function waitlistRowMatchesBuilding(
+  row: WaitlistMatchFields,
+  building: BuildingForMatch,
+  keys: Set<string>,
+) {
   if (row.building_candidate_key && keys.has(row.building_candidate_key)) return true;
 
   const fullAddress = [building.address_line1, building.city, building.region].filter(Boolean).join(', ');
