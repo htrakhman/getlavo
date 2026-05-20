@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 84 110" width="84" height="110" role="img" aria-label="Lavo">
+  <defs>
+    <linearGradient id="lavo-email-grad" x1="0" y1="0" x2="84" y2="110" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#D93EA0"/>
+      <stop offset="48%" stop-color="#8B35C9"/>
+      <stop offset="100%" stop-color="#2B7CE8"/>
+    </linearGradient>
+  </defs>
+  <path d="M 28 16 C 8 22, 3 46, 3 65 C 3 84, 20 102, 42 106 C 64 102, 81 84, 81 65 C 81 46, 76 22, 56 16" fill="none" stroke="url(#lavo-email-grad)" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 28 16 C 24 30, 22 46, 22 63 C 22 79, 30 92, 42 96 C 54 92, 62 79, 62 63 C 62 46, 60 30, 56 16" fill="none" stroke="url(#lavo-email-grad)" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="61" cy="9" r="7.5" fill="#D93EA0"/>
+  <circle cx="74" cy="23" r="5.5" fill="#5BCEF0"/>
+</svg>

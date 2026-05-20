@@ -5,6 +5,24 @@
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_BASE_URL || 'https://getlavo.io';
 const SUPPORT_EMAIL = process.env.ADMIN_EMAIL || 'hello@getlavo.io';
 
+/** Lavo ribbon mark + wordmark for email clients (absolute URL required). */
+export function emailBrandHeader() {
+  const base = APP_URL.replace(/\/$/, '');
+  const logoUrl = `${base}/lavo-email-logo.svg`;
+  return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 8px 0;">
+    <tr>
+      <td style="vertical-align:middle;padding-right:12px;">
+        <a href="${base}" style="text-decoration:none;display:inline-block;">
+          <img src="${logoUrl}" alt="Lavo" width="42" height="55" style="display:block;border:0;outline:none;height:auto;max-width:42px;" />
+        </a>
+      </td>
+      <td style="vertical-align:middle;">
+        <a href="${base}" style="font-family:Georgia,'Times New Roman',serif;font-size:22px;font-weight:600;letter-spacing:0.08em;color:#e5e5e5;text-decoration:none;">LAVO</a>
+      </td>
+    </tr>
+  </table>`;
+}
+
 export function wrapEmail({ preheader, content }: { preheader?: string; content: string }) {
   return `<!doctype html>
 <html lang="en">
@@ -19,9 +37,7 @@ export function wrapEmail({ preheader, content }: { preheader?: string; content:
     <tr><td align="center" style="padding:40px 20px;">
       <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;background:#121212;border-radius:18px;overflow:hidden;">
         <tr><td style="padding:32px 32px 0 32px;">
-          <div style="font-family:Georgia,serif;font-size:22px;font-weight:600;letter-spacing:-0.02em;color:#e5e5e5;">
-            <span style="color:#00e5c8;">●</span> Lavo
-          </div>
+          ${emailBrandHeader()}
         </td></tr>
         <tr><td style="padding:24px 32px 32px 32px;color:#e5e5e5;font-size:15px;line-height:1.6;">
           ${content}
