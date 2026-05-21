@@ -1,7 +1,10 @@
 import './globals.css';
 import type { Metadata } from 'next';
-import Script from 'next/script';
+import { PostHogPageView, PostHogProvider } from '@posthog/next';
+import { Suspense } from 'react';
 import { ClientProviders } from '@/components/ClientProviders';
+
+const posthogKey = process.env.NEXT_PUBLIC_POSTHOG_KEY;
 
 export const metadata: Metadata = {
   title: 'Lavo — Premium car wash, delivered to your garage',
@@ -14,14 +17,26 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className="grain min-h-screen bg-ink-950 text-ink-100 antialiased">
-        {process.env.NEXT_PUBLIC_POSTHOG_KEY ? (
-          <Script id="posthog" strategy="afterInteractive">
-            {`window.posthog=window.posthog||[];posthog.init(${JSON.stringify(process.env.NEXT_PUBLIC_POSTHOG_KEY)},{api_host:'https://us.i.posthog.com',person_profiles:'identified_only'});`}
-          </Script>
-        ) : null}
-        <ClientProviders>
-          <div className="relative z-10">{children}</div>
-        </ClientProviders>
+        {posthogKey ? (
+          <PostHogProvider
+            apiKey={posthogKey}
+            clientOptions={{
+              api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST ?? '/ingest',
+              person_profiles: 'identified_only',
+            }}
+          >
+            <Suspense fallback={null}>
+              <PostHogPageView />
+            </Suspense>
+            <ClientProviders>
+              <div className="relative z-10">{children}</div>
+            </ClientProviders>
+          </PostHogProvider>
+        ) : (
+          <ClientProviders>
+            <div className="relative z-10">{children}</div>
+          </ClientProviders>
+        )}
       </body>
     </html>
   );

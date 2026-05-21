@@ -10,6 +10,7 @@
     "db:push": "supabase db push"
   },
   "dependencies": {
+    "@posthog/next": "^0.4.61",
     "@stripe/react-stripe-js": "^6.3.0",
     "@stripe/stripe-js": "^9.4.0",
     "@supabase/ssr": "^0.5.2",
