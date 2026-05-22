@@ -6,7 +6,7 @@ import { ClientProviders } from '@/components/ClientProviders';
 export const metadata: Metadata = {
   title: 'Lavo — Premium car wash, delivered to your garage',
   description: 'Lavo connects apartment buildings, residents, and mobile car wash crews on one effortless platform.',
-  metadataBase: new URL('https://getlavo.io'),
+  metadataBase: new URL('https://www.getlavo.io'),
   manifest: '/manifest.webmanifest',
 };
 

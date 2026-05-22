@@ -1,11 +1,45 @@
 import Link from 'next/link';
 import { MarketingNav, MarketingFooter } from '@/components/MarketingNav';
+import { RelatedLinks } from '@/components/marketing/RelatedLinks';
+import { JsonLd } from '@/components/seo/JsonLd';
+import { breadcrumbSchema, serviceSchema } from '@/lib/seo/schema';
+import { createPageMetadata } from '@/lib/seo/site';
 
-export const metadata = { title: 'For car wash operators · Lavo' };
+export const metadata = createPageMetadata({
+  path: '/operators',
+  title: 'Recurring Mobile Car Wash Demand for Operators | Lavo',
+  description:
+    'Lavo helps mobile car wash operators get recurring apartment building demand with scheduled wash days, resident bookings, and automatic payouts.',
+});
+
+const OPERATORS_RELATED = [
+  { href: '/how-it-works', label: 'How it works' },
+  { href: '/contact', label: 'Contact' },
+  { href: '/buildings', label: 'For properties' },
+  { href: '/resources/mobile-detailing-leads-apartments', label: 'Recurring apartment customers' },
+  { href: '/resources/apartment-wash-day-playbook', label: 'Apartment wash day playbook' },
+  { href: '/cities/new-jersey', label: 'New Jersey' },
+];
 
 export default function OperatorsPage() {
   return (
     <main className="relative">
+      <JsonLd
+        data={[
+          serviceSchema({
+            path: '/operators',
+            name: 'Recurring mobile car wash demand for operators',
+            serviceType: 'Apartment building demand platform for mobile car wash operators',
+            description:
+              'Lavo helps mobile car wash operators get recurring apartment building demand with scheduled wash days, resident bookings, and automatic payouts.',
+            audience: 'Mobile car wash operators and detailers',
+          }),
+          breadcrumbSchema([
+            { name: 'Home', path: '/' },
+            { name: 'For operators', path: '/operators' },
+          ]),
+        ]}
+      />
       <div className="absolute inset-x-0 top-0 h-[500px] bg-gleam-fade" />
       <MarketingNav />
 
@@ -130,6 +164,10 @@ export default function OperatorsPage() {
         <Link href="/signup?role=operator" className="btn-primary px-10 py-4 text-base">
           Apply as an operator →
         </Link>
+      </section>
+
+      <section className="mx-auto max-w-3xl px-6 pb-8">
+        <RelatedLinks links={OPERATORS_RELATED} />
       </section>
 
       <MarketingFooter />

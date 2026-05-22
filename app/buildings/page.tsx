@@ -1,12 +1,48 @@
 import Link from 'next/link';
 import { MarketingNav, MarketingFooter } from '@/components/MarketingNav';
+import { RelatedLinks } from '@/components/marketing/RelatedLinks';
 import { EnterpriseLeadForm } from '@/components/EnterpriseLeadForm';
+import { JsonLd } from '@/components/seo/JsonLd';
+import { breadcrumbSchema, serviceSchema } from '@/lib/seo/schema';
+import { createPageMetadata } from '@/lib/seo/site';
 
-export const metadata = { title: 'For apartment buildings · Lavo' };
+export const metadata = createPageMetadata({
+  path: '/buildings',
+  title: 'Free Car Wash Amenity for Apartment Buildings | Lavo',
+  description:
+    'Give residents a convenient mobile car wash amenity at no cost to the building. Lavo handles operators, booking, scheduling, and payments.',
+});
+
+const BUILDINGS_RELATED = [
+  { href: '/how-it-works', label: 'How it works' },
+  { href: '/safety', label: 'Safety' },
+  { href: '/contact', label: 'Contact' },
+  { href: '/operators', label: 'For operators' },
+  { href: '/resources/apartment-car-wash-amenity', label: 'Apartment car wash amenity' },
+  { href: '/resources/car-wash-amenity-for-property-managers', label: 'Car wash amenity for property managers' },
+  { href: '/resources/car-wash-amenity-insurance-damage', label: 'Insurance and damage handling' },
+  { href: '/cities/new-jersey', label: 'New Jersey' },
+];
 
 export default function BuildingsPage() {
   return (
     <main className="relative">
+      <JsonLd
+        data={[
+          serviceSchema({
+            path: '/buildings',
+            name: 'Apartment building mobile car wash amenity',
+            serviceType: 'Mobile car wash amenity for apartment buildings',
+            description: 'Buildings pay nothing to add Lavo as a resident amenity.',
+            audience: 'Property managers and apartment buildings',
+            price: 0,
+          }),
+          breadcrumbSchema([
+            { name: 'Home', path: '/' },
+            { name: 'For properties', path: '/buildings' },
+          ]),
+        ]}
+      />
       <div className="absolute inset-x-0 top-0 h-[500px] bg-gleam-fade" />
       <MarketingNav />
 
@@ -124,6 +160,10 @@ export default function BuildingsPage() {
             </div>
           ))}
         </div>
+      </section>
+
+      <section className="mx-auto max-w-3xl px-6 pb-8">
+        <RelatedLinks links={BUILDINGS_RELATED} />
       </section>
 
       <MarketingFooter />
