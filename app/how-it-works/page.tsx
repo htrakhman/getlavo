@@ -20,7 +20,7 @@ export default function HowItWorksPage() {
 
       {/* Full lifecycle */}
       <section className="mx-auto max-w-3xl px-6 py-12">
-        <div className="space-y-1">
+        <div className="space-y-6">
           {[
             {
               num: '01',
