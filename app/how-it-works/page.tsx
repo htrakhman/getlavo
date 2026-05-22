@@ -103,7 +103,7 @@ export default function HowItWorksPage() {
 
       <section className="mx-auto max-w-3xl px-6 py-8">
         <h2 className="font-display text-3xl text-center mb-8">Step by step</h2>
-        <div className="space-y-1">
+        <div className="space-y-6">
           {[
             {
               num: '01',
