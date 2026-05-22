@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { MarketingNav, MarketingFooter } from '@/components/MarketingNav';
-import { HowLavoWorksInfographic } from '@/components/marketing/HowLavoWorksInfographic';
+import { HowLavoWorksVisual } from '@/components/marketing/HowLavoWorksVisual';
 import { PROCESS_PHASES, WashDayAccessFlow } from '@/components/marketing/HowItWorksFlow';
 import { RelatedLinks } from '@/components/marketing/RelatedLinks';
 import { VisibleFaq } from '@/components/marketing/VisibleFaq';
@@ -94,28 +94,33 @@ export default function HowItWorksPage() {
           { name: 'How it works', path: '/how-it-works' },
         ])}
       />
-      <div className="absolute inset-x-0 top-0 h-[480px] bg-gleam-fade" />
+      <div className="absolute inset-x-0 top-0 h-[520px] bg-gleam-fade" />
       <MarketingNav />
 
-      <section className="relative px-6 pt-16 pb-8">
-        <div className="mx-auto max-w-6xl">
-          <div className="mb-6 text-center lg:hidden">
-            <div className="inline-flex items-center gap-2 rounded-full border border-gleam/30 bg-gleam/5 px-4 py-1.5 text-xs font-medium text-gleam">
-              How it works
-            </div>
+      <section className="relative px-6 pt-16 pb-6 text-center">
+        <div className="mx-auto max-w-3xl">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-gleam/30 bg-gleam/5 px-4 py-1.5 text-xs font-medium text-gleam">
+            How it works
           </div>
-          <h1 className="sr-only">How Lavo works — apartment car wash, made simple</h1>
-          <HowLavoWorksInfographic />
+          <h1 className="font-display text-5xl font-semibold leading-[1.05] tracking-tight md:text-6xl">
+            How Lavo <span className="gleam-text">works</span>
+          </h1>
+          <p className="mx-auto mt-5 max-w-xl text-lg leading-relaxed text-ink-300">
+            Apartment car wash, made simple — for buildings, residents, and operators.
+          </p>
         </div>
       </section>
 
-      {/* Phase details */}
-      <section className="relative border-t border-white/10 bg-ink-950/40 py-20">
+      <section className="relative mx-auto max-w-6xl px-6 pb-20">
+        <HowLavoWorksVisual />
+      </section>
+
+      <section className="relative border-t border-white/10 bg-ink-950/50 py-20">
         <div className="mx-auto max-w-3xl px-6">
           <div className="mb-12 text-center">
             <div className="text-xs uppercase tracking-[0.18em] text-gleam">Details</div>
             <h2 className="mt-2 font-display text-4xl">Each phase, step by step</h2>
-            <p className="mt-3 text-sm text-ink-400">Matches the four phases in the diagram above.</p>
+            <p className="mt-3 text-sm text-ink-400">Operational detail for every part of the flow above.</p>
           </div>
 
           <div className="space-y-14">
@@ -155,7 +160,6 @@ export default function HowItWorksPage() {
         </div>
       </section>
 
-      {/* Role-specific deep dives */}
       <section className="relative mx-auto max-w-6xl px-6 py-16">
         <div className="mb-8 text-center">
           <h2 className="font-display text-3xl">Learn more by role</h2>
