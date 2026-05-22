@@ -1,10 +1,7 @@
 import Link from 'next/link';
 import { MarketingNav, MarketingFooter } from '@/components/MarketingNav';
-import {
-  HowLavoWorks,
-  PROCESS_PHASES,
-  WashDayAccessFlow,
-} from '@/components/marketing/HowItWorksFlow';
+import { HowLavoWorksInfographic } from '@/components/marketing/HowLavoWorksInfographic';
+import { PROCESS_PHASES, WashDayAccessFlow } from '@/components/marketing/HowItWorksFlow';
 import { RelatedLinks } from '@/components/marketing/RelatedLinks';
 import { VisibleFaq } from '@/components/marketing/VisibleFaq';
 import { JsonLd } from '@/components/seo/JsonLd';
@@ -100,24 +97,21 @@ export default function HowItWorksPage() {
       <div className="absolute inset-x-0 top-0 h-[480px] bg-gleam-fade" />
       <MarketingNav />
 
-      <section className="relative px-6 pt-16 pb-10 text-center">
-        <div className="mx-auto max-w-3xl">
-          <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-gleam/30 bg-gleam/5 px-4 py-1.5 text-xs font-medium text-gleam">
-            How it works
+      <section className="relative px-6 pt-16 pb-8">
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-10 text-center md:mb-12">
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-gleam/30 bg-gleam/5 px-4 py-1.5 text-xs font-medium text-gleam">
+              How it works
+            </div>
+            <h1 className="font-display text-4xl font-semibold leading-[1.05] tracking-tight md:text-5xl">
+              How Lavo <span className="gleam-text">works</span>
+            </h1>
+            <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-ink-400 md:text-lg">
+              Apartment car wash, made simple.
+            </p>
           </div>
-          <h1 className="font-display text-5xl font-semibold leading-[1.05] tracking-tight md:text-6xl">
-            How Lavo<br />
-            <span className="gleam-text">works.</span>
-          </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-ink-300">
-            Buildings add the amenity for free, residents book and pay from their phone, and partnered operators run
-            wash days in your garage or lot. Setup → book → wash day → review and payout.
-          </p>
+          <HowLavoWorksInfographic priority />
         </div>
-      </section>
-
-      <section className="relative mx-auto max-w-6xl px-6 pb-16">
-        <HowLavoWorks variant="full" />
       </section>
 
       {/* Phase details */}

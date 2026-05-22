@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { Suspense } from 'react';
 import { MarketingNav, MarketingFooter } from '@/components/MarketingNav';
 import { RelatedLinks } from '@/components/marketing/RelatedLinks';
-import { HowLavoWorks } from '@/components/marketing/HowItWorksFlow';
+import { HowLavoWorksInfographic } from '@/components/marketing/HowLavoWorksInfographic';
 import { CheckBuildingFlow } from '@/components/CheckBuildingFlow';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { organizationSchema, websiteSchema } from '@/lib/seo/schema';
@@ -136,8 +136,16 @@ export default async function Home({
         <div className="text-center mb-10">
           <div className="text-xs uppercase tracking-[0.18em] text-gleam mb-2">How it works</div>
           <h2 className="font-display text-4xl">How Lavo works</h2>
+          <p className="mx-auto mt-3 max-w-lg text-sm text-ink-400">
+            Buildings, residents, and operators — one platform from setup to payout.
+          </p>
         </div>
-        <HowLavoWorks variant="compact" />
+        <HowLavoWorksInfographic />
+        <p className="mt-8 text-center">
+          <Link href="/how-it-works" className="text-sm text-gleam hover:underline">
+            Step-by-step guide and FAQs →
+          </Link>
+        </p>
       </section>
 
       {/* Resident features */}
