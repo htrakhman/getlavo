@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { Suspense } from 'react';
 import { MarketingNav, MarketingFooter } from '@/components/MarketingNav';
 import { RelatedLinks } from '@/components/marketing/RelatedLinks';
-import { HowLavoWorksInfographic } from '@/components/marketing/HowLavoWorksInfographic';
+import { HowLavoWorksPreview } from '@/components/marketing/HowLavoWorksInfographic';
 import { CheckBuildingFlow } from '@/components/CheckBuildingFlow';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { organizationSchema, websiteSchema } from '@/lib/seo/schema';
@@ -140,12 +140,7 @@ export default async function Home({
             Buildings, residents, and operators — one platform from setup to payout.
           </p>
         </div>
-        <HowLavoWorksInfographic />
-        <p className="mt-8 text-center">
-          <Link href="/how-it-works" className="text-sm text-gleam hover:underline">
-            Step-by-step guide and FAQs →
-          </Link>
-        </p>
+        <HowLavoWorksPreview />
       </section>
 
       {/* Resident features */}

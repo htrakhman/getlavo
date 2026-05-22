@@ -99,18 +99,13 @@ export default function HowItWorksPage() {
 
       <section className="relative px-6 pt-16 pb-8">
         <div className="mx-auto max-w-6xl">
-          <div className="mb-10 text-center md:mb-12">
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-gleam/30 bg-gleam/5 px-4 py-1.5 text-xs font-medium text-gleam">
+          <div className="mb-6 text-center lg:hidden">
+            <div className="inline-flex items-center gap-2 rounded-full border border-gleam/30 bg-gleam/5 px-4 py-1.5 text-xs font-medium text-gleam">
               How it works
             </div>
-            <h1 className="font-display text-4xl font-semibold leading-[1.05] tracking-tight md:text-5xl">
-              How Lavo <span className="gleam-text">works</span>
-            </h1>
-            <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-ink-400 md:text-lg">
-              Apartment car wash, made simple.
-            </p>
           </div>
-          <HowLavoWorksInfographic priority />
+          <h1 className="sr-only">How Lavo works — apartment car wash, made simple</h1>
+          <HowLavoWorksInfographic />
         </div>
       </section>
 
