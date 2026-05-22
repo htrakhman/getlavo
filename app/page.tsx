@@ -81,7 +81,7 @@ export default async function Home({
           <p className="mx-auto mt-6 max-w-2xl text-lg text-ink-300">
             Book from your phone. Operators are vetted and insured. Buildings pay nothing.
           </p>
-          <div className="mt-10 mx-auto w-full max-w-xl text-center">
+          <div id="request-lavo" className="mt-10 mx-auto w-full max-w-xl scroll-mt-24 text-center">
             <p className="mb-3 text-sm font-medium text-ink-200">See if your building is on Lavo.</p>
             <Suspense fallback={<div className="text-sm text-ink-500">Loading address search…</div>}>
               <CheckBuildingFlow />
