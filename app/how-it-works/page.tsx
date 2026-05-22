@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { MarketingNav, MarketingFooter } from '@/components/MarketingNav';
 import {
-  HowItWorksFlow,
+  HowLavoWorks,
   PROCESS_PHASES,
   WashDayAccessFlow,
 } from '@/components/marketing/HowItWorksFlow';
@@ -106,19 +106,18 @@ export default function HowItWorksPage() {
             How it works
           </div>
           <h1 className="font-display text-5xl font-semibold leading-[1.05] tracking-tight md:text-6xl">
-            Three audiences.<br />
-            <span className="gleam-text">One booking flow.</span>
+            How Lavo<br />
+            <span className="gleam-text">works.</span>
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-ink-300">
-            Buildings launch Lavo, residents book from their phone, and partnered operators run wash days in your
-            garage or lot. Start with the overview below, then read each phase in order.
+            Buildings add the amenity for free, residents book and pay from their phone, and partnered operators run
+            wash days in your garage or lot. Setup → book → wash day → review and payout.
           </p>
         </div>
       </section>
 
-      {/* Visual process overview */}
       <section className="relative mx-auto max-w-6xl px-6 pb-16">
-        <HowItWorksFlow />
+        <HowLavoWorks variant="full" />
       </section>
 
       {/* Phase details */}

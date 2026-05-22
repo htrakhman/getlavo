@@ -1,35 +1,130 @@
 import Link from 'next/link';
 
+/* ─── Shared data (infographic-aligned) ─────────────────────────────────── */
+
+export const AUDIENCES = [
+  {
+    id: 'building',
+    title: 'Buildings',
+    icon: 'building',
+    bullets: [
+      'Add Lavo as an amenity for free',
+      'Connect with a local wash operator in your area',
+      'Share booking links and QR codes with residents',
+    ],
+    href: '/buildings',
+    cta: 'For property managers',
+  },
+  {
+    id: 'resident',
+    title: 'Residents',
+    icon: 'resident',
+    bullets: [
+      'Book washes from the mobile app',
+      'Add your car and parking spot details',
+      'Choose a time slot and pay through the app',
+    ],
+    href: '/signup?role=resident',
+    cta: 'Book a wash',
+  },
+  {
+    id: 'operator',
+    title: 'Operators',
+    icon: 'operator',
+    bullets: [
+      'Perform washes on-site at partnered buildings',
+      'Follow the building handoff process on wash day',
+      'Get paid after the job is completed and reviewed',
+    ],
+    href: '/operators',
+    cta: 'Join the network',
+  },
+] as const;
+
 const PHASES = [
   {
     id: 'setup',
-    label: '1 · Setup',
-    title: 'Building & operator connect',
-    summary: 'Property adds Lavo for free, picks a local operator, and shares the resident QR or link.',
+    label: 'Setup',
+    title: 'Building launches Lavo',
+    summary: 'Property adds the service for free, partners with a local operator, and shares a QR code or resident link.',
     actors: ['Building', 'Operator'],
   },
   {
     id: 'book',
-    label: '2 · Book',
-    title: 'Residents sign up & pay',
-    summary: 'Residents join via the building link, add their vehicle, pick a wash day or open slot, and pay in the app.',
+    label: 'Book',
+    title: 'Resident books & pays',
+    summary: 'Resident signs up via the building link, adds vehicle and parking spot, picks a wash day or open slot, and pays in the app.',
     actors: ['Resident'],
   },
   {
     id: 'wash',
-    label: '3 · Wash day',
-    title: 'Access, wash, return',
-    summary: 'Building and resident follow the property handoff so the crew can move, wash, and return the car.',
+    label: 'Wash day',
+    title: 'Move, wash, return',
+    summary: 'Operator follows the property handoff, moves the car, washes it with photo proof, and returns it to the spot.',
     actors: ['Building', 'Resident', 'Operator'],
   },
   {
     id: 'done',
-    label: '4 · Done',
+    label: 'Done',
     title: 'Review & payout',
-    summary: 'Resident gets completion notice and can review; operator receives payout through Stripe.',
+    summary: 'Resident gets a completion notice and can leave a star review; that unlocks operator payout through Stripe.',
     actors: ['Resident', 'Operator'],
   },
 ] as const;
+
+export const PRICING_MODEL = [
+  { role: 'Buildings', price: '$0', detail: 'Free amenity — no subscription or setup fee' },
+  { role: 'Residents', price: 'Per wash', detail: 'Pay only for washes you book in the app' },
+  { role: 'Operators', price: 'After review', detail: 'Payout once the job is completed and reviewed' },
+] as const;
+
+/* ─── Icons ─────────────────────────────────────────────────────────────── */
+
+function BuildingIcon() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden>
+      <rect x="4" y="3" width="24" height="26" rx="1" stroke="currentColor" strokeWidth="1.5" />
+      <rect x="9" y="8" width="4" height="4" rx="0.5" stroke="currentColor" strokeWidth="1.25" />
+      <rect x="19" y="8" width="4" height="4" rx="0.5" stroke="currentColor" strokeWidth="1.25" />
+      <rect x="9" y="16" width="4" height="4" rx="0.5" stroke="currentColor" strokeWidth="1.25" />
+      <rect x="19" y="16" width="4" height="4" rx="0.5" stroke="currentColor" strokeWidth="1.25" />
+      <rect x="13" y="23" width="6" height="6" rx="0.5" stroke="currentColor" strokeWidth="1.25" />
+    </svg>
+  );
+}
+
+function OperatorIcon() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden>
+      <path
+        d="M6 10 Q6 6 10 6 L18 6 Q20 6 21 8 L26 18 Q27 20 26 22 L26 26 Q26 27 25 27 L7 27 Q6 27 6 26 Z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+      <circle cx="10" cy="27" r="3" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="22" cy="27" r="3" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M6 18 L26 18" stroke="currentColor" strokeWidth="1.25" />
+      <path d="M18 6 L22 18" stroke="currentColor" strokeWidth="1.25" />
+    </svg>
+  );
+}
+
+function ResidentIcon() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden>
+      <circle cx="16" cy="16" r="13" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="16" cy="12" r="4" stroke="currentColor" strokeWidth="1.25" />
+      <path d="M7 25 Q8 20 16 20 Q24 20 25 25" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function AudienceIcon({ type }: { type: (typeof AUDIENCES)[number]['icon'] }) {
+  if (type === 'building') return <BuildingIcon />;
+  if (type === 'operator') return <OperatorIcon />;
+  return <ResidentIcon />;
+}
 
 function Arrow({ className = '' }: { className?: string }) {
   return (
@@ -60,19 +155,139 @@ function ActorTag({ name }: { name: string }) {
   );
 }
 
-/** High-level platform flow — four phases with connecting arrows. */
-export function HowItWorksFlow() {
-  return (
-    <div className="card overflow-hidden p-6 sm:p-8 ring-1 ring-inset ring-white/[0.04]">
-      <div className="mb-8 text-center">
-        <div className="text-xs uppercase tracking-[0.18em] text-gleam">Overview</div>
-        <h2 className="mt-2 font-display text-2xl sm:text-3xl">How the process flows</h2>
-        <p className="mx-auto mt-2 max-w-lg text-sm text-ink-400">
-          One loop from building launch to resident booking, wash day service, and payout.
-        </p>
-      </div>
+/* ─── Audience cards ──────────────────────────────────────────────────────── */
 
-      {/* Desktop: horizontal */}
+export function HowItWorksAudiences({ showLinks = true }: { showLinks?: boolean }) {
+  return (
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+      {AUDIENCES.map((audience) => (
+        <article key={audience.id} className="card flex flex-col p-8">
+          <div className="mb-4 text-gleam">
+            <AudienceIcon type={audience.icon} />
+          </div>
+          <h3 className="font-display text-2xl text-ink-100">{audience.title}</h3>
+          <ul className="mt-4 flex-1 space-y-2.5 text-sm leading-relaxed text-ink-300">
+            {audience.bullets.map((line) => (
+              <li key={line} className="flex gap-3">
+                <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-gleam/70" aria-hidden />
+                <span>{line}</span>
+              </li>
+            ))}
+          </ul>
+          {showLinks && (
+            <Link href={audience.href} className="mt-6 text-sm text-gleam hover:underline">
+              {audience.cta} →
+            </Link>
+          )}
+        </article>
+      ))}
+    </div>
+  );
+}
+
+/* ─── Platform entity diagram ───────────────────────────────────────────── */
+
+function PlatformNode({
+  x,
+  y,
+  w,
+  h,
+  label,
+  highlight = false,
+}: {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  label: string;
+  highlight?: boolean;
+}) {
+  return (
+    <g>
+      <rect
+        x={x}
+        y={y}
+        width={w}
+        height={h}
+        rx="6"
+        className={
+          highlight
+            ? 'fill-gleam/15 stroke-gleam/60'
+            : 'fill-ink-900 stroke-white/20'
+        }
+        strokeWidth="1.5"
+      />
+      <text
+        x={x + w / 2}
+        y={y + h / 2 + 4}
+        textAnchor="middle"
+        className={highlight ? 'fill-gleam text-[10px] font-semibold' : 'fill-ink-100 text-[10px] font-medium'}
+      >
+        {label}
+      </text>
+    </g>
+  );
+}
+
+function DiagramLine({ x1, y1, x2, y2 }: { x1: number; y1: number; x2: number; y2: number }) {
+  return (
+    <line
+      x1={x1}
+      y1={y1}
+      x2={x2}
+      y2={y2}
+      stroke="currentColor"
+      strokeWidth="1"
+      className="text-gleam/35"
+    />
+  );
+}
+
+/** Lavo platform data model — how entities connect in the product. */
+export function HowItWorksPlatformDiagram() {
+  const cx = 200;
+  const cy = 130;
+  return (
+    <div className="rounded-xl border border-white/10 bg-ink-900/40 p-5 sm:p-6">
+      <h3 className="text-center font-display text-lg text-ink-100">Lavo platform</h3>
+      <p className="mx-auto mt-2 max-w-md text-center text-xs text-ink-500">
+        How setup, bookings, wash days, and payouts connect in one system.
+      </p>
+      <svg
+        viewBox="0 0 400 260"
+        className="mx-auto mt-6 w-full max-w-lg text-ink-300"
+        role="img"
+        aria-label="Platform diagram: Setup links to Booking, Parking Spot, and QR Link. Booking connects Wash Day, Vehicle, Operator Match. Wash Day connects Review and Payout."
+      >
+        <DiagramLine x1={80} y1={55} x2={cx} y2={cy - 20} />
+        <DiagramLine x1={320} y1={55} x2={cx} y2={cy - 20} />
+        <DiagramLine x1={cx} y1={cy + 28} x2={cx} y2={200} />
+        <DiagramLine x1={cx - 55} y1={cy} x2={95} y2={175} />
+        <DiagramLine x1={cx + 55} y1={cy} x2={305} y2={175} />
+        <DiagramLine x1={95} y1={195} x2={130} y2={195} />
+        <DiagramLine x1={270} y1={195} x2={305} y2={195} />
+        <DiagramLine x1={cx} y1={200} x2={305} y2={210} />
+        <DiagramLine x1={305} y1={230} x2={340} y2={230} />
+
+        <PlatformNode x={48} y={32} w={64} h={28} label="Setup" />
+        <PlatformNode x={288} y={32} w={72} h={28} label="QR Link" />
+        <PlatformNode x={cx - 40} y={cy - 14} w={80} h={28} label="Booking" highlight />
+        <PlatformNode x={cx - 44} y={188} w={88} h={28} label="Wash Day" />
+        <PlatformNode x={48} y={178} w={56} h={28} label="Vehicle" />
+        <PlatformNode x={128} y={178} w={88} h={28} label="Parking Spot" />
+        <PlatformNode x={268} y={178} w={96} h={28} label="Operator Match" />
+        <PlatformNode x={308} y={214} w={56} h={28} label="Review" />
+        <PlatformNode x={368} y={214} w={56} h={28} label="Payout" />
+      </svg>
+    </div>
+  );
+}
+
+/* ─── Four-phase flow ───────────────────────────────────────────────────── */
+
+function ProcessPhasesBar() {
+  return (
+    <>
       <div className="hidden lg:flex lg:items-stretch lg:gap-2">
         {PHASES.map((phase, i) => (
           <div key={phase.id} className="flex min-w-0 flex-1 items-center gap-2">
@@ -91,7 +306,6 @@ export function HowItWorksFlow() {
         ))}
       </div>
 
-      {/* Mobile / tablet: vertical */}
       <ol className="space-y-3 lg:hidden">
         {PHASES.map((phase, i) => (
           <li key={phase.id}>
@@ -113,41 +327,90 @@ export function HowItWorksFlow() {
           </li>
         ))}
       </ol>
+    </>
+  );
+}
 
-      {/* Triangle relationship diagram */}
-      <div className="mt-10 border-t border-white/10 pt-8">
-        <p className="mb-6 text-center text-xs text-ink-500">Who connects to whom</p>
-        <div className="relative mx-auto max-w-md">
-          <svg viewBox="0 0 320 200" className="w-full text-ink-300" role="img" aria-label="Building partners with operator; residents book through building; operator serves residents on wash day">
-            <defs>
-              <marker id="flow-arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
-                <path d="M0 0 L8 4 L0 8 Z" fill="currentColor" className="text-gleam/60" />
-              </marker>
-            </defs>
-            {/* Building */}
-            <rect x="110" y="8" width="100" height="44" rx="8" className="fill-ink-900 stroke-gleam/40" strokeWidth="1.5" />
-            <text x="160" y="28" textAnchor="middle" className="fill-ink-100 text-[11px] font-medium">Building</text>
-            <text x="160" y="42" textAnchor="middle" className="fill-ink-400 text-[9px]">Adds Lavo · shares QR</text>
-            {/* Operator */}
-            <rect x="8" y="128" width="100" height="44" rx="8" className="fill-ink-900 stroke-white/20" strokeWidth="1.5" />
-            <text x="58" y="148" textAnchor="middle" className="fill-ink-100 text-[11px] font-medium">Operator</text>
-            <text x="58" y="162" textAnchor="middle" className="fill-ink-400 text-[9px]">Partners · runs wash</text>
-            {/* Resident */}
-            <rect x="212" y="128" width="100" height="44" rx="8" className="fill-ink-900 stroke-white/20" strokeWidth="1.5" />
-            <text x="262" y="148" textAnchor="middle" className="fill-ink-100 text-[11px] font-medium">Resident</text>
-            <text x="262" y="162" textAnchor="middle" className="fill-ink-400 text-[9px]">Books · pays in app</text>
-            {/* Arrows */}
-            <line x1="145" y1="52" x2="75" y2="125" stroke="currentColor" strokeWidth="1.25" markerEnd="url(#flow-arrow)" className="text-gleam/50" />
-            <text x="95" y="88" className="fill-ink-500 text-[8px]">partners</text>
-            <line x1="175" y1="52" x2="245" y2="125" stroke="currentColor" strokeWidth="1.25" markerEnd="url(#flow-arrow)" className="text-gleam/50" />
-            <text x="218" y="88" className="fill-ink-500 text-[8px]">resident link</text>
-            <line x1="108" y1="150" x2="212" y2="150" stroke="currentColor" strokeWidth="1.25" markerEnd="url(#flow-arrow)" className="text-gleam/50" />
-            <text x="160" y="142" textAnchor="middle" className="fill-ink-500 text-[8px]">wash day</text>
-          </svg>
+/* ─── Who pays ──────────────────────────────────────────────────────────── */
+
+export function HowItWorksPricing() {
+  return (
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      {PRICING_MODEL.map((row) => (
+        <div
+          key={row.role}
+          className="rounded-xl border border-white/10 bg-ink-900/50 px-5 py-4 text-center"
+        >
+          <div className="text-xs font-medium uppercase tracking-[0.16em] text-ink-500">{row.role}</div>
+          <div className="mt-2 font-display text-2xl text-gleam">{row.price}</div>
+          <p className="mt-2 text-xs leading-relaxed text-ink-400">{row.detail}</p>
         </div>
-      </div>
+      ))}
     </div>
   );
+}
+
+/* ─── Main sections ─────────────────────────────────────────────────────── */
+
+type HowLavoWorksProps = {
+  /** full = dedicated page; compact = homepage embed */
+  variant?: 'full' | 'compact';
+};
+
+/** Complete “How Lavo Works” infographic — audiences, platform, flow, pricing. */
+export function HowLavoWorks({ variant = 'full' }: HowLavoWorksProps) {
+  const isFull = variant === 'full';
+
+  return (
+    <div className="space-y-10">
+      <div>
+        <div className="mb-8 text-center">
+          <div className="text-xs uppercase tracking-[0.18em] text-gleam">Audiences</div>
+          <h2 className="mt-2 font-display text-2xl sm:text-3xl">Three groups, one platform</h2>
+          {isFull && (
+            <p className="mx-auto mt-2 max-w-lg text-sm text-ink-400">
+              Buildings launch the amenity, residents book from their phones, and operators run wash days on site.
+            </p>
+          )}
+        </div>
+        <HowItWorksAudiences showLinks={isFull} />
+      </div>
+
+      {isFull && <HowItWorksPlatformDiagram />}
+
+      <div className="card overflow-hidden p-6 sm:p-8 ring-1 ring-inset ring-white/[0.04]">
+        <div className="mb-8 text-center">
+          <div className="text-xs uppercase tracking-[0.18em] text-gleam">Process</div>
+          <h2 className="mt-2 font-display text-2xl sm:text-3xl">From setup to payout</h2>
+          <p className="mx-auto mt-2 max-w-lg text-sm text-ink-400">
+            Four steps: building launch, resident booking, wash day service, then review and operator payout.
+          </p>
+        </div>
+        <ProcessPhasesBar />
+      </div>
+
+      <div>
+        <div className="mb-6 text-center">
+          <div className="text-xs uppercase tracking-[0.18em] text-gleam">Pricing</div>
+          <h2 className="mt-2 font-display text-xl sm:text-2xl">Who pays what</h2>
+        </div>
+        <HowItWorksPricing />
+      </div>
+
+      {!isFull && (
+        <p className="text-center">
+          <Link href="/how-it-works" className="text-sm text-gleam hover:underline">
+            See the full platform diagram and step-by-step guide →
+          </Link>
+        </p>
+      )}
+    </div>
+  );
+}
+
+/** @deprecated Use HowLavoWorks — kept for imports that expect the name. */
+export function HowItWorksFlow() {
+  return <HowLavoWorks variant="full" />;
 }
 
 const WASH_DAY_STEPS = [
@@ -178,9 +441,7 @@ export function WashDayAccessFlow() {
               <div className="mt-2 text-xs font-medium text-ink-200">{step.label}</div>
               <p className="mt-1 text-[10px] leading-snug text-ink-500">{step.detail}</p>
             </div>
-            {i < WASH_DAY_STEPS.length - 1 && (
-              <Arrow className="mt-2.5 w-4 shrink-0 opacity-60" />
-            )}
+            {i < WASH_DAY_STEPS.length - 1 && <Arrow className="mt-2.5 w-4 shrink-0 opacity-60" />}
           </div>
         ))}
       </div>
@@ -230,7 +491,7 @@ export const PROCESS_PHASES = [
   },
   {
     id: 'book',
-    phaseLabel: 'Phase 2 · Booking',
+    phaseLabel: 'Phase 2 · Book',
     title: 'Residents book a wash',
     steps: [
       {
@@ -240,15 +501,15 @@ export const PROCESS_PHASES = [
       },
       {
         who: 'Resident',
-        title: 'Pick a date & pay',
-        body: 'Choose a building wash day (often lower rate) or an on-demand open slot. Stripe processes payment in the app; Lavo retains 15–20% platform fee and queues the rest for the operator.',
+        title: 'Pick a time slot & pay',
+        body: 'Choose a building wash day (often lower rate) or an on-demand open slot. Stripe processes payment in the app; Lavo retains a platform fee and queues the rest for the operator.',
       },
     ],
   },
   {
     id: 'wash',
     phaseLabel: 'Phase 3 · Wash day',
-    title: 'Service day',
+    title: 'Service on site',
     steps: [
       {
         who: 'Building & resident',
@@ -257,26 +518,26 @@ export const PROCESS_PHASES = [
       },
       {
         who: 'Operator',
-        title: 'Move, wash, return, mark done',
-        body: 'Crew tool lists every booking with spot, plate, and vehicle details. Operator moves the car per building rules, completes the wash with photos, returns it, and marks done. Resident is notified.',
+        title: 'Move, wash, photograph, return',
+        body: 'Crew tool lists every booking with spot, plate, and vehicle details. Operator moves the car per building rules, completes the wash with photos, returns it to the spot, and marks done. Resident is notified.',
       },
     ],
     showWashDayDiagram: true,
   },
   {
     id: 'done',
-    phaseLabel: 'Phase 4 · After service',
-    title: 'Wrap-up',
+    phaseLabel: 'Phase 4 · Done',
+    title: 'Review & payout',
     steps: [
       {
         who: 'Resident',
-        title: 'Review or rebook',
+        title: 'Star rating & review',
         body: 'Wash appears in history with photos. Leave a rating or one-tap rebook with the same operator.',
       },
       {
         who: 'Operator',
-        title: 'Payout',
-        body: 'Each booking creates a payout line (gross minus Lavo fee). Funds transfer to the connected bank account on a regular schedule.',
+        title: 'Payout after review',
+        body: 'Each completed booking creates a payout line (gross minus Lavo fee). Funds transfer to the connected bank account on a regular schedule once the job is reviewed.',
       },
     ],
   },

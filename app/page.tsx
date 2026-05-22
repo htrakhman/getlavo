@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Suspense } from 'react';
 import { MarketingNav, MarketingFooter } from '@/components/MarketingNav';
 import { RelatedLinks } from '@/components/marketing/RelatedLinks';
+import { HowLavoWorks } from '@/components/marketing/HowItWorksFlow';
 import { CheckBuildingFlow } from '@/components/CheckBuildingFlow';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { organizationSchema, websiteSchema } from '@/lib/seo/schema';
@@ -131,68 +132,12 @@ export default async function Home({
         </div>
       </section>
 
-      {/* How it works — 3 actors */}
-      <section className="relative mx-auto max-w-6xl px-6 py-20">
-        <div className="text-center mb-14">
-          <div className="text-xs uppercase tracking-[0.18em] text-gleam mb-2">Simple by design</div>
-          <h2 className="font-display text-4xl">Three sides, one platform</h2>
+      <section className="relative mx-auto max-w-6xl px-6 py-20 border-t border-white/10">
+        <div className="text-center mb-10">
+          <div className="text-xs uppercase tracking-[0.18em] text-gleam mb-2">How it works</div>
+          <h2 className="font-display text-4xl">How Lavo works</h2>
         </div>
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-          <div className="card p-8">
-            <div className="mb-4">
-              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Apartment building">
-                <rect x="4" y="3" width="24" height="26" rx="1" stroke="currentColor" strokeWidth="1.5" fill="none"/>
-                <rect x="9" y="8" width="4" height="4" rx="0.5" stroke="currentColor" strokeWidth="1.25" fill="none"/>
-                <rect x="19" y="8" width="4" height="4" rx="0.5" stroke="currentColor" strokeWidth="1.25" fill="none"/>
-                <rect x="9" y="16" width="4" height="4" rx="0.5" stroke="currentColor" strokeWidth="1.25" fill="none"/>
-                <rect x="19" y="16" width="4" height="4" rx="0.5" stroke="currentColor" strokeWidth="1.25" fill="none"/>
-                <rect x="13" y="23" width="6" height="6" rx="0.5" stroke="currentColor" strokeWidth="1.25" fill="none"/>
-              </svg>
-            </div>
-            <h3 className="font-display text-2xl mb-2">Apartment buildings</h3>
-            <p className="text-ink-300 text-sm leading-relaxed">
-              Add a premium amenity for free. Share a QR code, watch your residents book washes. Zero cost, zero work — just a monthly stat to show leadership.
-            </p>
-            <Link href="/buildings" className="mt-6 inline-block text-sm text-gleam hover:underline">
-              Property managers →
-            </Link>
-          </div>
-          <div className="card p-8">
-            <div className="mb-4">
-              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mobile car wash operator vehicle">
-                <path d="M6 10 Q6 6 10 6 L18 6 Q20 6 21 8 L26 18 Q27 20 26 22 L26 26 Q26 27 25 27 L7 27 Q6 27 6 26 Z" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinejoin="round"/>
-                <circle cx="10" cy="27" r="3" stroke="currentColor" strokeWidth="1.5" fill="none"/>
-                <circle cx="22" cy="27" r="3" stroke="currentColor" strokeWidth="1.5" fill="none"/>
-                <path d="M6 18 L26 18" stroke="currentColor" strokeWidth="1.25"/>
-                <path d="M18 6 L22 18" stroke="currentColor" strokeWidth="1.25"/>
-                <path d="M21 9 L26 9 Q28 9 28 11 L28 14 Q28 15 27 15 L26 15" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round"/>
-              </svg>
-            </div>
-            <h3 className="font-display text-2xl mb-2">Car wash operators</h3>
-            <p className="text-ink-300 text-sm leading-relaxed">
-              Get recurring local demand without marketing spend. Partner with buildings in your radius, run scheduled wash days, and take individual bookings between visits.
-            </p>
-            <Link href="/operators" className="mt-6 inline-block text-sm text-gleam hover:underline">
-              Car wash operators →
-            </Link>
-          </div>
-          <div className="card p-8">
-            <div className="mb-4">
-              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Apartment resident">
-                <circle cx="16" cy="16" r="13" stroke="currentColor" strokeWidth="1.5" fill="none"/>
-                <circle cx="16" cy="12" r="4" stroke="currentColor" strokeWidth="1.25" fill="none"/>
-                <path d="M7 25 Q8 20 16 20 Q24 20 25 25" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" fill="none"/>
-              </svg>
-            </div>
-            <h3 className="font-display text-2xl mb-2">Residents</h3>
-            <p className="text-ink-300 text-sm leading-relaxed">
-              Scan your building's QR, pick a date, pay. Your car gets washed at the building wash day rate, or book an on-demand slot any day the operator is available.
-            </p>
-            <Link href="/signup?role=resident" className="mt-5 inline-block text-sm text-gleam hover:text-gleam-300 transition-colors">
-              Residents →
-            </Link>
-          </div>
-        </div>
+        <HowLavoWorks variant="compact" />
       </section>
 
       {/* Resident features */}
