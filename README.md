@@ -5,6 +5,17 @@ Premium B2B2C SaaS for mobile car wash in apartment garages.
 ## Stack
 Next.js 14 · Tailwind CSS · Supabase (Postgres + Auth + RLS) · Stripe · TypeScript
 
+## Google sign-in branding
+
+By default, Supabase `signInWithOAuth` sends users through `*.supabase.co`, which Google shows on the consent screen. This app uses **Google Identity Services** + `signInWithIdToken` so the prompt says **getlavo.io** instead.
+
+1. In [Google Cloud Console](https://console.cloud.google.com/apis/credentials), create a **Web** OAuth client.
+2. Add **Authorized JavaScript origins**: `https://getlavo.io`, `http://localhost:3000`.
+3. Copy the client ID to `NEXT_PUBLIC_GOOGLE_CLIENT_ID` (Vercel + `.env.local`).
+4. In [Supabase → Auth → Google](https://supabase.com/dashboard/project/_/auth/providers?provider=Google), add the same client ID under **Client IDs** (comma-separated if you have several).
+
+Optional (paid): [Supabase custom domain](https://supabase.com/docs/guides/platform/custom-domains) (`auth.getlavo.io`) if you need the legacy OAuth redirect flow to use your domain too.
+
 ## Setup
 ```bash
 npm install

@@ -2,17 +2,12 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextRequest, NextResponse } from 'next/server';
 import { finalizeOAuthSession } from '@/lib/auth/finalize-oauth-session';
 
-export type OAuthCallbackOptions = {
-  /** Optional segment from `/auth/callback/:signupRole` (legacy / extra allowlist entries). */
-  roleFromPath?: string | null;
-};
-
-export async function handleOAuthCallback(request: NextRequest, options: OAuthCallbackOptions = {}) {
+/** Completes sign-in after Google Identity Services + signInWithIdToken (no Supabase OAuth redirect). */
+export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
-  const code = searchParams.get('code');
   const roleFromQuery = searchParams.get('role');
   const cookieRole = request.cookies.get('oauth_signup_role')?.value;
-  const pathRoleCandidate = options.roleFromPath ?? null;
+  const nextRaw = searchParams.get('next');
 
   const pendingCookies: Array<{ name: string; value: string; options: CookieOptions }> = [];
 
@@ -25,16 +20,14 @@ export async function handleOAuthCallback(request: NextRequest, options: OAuthCa
     return response;
   }
 
-  if (!code) {
-    return redirectWithSessionCookies(`${origin}/login?error=missing_code`);
-  }
-
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        getAll() { return request.cookies.getAll(); },
+        getAll() {
+          return request.cookies.getAll();
+        },
         setAll(cookiesToSet: Array<{ name: string; value: string; options: CookieOptions }>) {
           pendingCookies.push(...cookiesToSet);
         },
@@ -42,26 +35,24 @@ export async function handleOAuthCallback(request: NextRequest, options: OAuthCa
     }
   );
 
-  const { error } = await supabase.auth.exchangeCodeForSession(code);
-  if (error) {
-    return redirectWithSessionCookies(`${origin}/login?error=${encodeURIComponent(error.message)}`);
-  }
-
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
     return redirectWithSessionCookies(`${origin}/login?error=no_session`);
   }
 
-  const { dest, error: finalizeError } = await finalizeOAuthSession({
+  if (nextRaw === '/resident' || nextRaw === '/building' || nextRaw === '/operator') {
+    return redirectWithSessionCookies(`${origin}/auth/continue?next=${encodeURIComponent(nextRaw)}`);
+  }
+
+  const { dest, error } = await finalizeOAuthSession({
     supabase,
     user,
     roleFromQuery,
     roleFromCookie: cookieRole,
-    roleFromPath: pathRoleCandidate,
   });
 
-  if (finalizeError) {
-    return redirectWithSessionCookies(`${origin}/auth/pick-role?error=${encodeURIComponent(finalizeError)}`);
+  if (error) {
+    return redirectWithSessionCookies(`${origin}/auth/pick-role?error=${encodeURIComponent(error)}`);
   }
 
   return redirectWithSessionCookies(`${origin}${dest}`);

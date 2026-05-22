@@ -3,11 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "db:push": "supabase db push"
+    "dev": "bash scripts/with-node.sh next dev",
+    "build": "bash scripts/with-node.sh next build",
+    "start": "bash scripts/with-node.sh next start",
+    "lint": "bash scripts/with-node.sh next lint",
+    "db:push": "supabase db push",
+    "posthog:setup": "bash scripts/setup-posthog.sh"
   },
   "dependencies": {
     "@stripe/react-stripe-js": "^6.3.0",
