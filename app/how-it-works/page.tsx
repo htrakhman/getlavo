@@ -17,6 +17,7 @@ const HOW_IT_WORKS_RELATED = [
   { href: '/buildings', label: 'For properties' },
   { href: '/operators', label: 'For operators' },
   { href: '/safety', label: 'Safety' },
+  { href: '/legal/damage-policy', label: 'Damage policy' },
   { href: '/resources/mobile-car-wash-apartment-garage', label: 'Mobile car wash in apartment garages' },
 ];
 
@@ -40,6 +41,16 @@ const FAQ = [
     question: 'How do operators get paid?',
     answer:
       'Stripe processes resident payments. Lavo retains a platform fee and queues the remainder for operator payout.',
+  },
+  {
+    question: 'How do operators access my car?',
+    answer:
+      'Many buildings arrange key collection or concierge handoff before the crew arrives so the operator can move your vehicle to the approved wash area. Your building sets the protocol; the partnered operator follows it on wash day.',
+  },
+  {
+    question: 'Who is responsible if something happens to my car?',
+    answer:
+      'Building–operator partnership terms assign liability for vehicle damage to the operator, including during movement to the wash area. See the damage policy for how to report an issue.',
   },
 ];
 
@@ -75,7 +86,7 @@ export default function HowItWorksPage() {
         <div className="card p-6">
           <h2 className="font-display text-2xl">How it works for residents</h2>
           <p className="mt-3 text-sm leading-relaxed text-ink-300">
-            Residents sign up through the building link, add a vehicle and parking spot, then book a wash day or open slot. Payment happens in the app. After service, residents get completion notice and can leave a review.
+            Residents sign up through the building link, add a vehicle and parking spot, then book a wash day or open slot. Payment happens in the app. On wash day, follow your building&apos;s key or access instructions so the operator can reach your vehicle. After service, residents get completion notice and can leave a review.
           </p>
           <Link href="/signup?role=resident" className="mt-4 inline-block text-sm text-gleam hover:underline">
             Resident signup
@@ -91,9 +102,21 @@ export default function HowItWorksPage() {
           </Link>
         </div>
         <div className="card p-6">
+          <h2 className="font-display text-2xl">Vehicle access on wash day</h2>
+          <p className="mt-3 text-sm leading-relaxed text-ink-300">
+            Before the crew arrives, many buildings complete key collection or concierge handoff so operators can move vehicles to the approved wash area without residents waiting on site. The building sets the protocol; the partnered operator follows it for every booked vehicle that day.
+          </p>
+          <p className="mt-3 text-sm leading-relaxed text-ink-300">
+            Building–operator terms assign liability for vehicle damage to the operator for the full service window, including movement to and from the wash area.{' '}
+            <Link href="/legal/damage-policy" className="text-gleam hover:underline">
+              Damage policy
+            </Link>
+          </p>
+        </div>
+        <div className="card p-6">
           <h2 className="font-display text-2xl">How it works for operators</h2>
           <p className="mt-3 text-sm leading-relaxed text-ink-300">
-            Operators apply, set service area and pricing, accept building requests, and run wash days with a resident list in the crew tool. Mark jobs complete, collect reviews, and receive payouts through Stripe.
+            Operators apply, set service area and pricing, accept building requests, and run wash days with a resident list in the crew tool. Partnership terms include responsibility for resident vehicles during service, including when moving cars per building access rules. Mark jobs complete, collect reviews, and receive payouts through Stripe.
           </p>
           <Link href="/operators" className="mt-4 inline-block text-sm text-gleam hover:underline">
             For operators
@@ -137,18 +160,24 @@ export default function HowItWorksPage() {
             },
             {
               num: '06',
-              who: 'Car wash operator',
-              title: 'Operator runs the wash',
-              body: 'The operator\'s crew tool shows all bookings for the day: building, resident name, vehicle details (color, make, model, plate), and parking spot label. Crew taps "Mark done" per vehicle. The resident gets a notification.',
+              who: 'Building / Resident',
+              title: 'Keys and vehicle access before the crew arrives',
+              body: 'The building and resident follow the property\'s wash-day protocol—often key drop with concierge or front desk, or another approved handoff—so the operator can move the vehicle to the designated wash area. This happens before the crew starts work on that vehicle.',
             },
             {
               num: '07',
+              who: 'Car wash operator',
+              title: 'Operator moves, washes, and returns the vehicle',
+              body: 'The operator\'s crew tool shows all bookings for the day: building, resident name, vehicle details (color, make, model, plate), and parking spot label. The crew moves each vehicle per building rules, completes the wash with required before-and-after photos, returns it to the assigned spot, and taps "Mark done." The resident gets a notification.',
+            },
+            {
+              num: '08',
               who: 'Resident',
               title: 'Resident reviews and rebooks',
               body: 'After the wash is marked complete, the resident sees it in their history and can leave a star rating and comment. A one-tap rebook option surfaces the same operator for their next wash.',
             },
             {
-              num: '08',
+              num: '09',
               who: 'Car wash operator',
               title: 'Operator gets paid',
               body: 'Each confirmed booking generates a payout entry (gross − Lavo fee = net). Payouts transfer to the operator\'s connected bank account on a regular basis. Full transaction history is visible in the earnings dashboard.',

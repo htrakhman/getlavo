@@ -59,6 +59,7 @@ export default function SafetyPage() {
       <SeoSection
         title="Damage and issue handling"
         paragraphs={[
+          'Building–operator partnership terms assign liability for vehicle damage to the operator, including when moving vehicles to the approved wash area after key collection or concierge handoff.',
           'If a resident reports an issue, Lavo collects details, photos, booking information, and operator context so the issue can be reviewed clearly.',
           'Resident-facing steps and review timelines are described in the damage policy linked below.',
         ]}
