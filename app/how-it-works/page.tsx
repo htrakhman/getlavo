@@ -1,25 +1,108 @@
 import Link from 'next/link';
 import { MarketingNav, MarketingFooter } from '@/components/MarketingNav';
+import { RelatedLinks } from '@/components/marketing/RelatedLinks';
+import { VisibleFaq } from '@/components/marketing/VisibleFaq';
+import { JsonLd } from '@/components/seo/JsonLd';
+import { breadcrumbSchema } from '@/lib/seo/schema';
+import { createPageMetadata } from '@/lib/seo/site';
 
-export const metadata = { title: 'How it works · Lavo' };
+export const metadata = createPageMetadata({
+  path: '/how-it-works',
+  title: 'How Apartment Mobile Car Wash Works | Lavo',
+  description:
+    'See how Lavo works for residents, apartment buildings, and mobile car wash operators from signup to booking, service, review, and payout.',
+});
+
+const HOW_IT_WORKS_RELATED = [
+  { href: '/buildings', label: 'For properties' },
+  { href: '/operators', label: 'For operators' },
+  { href: '/safety', label: 'Safety' },
+  { href: '/resources/mobile-car-wash-apartment-garage', label: 'Mobile car wash in apartment garages' },
+];
+
+const FAQ = [
+  {
+    question: 'Who pays for the car wash?',
+    answer:
+      'Residents pay for washes they book. Buildings do not pay to offer Lavo as an amenity.',
+  },
+  {
+    question: 'How does a building get started?',
+    answer:
+      'A property manager creates a building profile, shares the resident link or QR code, and connects with a mobile operator in the area.',
+  },
+  {
+    question: 'Can residents book on-demand?',
+    answer:
+      'Yes, when the partnered operator has open capacity. Building wash days are often shown first at building-day rates.',
+  },
+  {
+    question: 'How do operators get paid?',
+    answer:
+      'Stripe processes resident payments. Lavo retains a platform fee and queues the remainder for operator payout.',
+  },
+];
 
 export default function HowItWorksPage() {
   return (
     <main className="relative">
+      <JsonLd
+        data={breadcrumbSchema([
+          { name: 'Home', path: '/' },
+          { name: 'How it works', path: '/how-it-works' },
+        ])}
+      />
       <div className="absolute inset-x-0 top-0 h-[400px] bg-gleam-fade" />
       <MarketingNav />
 
-      <section className="relative pt-16 pb-16 text-center px-6">
+      <section className="relative pt-16 pb-10 text-center px-6">
         <div className="mx-auto max-w-2xl">
           <h1 className="font-display text-5xl font-semibold tracking-tight">How Lavo works</h1>
           <p className="mt-4 text-lg text-ink-300">
-            Three actors. One simple loop. Apartment residents get a convenient car wash. Local operators get recurring demand. Buildings get a free amenity.
+            Three audiences. One booking flow. Residents, buildings, and operators each have a clear role.
           </p>
         </div>
       </section>
 
-      {/* Full lifecycle */}
-      <section className="mx-auto max-w-3xl px-6 py-12">
+      <section className="mx-auto max-w-3xl px-6 py-8">
+        <h2 className="font-display text-3xl text-ink-100">How does Lavo work?</h2>
+        <p className="mt-4 text-sm leading-relaxed text-ink-300">
+          Lavo lets apartment residents book mobile car washes directly from their phone. Buildings can offer Lavo as a no cost resident amenity, while vetted operators receive scheduled wash day demand from apartment communities.
+        </p>
+      </section>
+
+      <section className="mx-auto max-w-3xl px-6 py-10 space-y-10">
+        <div className="card p-6">
+          <h2 className="font-display text-2xl">How it works for residents</h2>
+          <p className="mt-3 text-sm leading-relaxed text-ink-300">
+            Residents sign up through the building link, add a vehicle and parking spot, then book a wash day or open slot. Payment happens in the app. After service, residents get completion notice and can leave a review.
+          </p>
+          <Link href="/signup?role=resident" className="mt-4 inline-block text-sm text-gleam hover:underline">
+            Resident signup
+          </Link>
+        </div>
+        <div className="card p-6">
+          <h2 className="font-display text-2xl">How it works for buildings</h2>
+          <p className="mt-3 text-sm leading-relaxed text-ink-300">
+            Property managers add the building for free, publish the resident QR or link, and approve a local operator partnership. Lavo handles booking, payments, and resident communication so the desk is not running wash logistics.
+          </p>
+          <Link href="/buildings" className="mt-4 inline-block text-sm text-gleam hover:underline">
+            For properties
+          </Link>
+        </div>
+        <div className="card p-6">
+          <h2 className="font-display text-2xl">How it works for operators</h2>
+          <p className="mt-3 text-sm leading-relaxed text-ink-300">
+            Operators apply, set service area and pricing, accept building requests, and run wash days with a resident list in the crew tool. Mark jobs complete, collect reviews, and receive payouts through Stripe.
+          </p>
+          <Link href="/operators" className="mt-4 inline-block text-sm text-gleam hover:underline">
+            For operators
+          </Link>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-3xl px-6 py-8">
+        <h2 className="font-display text-3xl text-center mb-8">Step by step</h2>
         <div className="space-y-1">
           {[
             {
@@ -32,7 +115,7 @@ export default function HowItWorksPage() {
               num: '02',
               who: 'Building manager',
               title: 'Building connects a local car wash',
-              body: 'The manager browses nearby car wash operators (sorted by distance within the building\'s radius), and sends a partnership request to the one they want. The operator reviews and accepts.',
+              body: "The manager browses nearby car wash operators (sorted by distance within the building's radius), and sends a partnership request to the one they want. The operator reviews and accepts.",
             },
             {
               num: '03',
@@ -85,8 +168,12 @@ export default function HowItWorksPage() {
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="mx-auto max-w-4xl px-6 py-20">
+      <section className="mx-auto max-w-3xl px-6 py-10">
+        <VisibleFaq items={FAQ} />
+      </section>
+
+      <section className="mx-auto max-w-4xl px-6 py-12">
+        <h2 className="font-display text-3xl text-center mb-8">Get started</h2>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           <div className="card p-6 text-center">
             <div className="text-2xl mb-3">🏢</div>
@@ -96,8 +183,8 @@ export default function HowItWorksPage() {
           </div>
           <div className="card p-6 text-center">
             <div className="text-2xl mb-3">🚗</div>
-            <h3 className="font-display text-xl mb-2">I'm a resident</h3>
-            <p className="text-sm text-ink-400 mb-4">Sign up via your building's QR or link.</p>
+            <h3 className="font-display text-xl mb-2">I&apos;m a resident</h3>
+            <p className="text-sm text-ink-400 mb-4">Sign up via your building&apos;s QR or link.</p>
             <Link href="/signup?role=resident" className="btn-primary w-full">Book a wash</Link>
           </div>
           <div className="card p-6 text-center">
@@ -107,6 +194,10 @@ export default function HowItWorksPage() {
             <Link href="/signup?role=operator" className="btn-ghost w-full">Apply</Link>
           </div>
         </div>
+      </section>
+
+      <section className="mx-auto max-w-3xl px-6 pb-8">
+        <RelatedLinks links={HOW_IT_WORKS_RELATED} />
       </section>
 
       <MarketingFooter />

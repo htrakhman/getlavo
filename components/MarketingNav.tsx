@@ -37,7 +37,9 @@ export function MarketingNav() {
   return (
     <header className="relative mx-auto flex max-w-7xl items-center justify-between px-6 py-6">
       <Logo />
-      <nav className="hidden items-center gap-8 text-sm text-ink-300 md:flex">
+      <nav className="hidden items-center gap-6 text-sm text-ink-300 lg:gap-8 md:flex">
+        <Link href="/resources" className="hover:text-ink-100">Resources</Link>
+        <Link href="/cities" className="hover:text-ink-100">Cities</Link>
         <Link href="/help" className="hover:text-ink-100">Help</Link>
         <Link href="/how-it-works" className="hover:text-ink-100">How it works</Link>
         <Link href="/operators" className="hover:text-ink-100">For operators</Link>
@@ -82,6 +84,8 @@ export function MarketingFooter() {
       <div className="mx-auto flex max-w-7xl flex-col gap-6 md:flex-row md:items-start md:justify-between">
         <Logo size="sm" />
         <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs md:text-sm">
+          <Link href="/about" className="hover:text-ink-100">About</Link>
+          <Link href="/safety" className="hover:text-ink-100">Safety</Link>
           <Link href="/how-it-works" className="hover:text-ink-100">How it works</Link>
           <Link href="/help" className="hover:text-ink-100">Help</Link>
           <Link href="/operators" className="hover:text-ink-100">Operators</Link>
@@ -90,9 +94,8 @@ export function MarketingFooter() {
           <Link href="/legal/privacy" className="hover:text-ink-100">Privacy</Link>
           <Link href="/legal/damage-policy" className="hover:text-ink-100">Damage</Link>
           <Link href="/contact" className="hover:text-ink-100">Contact</Link>
-          <Link href="/status" className="hover:text-ink-100">Status</Link>
-          <Link href="/careers" className="hover:text-ink-100">Careers</Link>
           <Link href="/press" className="hover:text-ink-100">Press</Link>
+          <Link href="/careers" className="hover:text-ink-100">Careers</Link>
         </div>
       </div>
       <div className="mx-auto mt-8 max-w-7xl text-center text-xs text-ink-500">© {new Date().getFullYear()} Lavo, Inc.</div>

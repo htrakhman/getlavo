@@ -1,10 +1,31 @@
 import Link from 'next/link';
 import { Suspense } from 'react';
 import { MarketingNav, MarketingFooter } from '@/components/MarketingNav';
+import { RelatedLinks } from '@/components/marketing/RelatedLinks';
 import { CheckBuildingFlow } from '@/components/CheckBuildingFlow';
+import { JsonLd } from '@/components/seo/JsonLd';
+import { organizationSchema, websiteSchema } from '@/lib/seo/schema';
+import { createPageMetadata } from '@/lib/seo/site';
 import { getSessionUser } from '@/lib/supabase/server';
 import { pickLandingPortal } from '@/lib/portal-routing';
 import { redirect } from 'next/navigation';
+
+export const metadata = createPageMetadata({
+  path: '/',
+  title: 'Apartment Mobile Car Wash for Residents, Buildings, and Operators | Lavo',
+  description:
+    'Lavo connects apartment residents, property managers, and vetted mobile car wash operators so residents can book car washes without leaving home.',
+});
+
+const HOME_RELATED = [
+  { href: '/buildings', label: 'For properties' },
+  { href: '/operators', label: 'For operators' },
+  { href: '/how-it-works', label: 'How it works' },
+  { href: '/about', label: 'About' },
+  { href: '/safety', label: 'Safety' },
+  { href: '/resources/apartment-car-wash-amenity', label: 'Apartment car wash amenity' },
+  { href: '/cities/new-jersey', label: 'New Jersey' },
+];
 
 export default async function Home({
   searchParams,
@@ -42,6 +63,7 @@ export default async function Home({
   }
   return (
     <main className="relative">
+      <JsonLd data={[organizationSchema(), websiteSchema()]} />
       <div className="absolute inset-x-0 top-0 h-[600px] bg-gleam-fade" />
       <MarketingNav />
 
@@ -118,7 +140,7 @@ export default async function Home({
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           <div className="card p-8">
             <div className="mb-4">
-              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Apartment building">
                 <rect x="4" y="3" width="24" height="26" rx="1" stroke="currentColor" strokeWidth="1.5" fill="none"/>
                 <rect x="9" y="8" width="4" height="4" rx="0.5" stroke="currentColor" strokeWidth="1.25" fill="none"/>
                 <rect x="19" y="8" width="4" height="4" rx="0.5" stroke="currentColor" strokeWidth="1.25" fill="none"/>
@@ -137,7 +159,7 @@ export default async function Home({
           </div>
           <div className="card p-8">
             <div className="mb-4">
-              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mobile car wash operator vehicle">
                 <path d="M6 10 Q6 6 10 6 L18 6 Q20 6 21 8 L26 18 Q27 20 26 22 L26 26 Q26 27 25 27 L7 27 Q6 27 6 26 Z" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinejoin="round"/>
                 <circle cx="10" cy="27" r="3" stroke="currentColor" strokeWidth="1.5" fill="none"/>
                 <circle cx="22" cy="27" r="3" stroke="currentColor" strokeWidth="1.5" fill="none"/>
@@ -156,7 +178,7 @@ export default async function Home({
           </div>
           <div className="card p-8">
             <div className="mb-4">
-              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Apartment resident">
                 <circle cx="16" cy="16" r="13" stroke="currentColor" strokeWidth="1.5" fill="none"/>
                 <circle cx="16" cy="12" r="4" stroke="currentColor" strokeWidth="1.25" fill="none"/>
                 <path d="M7 25 Q8 20 16 20 Q24 20 25 25" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" fill="none"/>
@@ -371,6 +393,10 @@ export default async function Home({
             <Link href="/signup?role=operator" className="btn-ghost">Apply as an operator →</Link>
           </div>
         </div>
+      </section>
+
+      <section className="relative mx-auto max-w-3xl px-6 pb-8">
+        <RelatedLinks links={HOME_RELATED} title="Explore Lavo" />
       </section>
 
       <MarketingFooter />
