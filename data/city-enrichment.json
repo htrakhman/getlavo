@@ -1,0 +1,265 @@
+{
+  "jersey-city": {
+    "overviewExtra": [
+      "Jersey City has dense high rise living from Downtown to Newport and Paulus Hook, with many residents parking in structured garages.",
+      "Journal Square and the Heights add mid-rise stock where surface and small garage formats mix on the same operator route.",
+      "Salt exposure from winter roads and tight urban schedules make on-site washing attractive for commuters who already struggle with tunnel wait times."
+    ],
+    "neighborhoods": [
+      "Downtown",
+      "Newport",
+      "Journal Square",
+      "Paulus Hook",
+      "the Heights"
+    ],
+    "nearbyTransit": "PATH stations, ferries, and Hudson River commuter patterns",
+    "localVehicleCareFactors": [
+      "winter road salt",
+      "road grime",
+      "pollen"
+    ]
+  },
+  "hoboken": {
+    "overviewExtra": [
+      "Hoboken is block-after-block of walk-up and elevator buildings with tight parking economics. Many residents keep cars in small garages or nearby lots.",
+      "Waterfront towers along the river share the same commuter profile as Jersey City: low time tolerance for errands.",
+      "Dense apartment living means one approved operator visit can serve multiple neighbors in a single garage window."
+    ],
+    "neighborhoods": [
+      "waterfront",
+      "walk-up blocks"
+    ],
+    "nearbyTransit": "PATH stations, ferries, and Hudson River commuter patterns",
+    "localVehicleCareFactors": [
+      "winter road salt",
+      "road grime",
+      "pollen"
+    ]
+  },
+  "newark": {
+    "overviewExtra": [
+      "Newark combines downtown high rises near Penn Station with Ironbound neighborhoods where mid-rise and garden apartments use surface and garage parking.",
+      "Commuter and airport traffic patterns mean many households rely on daily drivers that need regular exterior care.",
+      "Programs work best when buildings define operator access for downtown garages and Ironbound lots separately."
+    ],
+    "neighborhoods": [
+      "downtown",
+      "Ironbound"
+    ],
+    "nearbyTransit": "Penn Station and Newark Airport commuter patterns",
+    "localVehicleCareFactors": [
+      "winter road salt",
+      "road grime",
+      "pollen"
+    ]
+  },
+  "paterson": {
+    "localVehicleCareFactors": [
+      "winter road salt",
+      "road grime",
+      "pollen",
+      "everyday parking lot dust"
+    ]
+  },
+  "elizabeth": {
+    "localVehicleCareFactors": [
+      "winter road salt",
+      "road grime",
+      "pollen",
+      "everyday parking lot dust"
+    ]
+  },
+  "edison": {
+    "localVehicleCareFactors": [
+      "winter road salt",
+      "road grime",
+      "pollen",
+      "everyday parking lot dust"
+    ]
+  },
+  "new-brunswick": {
+    "localVehicleCareFactors": [
+      "winter road salt",
+      "road grime",
+      "pollen",
+      "everyday parking lot dust"
+    ]
+  },
+  "princeton": {
+    "localVehicleCareFactors": [
+      "winter road salt",
+      "road grime",
+      "pollen",
+      "everyday parking lot dust"
+    ]
+  },
+  "morristown": {
+    "overviewExtra": [
+      "Morristown blends walkable downtown living with suburban-style garden apartments on the outskirts of town.",
+      "Many communities use surface lots and small carports rather than towering garages, which simplifies operator movement when rules are posted.",
+      "Residents who commute to NYC or Morris County offices often want time-saving services at home."
+    ],
+    "localVehicleCareFactors": [
+      "winter road salt",
+      "road grime",
+      "pollen"
+    ]
+  },
+  "montclair": {
+    "localVehicleCareFactors": [
+      "winter road salt",
+      "road grime",
+      "pollen",
+      "everyday parking lot dust"
+    ]
+  },
+  "hackensack": {
+    "overviewExtra": [
+      "Hackensack mixes county-seat office traffic with garden apartments and mid-rises near Main Street and the hospital corridor.",
+      "Parking lots and low-rise garages are common, which can speed up operator turnover versus downtown high rises.",
+      "Bergen County commuters often want suburban convenience without spending Saturday mornings at tunnels."
+    ],
+    "localVehicleCareFactors": [
+      "winter road salt",
+      "road grime",
+      "pollen"
+    ]
+  },
+  "fort-lee": {
+    "overviewExtra": [
+      "Fort Lee is known for high rise apartments overlooking the George Washington Bridge corridor, with extensive parking garages.",
+      "Bridge commuters often want services that fit early mornings and late evenings without extra driving.",
+      "Operator efficiency improves when multiple towers near Linwood Park and the main bridge approaches book the same day."
+    ],
+    "localVehicleCareFactors": [
+      "winter road salt",
+      "road grime",
+      "pollen"
+    ]
+  },
+  "edgewater": {
+    "overviewExtra": [
+      "Edgewater waterfront towers and mid-rises along River Road concentrate residents with garage parking and limited spare time.",
+      "Views and commute patterns mirror other Hudson River communities where tunnel trips feel expensive in time, not just dollars.",
+      "Garage ventilation and hose routing rules should be set upfront because many buildings are sensitive to water runoff on lower levels."
+    ],
+    "localVehicleCareFactors": [
+      "winter road salt",
+      "road grime",
+      "pollen"
+    ]
+  },
+  "weehawken": {
+    "overviewExtra": [
+      "Weehawken waterfront towers and hillside apartments sit between Hoboken and Jersey City with similar garage constraints.",
+      "Residents often park in structured garages with river views and tight rush-hour schedules.",
+      "Operators can link Weehawken stops with Hoboken and Jersey City buildings on the same Hudson River route."
+    ],
+    "nearbyTransit": "PATH stations, ferries, and Hudson River commuter patterns",
+    "localVehicleCareFactors": [
+      "winter road salt",
+      "road grime",
+      "pollen"
+    ]
+  },
+  "harrison": {
+    "localVehicleCareFactors": [
+      "winter road salt",
+      "road grime",
+      "pollen",
+      "everyday parking lot dust"
+    ]
+  },
+  "bloomfield": {
+    "localVehicleCareFactors": [
+      "winter road salt",
+      "road grime",
+      "pollen",
+      "everyday parking lot dust"
+    ]
+  },
+  "englewood": {
+    "localVehicleCareFactors": [
+      "winter road salt",
+      "road grime",
+      "pollen",
+      "everyday parking lot dust"
+    ]
+  },
+  "clifton": {
+    "localVehicleCareFactors": [
+      "winter road salt",
+      "road grime",
+      "pollen",
+      "everyday parking lot dust"
+    ]
+  },
+  "paramus": {
+    "overviewExtra": [
+      "Paramus has suburban apartment communities and townhome-style clusters with lot parking spread near major retail corridors.",
+      "Residents often drive daily on Route 17 and local arterials, which builds steady exterior wash demand.",
+      "Operators can connect Paramus garden communities with Hackensack and Woodland Park buildings on Bergen routes."
+    ],
+    "localVehicleCareFactors": [
+      "winter road salt",
+      "road grime",
+      "pollen"
+    ]
+  },
+  "cherry-hill": {
+    "localVehicleCareFactors": [
+      "winter road salt",
+      "road grime",
+      "pollen",
+      "everyday parking lot dust"
+    ]
+  },
+  "atlantic-city": {
+    "localVehicleCareFactors": [
+      "winter road salt",
+      "road grime",
+      "pollen",
+      "everyday parking lot dust"
+    ]
+  },
+  "asbury-park": {
+    "localVehicleCareFactors": [
+      "winter road salt",
+      "road grime",
+      "pollen",
+      "everyday parking lot dust"
+    ]
+  },
+  "long-branch": {
+    "localVehicleCareFactors": [
+      "winter road salt",
+      "road grime",
+      "pollen",
+      "everyday parking lot dust"
+    ]
+  },
+  "red-bank": {
+    "localVehicleCareFactors": [
+      "winter road salt",
+      "road grime",
+      "pollen",
+      "everyday parking lot dust"
+    ]
+  },
+  "freehold": {
+    "localVehicleCareFactors": [
+      "winter road salt",
+      "road grime",
+      "pollen",
+      "everyday parking lot dust"
+    ]
+  },
+  "toms-river": {
+    "localVehicleCareFactors": [
+      "winter road salt",
+      "road grime",
+      "pollen",
+      "everyday parking lot dust"
+    ]
+  }
+}
