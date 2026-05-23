@@ -18,6 +18,22 @@ const CITY_RELATED_LINKS: RelatedLink[] = [
 
 export function CityLanding({ city }: { city: CityPage }) {
   const path = `/cities/${city.slug}`;
+  const isStatePage = city.slug === 'new-jersey';
+  const areaServed = isStatePage
+    ? 'New Jersey'
+    : `${city.localName}, ${city.county} County, NJ`;
+  const breadcrumbs = isStatePage
+    ? [
+        { name: 'Home', path: '/' },
+        { name: 'Cities', path: '/cities' },
+        { name: city.localName, path },
+      ]
+    : [
+        { name: 'Home', path: '/' },
+        { name: 'Cities', path: '/cities' },
+        { name: `${city.county} County`, path: `/cities#${city.countySlug}` },
+        { name: city.localName, path },
+      ];
 
   return (
     <>
@@ -29,13 +45,9 @@ export function CityLanding({ city }: { city: CityPage }) {
             serviceType: 'Mobile car wash for apartment buildings',
             description: city.opening,
             audience: 'Apartment residents and property managers',
-            areaServed: city.localName,
+            areaServed,
           }),
-          breadcrumbSchema([
-            { name: 'Home', path: '/' },
-            { name: 'Cities', path: '/cities' },
-            { name: city.localName, path },
-          ]),
+          breadcrumbSchema(breadcrumbs),
         ]}
       />
       <SeoPageHeader h1={city.h1} opening={city.opening} />
@@ -53,9 +65,13 @@ export function CityLanding({ city }: { city: CityPage }) {
         <CtaBlock label="Bring Lavo to your building" href="/buildings" />
       </div>
       <RelatedLinks links={CITY_RELATED_LINKS} />
-      {city.slug !== 'new-jersey' ? (
+      {!isStatePage ? (
         <p className="text-sm text-ink-400">
           Also see{' '}
+          <Link href={`/cities#${city.countySlug}`} className="text-gleam hover:underline">
+            more in {city.county} County
+          </Link>
+          {' · '}
           <Link href="/cities/new-jersey" className="text-gleam hover:underline">
             Lavo in New Jersey
           </Link>

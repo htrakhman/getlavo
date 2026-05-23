@@ -1,0 +1,4514 @@
+[
+  {
+    "name": "Absecon",
+    "slug": "absecon",
+    "county": "Atlantic",
+    "countySlug": "atlantic",
+    "type": "city",
+    "geoid": "3400100100"
+  },
+  {
+    "name": "Atlantic City",
+    "slug": "atlantic-city",
+    "county": "Atlantic",
+    "countySlug": "atlantic",
+    "type": "city",
+    "geoid": "3400102080"
+  },
+  {
+    "name": "Brigantine",
+    "slug": "brigantine",
+    "county": "Atlantic",
+    "countySlug": "atlantic",
+    "type": "city",
+    "geoid": "3400107810"
+  },
+  {
+    "name": "Buena",
+    "slug": "buena",
+    "county": "Atlantic",
+    "countySlug": "atlantic",
+    "type": "borough",
+    "geoid": "3400108680"
+  },
+  {
+    "name": "Buena Vista",
+    "slug": "buena-vista",
+    "county": "Atlantic",
+    "countySlug": "atlantic",
+    "type": "township",
+    "geoid": "3400108710"
+  },
+  {
+    "name": "Corbin City",
+    "slug": "corbin-city",
+    "county": "Atlantic",
+    "countySlug": "atlantic",
+    "type": "city",
+    "geoid": "3400115160"
+  },
+  {
+    "name": "Egg Harbor",
+    "slug": "egg-harbor",
+    "county": "Atlantic",
+    "countySlug": "atlantic",
+    "type": "township",
+    "geoid": "3400120290"
+  },
+  {
+    "name": "Egg Harbor City",
+    "slug": "egg-harbor-city",
+    "county": "Atlantic",
+    "countySlug": "atlantic",
+    "type": "city",
+    "geoid": "3400120350"
+  },
+  {
+    "name": "Estell Manor",
+    "slug": "estell-manor",
+    "county": "Atlantic",
+    "countySlug": "atlantic",
+    "type": "city",
+    "geoid": "3400121870"
+  },
+  {
+    "name": "Folsom",
+    "slug": "folsom",
+    "county": "Atlantic",
+    "countySlug": "atlantic",
+    "type": "borough",
+    "geoid": "3400123940"
+  },
+  {
+    "name": "Galloway",
+    "slug": "galloway",
+    "county": "Atlantic",
+    "countySlug": "atlantic",
+    "type": "township",
+    "geoid": "3400125560"
+  },
+  {
+    "name": "Hamilton",
+    "slug": "hamilton-atlantic",
+    "county": "Atlantic",
+    "countySlug": "atlantic",
+    "type": "township",
+    "geoid": "3400129280"
+  },
+  {
+    "name": "Hammonton",
+    "slug": "hammonton",
+    "county": "Atlantic",
+    "countySlug": "atlantic",
+    "type": "town",
+    "geoid": "3400129430"
+  },
+  {
+    "name": "Linwood",
+    "slug": "linwood",
+    "county": "Atlantic",
+    "countySlug": "atlantic",
+    "type": "city",
+    "geoid": "3400140530"
+  },
+  {
+    "name": "Longport",
+    "slug": "longport",
+    "county": "Atlantic",
+    "countySlug": "atlantic",
+    "type": "borough",
+    "geoid": "3400141370"
+  },
+  {
+    "name": "Margate City",
+    "slug": "margate-city",
+    "county": "Atlantic",
+    "countySlug": "atlantic",
+    "type": "city",
+    "geoid": "3400143890"
+  },
+  {
+    "name": "Mullica",
+    "slug": "mullica",
+    "county": "Atlantic",
+    "countySlug": "atlantic",
+    "type": "township",
+    "geoid": "3400149410"
+  },
+  {
+    "name": "Northfield",
+    "slug": "northfield",
+    "county": "Atlantic",
+    "countySlug": "atlantic",
+    "type": "city",
+    "geoid": "3400152950"
+  },
+  {
+    "name": "Pleasantville",
+    "slug": "pleasantville",
+    "county": "Atlantic",
+    "countySlug": "atlantic",
+    "type": "city",
+    "geoid": "3400159640"
+  },
+  {
+    "name": "Port Republic",
+    "slug": "port-republic",
+    "county": "Atlantic",
+    "countySlug": "atlantic",
+    "type": "city",
+    "geoid": "3400160600"
+  },
+  {
+    "name": "Somers Point",
+    "slug": "somers-point",
+    "county": "Atlantic",
+    "countySlug": "atlantic",
+    "type": "city",
+    "geoid": "3400168430"
+  },
+  {
+    "name": "Ventnor City",
+    "slug": "ventnor-city",
+    "county": "Atlantic",
+    "countySlug": "atlantic",
+    "type": "city",
+    "geoid": "3400175620"
+  },
+  {
+    "name": "Weymouth",
+    "slug": "weymouth",
+    "county": "Atlantic",
+    "countySlug": "atlantic",
+    "type": "township",
+    "geoid": "3400180330"
+  },
+  {
+    "name": "Allendale",
+    "slug": "allendale",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400300700"
+  },
+  {
+    "name": "Alpine",
+    "slug": "alpine",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400301090"
+  },
+  {
+    "name": "Bergenfield",
+    "slug": "bergenfield",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400305170"
+  },
+  {
+    "name": "Bogota",
+    "slug": "bogota",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400306490"
+  },
+  {
+    "name": "Carlstadt",
+    "slug": "carlstadt",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400310480"
+  },
+  {
+    "name": "Cliffside Park",
+    "slug": "cliffside-park",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400313570"
+  },
+  {
+    "name": "Closter",
+    "slug": "closter",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400313810"
+  },
+  {
+    "name": "Cresskill",
+    "slug": "cresskill",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400315820"
+  },
+  {
+    "name": "Demarest",
+    "slug": "demarest",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400317530"
+  },
+  {
+    "name": "Dumont",
+    "slug": "dumont",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400318400"
+  },
+  {
+    "name": "East Rutherford",
+    "slug": "east-rutherford",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400319510"
+  },
+  {
+    "name": "Edgewater",
+    "slug": "edgewater",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400320020"
+  },
+  {
+    "name": "Elmwood Park",
+    "slug": "elmwood-park",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400321300"
+  },
+  {
+    "name": "Emerson",
+    "slug": "emerson",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400321450"
+  },
+  {
+    "name": "Englewood",
+    "slug": "englewood",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "city",
+    "geoid": "3400321480"
+  },
+  {
+    "name": "Englewood Cliffs",
+    "slug": "englewood-cliffs",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400321510"
+  },
+  {
+    "name": "Fair Lawn",
+    "slug": "fair-lawn",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400322470"
+  },
+  {
+    "name": "Fairview",
+    "slug": "fairview",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400322560"
+  },
+  {
+    "name": "Fort Lee",
+    "slug": "fort-lee",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400324420"
+  },
+  {
+    "name": "Franklin Lakes",
+    "slug": "franklin-lakes",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400324990"
+  },
+  {
+    "name": "Garfield",
+    "slug": "garfield",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "city",
+    "geoid": "3400325770"
+  },
+  {
+    "name": "Glen Rock",
+    "slug": "glen-rock",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400326640"
+  },
+  {
+    "name": "Hackensack",
+    "slug": "hackensack",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "city",
+    "geoid": "3400328680"
+  },
+  {
+    "name": "Harrington Park",
+    "slug": "harrington-park",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400330150"
+  },
+  {
+    "name": "Hasbrouck Heights",
+    "slug": "hasbrouck-heights",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400330420"
+  },
+  {
+    "name": "Haworth",
+    "slug": "haworth",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400330540"
+  },
+  {
+    "name": "Hillsdale",
+    "slug": "hillsdale",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400331920"
+  },
+  {
+    "name": "Ho-Ho-Kus",
+    "slug": "ho-ho-kus",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400332310"
+  },
+  {
+    "name": "Leonia",
+    "slug": "leonia",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400340020"
+  },
+  {
+    "name": "Little Ferry",
+    "slug": "little-ferry",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400340680"
+  },
+  {
+    "name": "Lodi",
+    "slug": "lodi",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400341100"
+  },
+  {
+    "name": "Lyndhurst",
+    "slug": "lyndhurst",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "township",
+    "geoid": "3400342090"
+  },
+  {
+    "name": "Mahwah",
+    "slug": "mahwah",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "township",
+    "geoid": "3400342750"
+  },
+  {
+    "name": "Maywood",
+    "slug": "maywood",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400344880"
+  },
+  {
+    "name": "Midland Park",
+    "slug": "midland-park",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400346110"
+  },
+  {
+    "name": "Montvale",
+    "slug": "montvale",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400347610"
+  },
+  {
+    "name": "Moonachie",
+    "slug": "moonachie",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400347700"
+  },
+  {
+    "name": "New Milford",
+    "slug": "new-milford",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400351660"
+  },
+  {
+    "name": "North Arlington",
+    "slug": "north-arlington",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400352320"
+  },
+  {
+    "name": "Northvale",
+    "slug": "northvale",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400353430"
+  },
+  {
+    "name": "Norwood",
+    "slug": "norwood",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400353610"
+  },
+  {
+    "name": "Oakland",
+    "slug": "oakland",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400353850"
+  },
+  {
+    "name": "Old Tappan",
+    "slug": "old-tappan",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400354870"
+  },
+  {
+    "name": "Oradell",
+    "slug": "oradell",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400354990"
+  },
+  {
+    "name": "Palisades Park",
+    "slug": "palisades-park",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400355770"
+  },
+  {
+    "name": "Paramus",
+    "slug": "paramus",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400355950"
+  },
+  {
+    "name": "Park Ridge",
+    "slug": "park-ridge",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400356130"
+  },
+  {
+    "name": "Ramsey",
+    "slug": "ramsey",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400361680"
+  },
+  {
+    "name": "Ridgefield",
+    "slug": "ridgefield",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400362910"
+  },
+  {
+    "name": "Ridgefield Park",
+    "slug": "ridgefield-park",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "village",
+    "geoid": "3400362940"
+  },
+  {
+    "name": "Ridgewood",
+    "slug": "ridgewood",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "village",
+    "geoid": "3400363000"
+  },
+  {
+    "name": "River Edge",
+    "slug": "river-edge",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400363360"
+  },
+  {
+    "name": "River Vale",
+    "slug": "river-vale",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "township",
+    "geoid": "3400363690"
+  },
+  {
+    "name": "Rochelle Park",
+    "slug": "rochelle-park",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "township",
+    "geoid": "3400363990"
+  },
+  {
+    "name": "Rockleigh",
+    "slug": "rockleigh",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400364170"
+  },
+  {
+    "name": "Rutherford",
+    "slug": "rutherford",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400365280"
+  },
+  {
+    "name": "Saddle Brook",
+    "slug": "saddle-brook",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "township",
+    "geoid": "3400365340"
+  },
+  {
+    "name": "Saddle River",
+    "slug": "saddle-river",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400365400"
+  },
+  {
+    "name": "South Hackensack",
+    "slug": "south-hackensack",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "township",
+    "geoid": "3400368970"
+  },
+  {
+    "name": "Teaneck",
+    "slug": "teaneck",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "township",
+    "geoid": "3400372360"
+  },
+  {
+    "name": "Tenafly",
+    "slug": "tenafly",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400372420"
+  },
+  {
+    "name": "Teterboro",
+    "slug": "teterboro",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400372480"
+  },
+  {
+    "name": "Upper Saddle River",
+    "slug": "upper-saddle-river",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400375140"
+  },
+  {
+    "name": "Waldwick",
+    "slug": "waldwick",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400376400"
+  },
+  {
+    "name": "Wallington",
+    "slug": "wallington",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400376490"
+  },
+  {
+    "name": "Washington",
+    "slug": "washington-bergen",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "township",
+    "geoid": "3400377135"
+  },
+  {
+    "name": "Westwood",
+    "slug": "westwood",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400380270"
+  },
+  {
+    "name": "Wood-Ridge",
+    "slug": "wood-ridge",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400382570"
+  },
+  {
+    "name": "Woodcliff Lake",
+    "slug": "woodcliff-lake",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "borough",
+    "geoid": "3400382300"
+  },
+  {
+    "name": "Wyckoff",
+    "slug": "wyckoff",
+    "county": "Bergen",
+    "countySlug": "bergen",
+    "type": "township",
+    "geoid": "3400383050"
+  },
+  {
+    "name": "Bass River",
+    "slug": "bass-river",
+    "county": "Burlington",
+    "countySlug": "burlington",
+    "type": "township",
+    "geoid": "3400503370"
+  },
+  {
+    "name": "Beverly",
+    "slug": "beverly",
+    "county": "Burlington",
+    "countySlug": "burlington",
+    "type": "city",
+    "geoid": "3400505740"
+  },
+  {
+    "name": "Bordentown",
+    "slug": "bordentown-city",
+    "county": "Burlington",
+    "countySlug": "burlington",
+    "type": "city",
+    "geoid": "3400506670"
+  },
+  {
+    "name": "Bordentown",
+    "slug": "bordentown-township",
+    "county": "Burlington",
+    "countySlug": "burlington",
+    "type": "township",
+    "geoid": "3400506700"
+  },
+  {
+    "name": "Burlington",
+    "slug": "burlington-city",
+    "county": "Burlington",
+    "countySlug": "burlington",
+    "type": "city",
+    "geoid": "3400508920"
+  },
+  {
+    "name": "Burlington",
+    "slug": "burlington-township",
+    "county": "Burlington",
+    "countySlug": "burlington",
+    "type": "township",
+    "geoid": "3400508950"
+  },
+  {
+    "name": "Chesterfield",
+    "slug": "chesterfield",
+    "county": "Burlington",
+    "countySlug": "burlington",
+    "type": "township",
+    "geoid": "3400512670"
+  },
+  {
+    "name": "Cinnaminson",
+    "slug": "cinnaminson",
+    "county": "Burlington",
+    "countySlug": "burlington",
+    "type": "township",
+    "geoid": "3400512940"
+  },
+  {
+    "name": "Delanco",
+    "slug": "delanco",
+    "county": "Burlington",
+    "countySlug": "burlington",
+    "type": "township",
+    "geoid": "3400517080"
+  },
+  {
+    "name": "Delran",
+    "slug": "delran",
+    "county": "Burlington",
+    "countySlug": "burlington",
+    "type": "township",
+    "geoid": "3400517440"
+  },
+  {
+    "name": "Eastampton",
+    "slug": "eastampton",
+    "county": "Burlington",
+    "countySlug": "burlington",
+    "type": "township",
+    "geoid": "3400518790"
+  },
+  {
+    "name": "Edgewater Park",
+    "slug": "edgewater-park",
+    "county": "Burlington",
+    "countySlug": "burlington",
+    "type": "township",
+    "geoid": "3400520050"
+  },
+  {
+    "name": "Evesham",
+    "slug": "evesham",
+    "county": "Burlington",
+    "countySlug": "burlington",
+    "type": "township",
+    "geoid": "3400522110"
+  },
+  {
+    "name": "Fieldsboro",
+    "slug": "fieldsboro",
+    "county": "Burlington",
+    "countySlug": "burlington",
+    "type": "borough",
+    "geoid": "3400523250"
+  },
+  {
+    "name": "Florence",
+    "slug": "florence",
+    "county": "Burlington",
+    "countySlug": "burlington",
+    "type": "township",
+    "geoid": "3400523850"
+  },
+  {
+    "name": "Hainesport",
+    "slug": "hainesport",
+    "county": "Burlington",
+    "countySlug": "burlington",
+    "type": "township",
+    "geoid": "3400529010"
+  },
+  {
+    "name": "Lumberton",
+    "slug": "lumberton",
+    "county": "Burlington",
+    "countySlug": "burlington",
+    "type": "township",
+    "geoid": "3400542060"
+  },
+  {
+    "name": "Mansfield",
+    "slug": "mansfield-burlington",
+    "county": "Burlington",
+    "countySlug": "burlington",
+    "type": "township",
+    "geoid": "3400543290"
+  },
+  {
+    "name": "Maple Shade",
+    "slug": "maple-shade",
+    "county": "Burlington",
+    "countySlug": "burlington",
+    "type": "township",
+    "geoid": "3400543740"
+  },
+  {
+    "name": "Medford",
+    "slug": "medford",
+    "county": "Burlington",
+    "countySlug": "burlington",
+    "type": "township",
+    "geoid": "3400545120"
+  },
+  {
+    "name": "Medford Lakes",
+    "slug": "medford-lakes",
+    "county": "Burlington",
+    "countySlug": "burlington",
+    "type": "borough",
+    "geoid": "3400545210"
+  },
+  {
+    "name": "Moorestown",
+    "slug": "moorestown",
+    "county": "Burlington",
+    "countySlug": "burlington",
+    "type": "township",
+    "geoid": "3400547880"
+  },
+  {
+    "name": "Mount Holly",
+    "slug": "mount-holly",
+    "county": "Burlington",
+    "countySlug": "burlington",
+    "type": "township",
+    "geoid": "3400548900"
+  },
+  {
+    "name": "Mount Laurel",
+    "slug": "mount-laurel",
+    "county": "Burlington",
+    "countySlug": "burlington",
+    "type": "township",
+    "geoid": "3400549020"
+  },
+  {
+    "name": "New Hanover",
+    "slug": "new-hanover",
+    "county": "Burlington",
+    "countySlug": "burlington",
+    "type": "township",
+    "geoid": "3400551510"
+  },
+  {
+    "name": "North Hanover",
+    "slug": "north-hanover",
+    "county": "Burlington",
+    "countySlug": "burlington",
+    "type": "township",
+    "geoid": "3400553070"
+  },
+  {
+    "name": "Palmyra",
+    "slug": "palmyra",
+    "county": "Burlington",
+    "countySlug": "burlington",
+    "type": "borough",
+    "geoid": "3400555800"
+  },
+  {
+    "name": "Pemberton",
+    "slug": "pemberton-borough",
+    "county": "Burlington",
+    "countySlug": "burlington",
+    "type": "borough",
+    "geoid": "3400557480"
+  },
+  {
+    "name": "Pemberton",
+    "slug": "pemberton-township",
+    "county": "Burlington",
+    "countySlug": "burlington",
+    "type": "township",
+    "geoid": "3400557510"
+  },
+  {
+    "name": "Riverside",
+    "slug": "riverside",
+    "county": "Burlington",
+    "countySlug": "burlington",
+    "type": "township",
+    "geoid": "3400563510"
+  },
+  {
+    "name": "Riverton",
+    "slug": "riverton",
+    "county": "Burlington",
+    "countySlug": "burlington",
+    "type": "borough",
+    "geoid": "3400563660"
+  },
+  {
+    "name": "Shamong",
+    "slug": "shamong",
+    "county": "Burlington",
+    "countySlug": "burlington",
+    "type": "township",
+    "geoid": "3400566810"
+  },
+  {
+    "name": "Southampton",
+    "slug": "southampton",
+    "county": "Burlington",
+    "countySlug": "burlington",
+    "type": "township",
+    "geoid": "3400568610"
+  },
+  {
+    "name": "Springfield",
+    "slug": "springfield-burlington",
+    "county": "Burlington",
+    "countySlug": "burlington",
+    "type": "township",
+    "geoid": "3400569990"
+  },
+  {
+    "name": "Tabernacle",
+    "slug": "tabernacle",
+    "county": "Burlington",
+    "countySlug": "burlington",
+    "type": "township",
+    "geoid": "3400572060"
+  },
+  {
+    "name": "Washington",
+    "slug": "washington-burlington",
+    "county": "Burlington",
+    "countySlug": "burlington",
+    "type": "township",
+    "geoid": "3400577150"
+  },
+  {
+    "name": "Westampton",
+    "slug": "westampton",
+    "county": "Burlington",
+    "countySlug": "burlington",
+    "type": "township",
+    "geoid": "3400578200"
+  },
+  {
+    "name": "Willingboro",
+    "slug": "willingboro",
+    "county": "Burlington",
+    "countySlug": "burlington",
+    "type": "township",
+    "geoid": "3400581440"
+  },
+  {
+    "name": "Woodland",
+    "slug": "woodland",
+    "county": "Burlington",
+    "countySlug": "burlington",
+    "type": "township",
+    "geoid": "3400582420"
+  },
+  {
+    "name": "Wrightstown",
+    "slug": "wrightstown",
+    "county": "Burlington",
+    "countySlug": "burlington",
+    "type": "borough",
+    "geoid": "3400582960"
+  },
+  {
+    "name": "Audubon",
+    "slug": "audubon",
+    "county": "Camden",
+    "countySlug": "camden",
+    "type": "borough",
+    "geoid": "3400702200"
+  },
+  {
+    "name": "Audubon Park",
+    "slug": "audubon-park",
+    "county": "Camden",
+    "countySlug": "camden",
+    "type": "borough",
+    "geoid": "3400702230"
+  },
+  {
+    "name": "Barrington",
+    "slug": "barrington",
+    "county": "Camden",
+    "countySlug": "camden",
+    "type": "borough",
+    "geoid": "3400703250"
+  },
+  {
+    "name": "Bellmawr",
+    "slug": "bellmawr",
+    "county": "Camden",
+    "countySlug": "camden",
+    "type": "borough",
+    "geoid": "3400704750"
+  },
+  {
+    "name": "Berlin",
+    "slug": "berlin-borough",
+    "county": "Camden",
+    "countySlug": "camden",
+    "type": "borough",
+    "geoid": "3400705440"
+  },
+  {
+    "name": "Berlin",
+    "slug": "berlin-township",
+    "county": "Camden",
+    "countySlug": "camden",
+    "type": "township",
+    "geoid": "3400705470"
+  },
+  {
+    "name": "Brooklawn",
+    "slug": "brooklawn",
+    "county": "Camden",
+    "countySlug": "camden",
+    "type": "borough",
+    "geoid": "3400708170"
+  },
+  {
+    "name": "Camden",
+    "slug": "camden",
+    "county": "Camden",
+    "countySlug": "camden",
+    "type": "city",
+    "geoid": "3400710000"
+  },
+  {
+    "name": "Cherry Hill",
+    "slug": "cherry-hill",
+    "county": "Camden",
+    "countySlug": "camden",
+    "type": "township",
+    "geoid": "3400712280"
+  },
+  {
+    "name": "Chesilhurst",
+    "slug": "chesilhurst",
+    "county": "Camden",
+    "countySlug": "camden",
+    "type": "borough",
+    "geoid": "3400712550"
+  },
+  {
+    "name": "Clementon",
+    "slug": "clementon",
+    "county": "Camden",
+    "countySlug": "camden",
+    "type": "borough",
+    "geoid": "3400713420"
+  },
+  {
+    "name": "Collingswood",
+    "slug": "collingswood",
+    "county": "Camden",
+    "countySlug": "camden",
+    "type": "borough",
+    "geoid": "3400714260"
+  },
+  {
+    "name": "Gibbsboro",
+    "slug": "gibbsboro",
+    "county": "Camden",
+    "countySlug": "camden",
+    "type": "borough",
+    "geoid": "3400726070"
+  },
+  {
+    "name": "Gloucester",
+    "slug": "gloucester",
+    "county": "Camden",
+    "countySlug": "camden",
+    "type": "township",
+    "geoid": "3400726760"
+  },
+  {
+    "name": "Gloucester City",
+    "slug": "gloucester-city",
+    "county": "Camden",
+    "countySlug": "camden",
+    "type": "city",
+    "geoid": "3400726820"
+  },
+  {
+    "name": "Haddon",
+    "slug": "haddon",
+    "county": "Camden",
+    "countySlug": "camden",
+    "type": "township",
+    "geoid": "3400728740"
+  },
+  {
+    "name": "Haddon Heights",
+    "slug": "haddon-heights",
+    "county": "Camden",
+    "countySlug": "camden",
+    "type": "borough",
+    "geoid": "3400728800"
+  },
+  {
+    "name": "Haddonfield",
+    "slug": "haddonfield",
+    "county": "Camden",
+    "countySlug": "camden",
+    "type": "borough",
+    "geoid": "3400728770"
+  },
+  {
+    "name": "Hi-Nella",
+    "slug": "hi-nella",
+    "county": "Camden",
+    "countySlug": "camden",
+    "type": "borough",
+    "geoid": "3400732220"
+  },
+  {
+    "name": "Laurel Springs",
+    "slug": "laurel-springs",
+    "county": "Camden",
+    "countySlug": "camden",
+    "type": "borough",
+    "geoid": "3400739210"
+  },
+  {
+    "name": "Lawnside",
+    "slug": "lawnside",
+    "county": "Camden",
+    "countySlug": "camden",
+    "type": "borough",
+    "geoid": "3400739420"
+  },
+  {
+    "name": "Lindenwold",
+    "slug": "lindenwold",
+    "county": "Camden",
+    "countySlug": "camden",
+    "type": "borough",
+    "geoid": "3400740440"
+  },
+  {
+    "name": "Magnolia",
+    "slug": "magnolia",
+    "county": "Camden",
+    "countySlug": "camden",
+    "type": "borough",
+    "geoid": "3400742630"
+  },
+  {
+    "name": "Merchantville",
+    "slug": "merchantville",
+    "county": "Camden",
+    "countySlug": "camden",
+    "type": "borough",
+    "geoid": "3400745510"
+  },
+  {
+    "name": "Mount Ephraim",
+    "slug": "mount-ephraim",
+    "county": "Camden",
+    "countySlug": "camden",
+    "type": "borough",
+    "geoid": "3400748750"
+  },
+  {
+    "name": "Oaklyn",
+    "slug": "oaklyn",
+    "county": "Camden",
+    "countySlug": "camden",
+    "type": "borough",
+    "geoid": "3400753880"
+  },
+  {
+    "name": "Pennsauken",
+    "slug": "pennsauken",
+    "county": "Camden",
+    "countySlug": "camden",
+    "type": "township",
+    "geoid": "3400757660"
+  },
+  {
+    "name": "Pine Hill",
+    "slug": "pine-hill",
+    "county": "Camden",
+    "countySlug": "camden",
+    "type": "borough",
+    "geoid": "3400758770"
+  },
+  {
+    "name": "Runnemede",
+    "slug": "runnemede",
+    "county": "Camden",
+    "countySlug": "camden",
+    "type": "borough",
+    "geoid": "3400765160"
+  },
+  {
+    "name": "Somerdale",
+    "slug": "somerdale",
+    "county": "Camden",
+    "countySlug": "camden",
+    "type": "borough",
+    "geoid": "3400768340"
+  },
+  {
+    "name": "Stratford",
+    "slug": "stratford",
+    "county": "Camden",
+    "countySlug": "camden",
+    "type": "borough",
+    "geoid": "3400771220"
+  },
+  {
+    "name": "Tavistock",
+    "slug": "tavistock",
+    "county": "Camden",
+    "countySlug": "camden",
+    "type": "borough",
+    "geoid": "3400772240"
+  },
+  {
+    "name": "Voorhees",
+    "slug": "voorhees",
+    "county": "Camden",
+    "countySlug": "camden",
+    "type": "township",
+    "geoid": "3400776220"
+  },
+  {
+    "name": "Waterford",
+    "slug": "waterford",
+    "county": "Camden",
+    "countySlug": "camden",
+    "type": "township",
+    "geoid": "3400777630"
+  },
+  {
+    "name": "Winslow",
+    "slug": "winslow",
+    "county": "Camden",
+    "countySlug": "camden",
+    "type": "township",
+    "geoid": "3400781740"
+  },
+  {
+    "name": "Woodlynne",
+    "slug": "woodlynne",
+    "county": "Camden",
+    "countySlug": "camden",
+    "type": "borough",
+    "geoid": "3400782450"
+  },
+  {
+    "name": "Avalon",
+    "slug": "avalon",
+    "county": "Cape May",
+    "countySlug": "cape-may",
+    "type": "borough",
+    "geoid": "3400902320"
+  },
+  {
+    "name": "Cape May",
+    "slug": "cape-may",
+    "county": "Cape May",
+    "countySlug": "cape-may",
+    "type": "city",
+    "geoid": "3400910270"
+  },
+  {
+    "name": "Cape May Point",
+    "slug": "cape-may-point",
+    "county": "Cape May",
+    "countySlug": "cape-may",
+    "type": "borough",
+    "geoid": "3400910330"
+  },
+  {
+    "name": "Dennis",
+    "slug": "dennis",
+    "county": "Cape May",
+    "countySlug": "cape-may",
+    "type": "township",
+    "geoid": "3400917560"
+  },
+  {
+    "name": "Lower",
+    "slug": "lower",
+    "county": "Cape May",
+    "countySlug": "cape-may",
+    "type": "township",
+    "geoid": "3400941610"
+  },
+  {
+    "name": "Middle",
+    "slug": "middle",
+    "county": "Cape May",
+    "countySlug": "cape-may",
+    "type": "township",
+    "geoid": "3400945810"
+  },
+  {
+    "name": "North Wildwood",
+    "slug": "north-wildwood",
+    "county": "Cape May",
+    "countySlug": "cape-may",
+    "type": "city",
+    "geoid": "3400953490"
+  },
+  {
+    "name": "Ocean City",
+    "slug": "ocean-city",
+    "county": "Cape May",
+    "countySlug": "cape-may",
+    "type": "city",
+    "geoid": "3400954360"
+  },
+  {
+    "name": "Sea Isle City",
+    "slug": "sea-isle-city",
+    "county": "Cape May",
+    "countySlug": "cape-may",
+    "type": "city",
+    "geoid": "3400966390"
+  },
+  {
+    "name": "Stone Harbor",
+    "slug": "stone-harbor",
+    "county": "Cape May",
+    "countySlug": "cape-may",
+    "type": "borough",
+    "geoid": "3400971010"
+  },
+  {
+    "name": "Upper",
+    "slug": "upper",
+    "county": "Cape May",
+    "countySlug": "cape-may",
+    "type": "township",
+    "geoid": "3400974810"
+  },
+  {
+    "name": "West Cape May",
+    "slug": "west-cape-may",
+    "county": "Cape May",
+    "countySlug": "cape-may",
+    "type": "borough",
+    "geoid": "3400978530"
+  },
+  {
+    "name": "West Wildwood",
+    "slug": "west-wildwood",
+    "county": "Cape May",
+    "countySlug": "cape-may",
+    "type": "borough",
+    "geoid": "3400980210"
+  },
+  {
+    "name": "Wildwood",
+    "slug": "wildwood",
+    "county": "Cape May",
+    "countySlug": "cape-may",
+    "type": "city",
+    "geoid": "3400981170"
+  },
+  {
+    "name": "Wildwood Crest",
+    "slug": "wildwood-crest",
+    "county": "Cape May",
+    "countySlug": "cape-may",
+    "type": "borough",
+    "geoid": "3400981200"
+  },
+  {
+    "name": "Woodbine",
+    "slug": "woodbine",
+    "county": "Cape May",
+    "countySlug": "cape-may",
+    "type": "borough",
+    "geoid": "3400981890"
+  },
+  {
+    "name": "Bridgeton",
+    "slug": "bridgeton",
+    "county": "Cumberland",
+    "countySlug": "cumberland",
+    "type": "city",
+    "geoid": "3401107600"
+  },
+  {
+    "name": "Commercial",
+    "slug": "commercial",
+    "county": "Cumberland",
+    "countySlug": "cumberland",
+    "type": "township",
+    "geoid": "3401114710"
+  },
+  {
+    "name": "Deerfield",
+    "slug": "deerfield",
+    "county": "Cumberland",
+    "countySlug": "cumberland",
+    "type": "township",
+    "geoid": "3401116900"
+  },
+  {
+    "name": "Downe",
+    "slug": "downe",
+    "county": "Cumberland",
+    "countySlug": "cumberland",
+    "type": "township",
+    "geoid": "3401118220"
+  },
+  {
+    "name": "Fairfield",
+    "slug": "fairfield-cumberland",
+    "county": "Cumberland",
+    "countySlug": "cumberland",
+    "type": "township",
+    "geoid": "3401122350"
+  },
+  {
+    "name": "Greenwich",
+    "slug": "greenwich-cumberland",
+    "county": "Cumberland",
+    "countySlug": "cumberland",
+    "type": "township",
+    "geoid": "3401128170"
+  },
+  {
+    "name": "Hopewell",
+    "slug": "hopewell-cumberland",
+    "county": "Cumberland",
+    "countySlug": "cumberland",
+    "type": "township",
+    "geoid": "3401133120"
+  },
+  {
+    "name": "Lawrence",
+    "slug": "lawrence-cumberland",
+    "county": "Cumberland",
+    "countySlug": "cumberland",
+    "type": "township",
+    "geoid": "3401139450"
+  },
+  {
+    "name": "Maurice River",
+    "slug": "maurice-river",
+    "county": "Cumberland",
+    "countySlug": "cumberland",
+    "type": "township",
+    "geoid": "3401144580"
+  },
+  {
+    "name": "Millville",
+    "slug": "millville",
+    "county": "Cumberland",
+    "countySlug": "cumberland",
+    "type": "city",
+    "geoid": "3401146680"
+  },
+  {
+    "name": "Shiloh",
+    "slug": "shiloh",
+    "county": "Cumberland",
+    "countySlug": "cumberland",
+    "type": "borough",
+    "geoid": "3401167020"
+  },
+  {
+    "name": "Stow Creek",
+    "slug": "stow-creek",
+    "county": "Cumberland",
+    "countySlug": "cumberland",
+    "type": "township",
+    "geoid": "3401171160"
+  },
+  {
+    "name": "Upper Deerfield",
+    "slug": "upper-deerfield",
+    "county": "Cumberland",
+    "countySlug": "cumberland",
+    "type": "township",
+    "geoid": "3401174870"
+  },
+  {
+    "name": "Vineland",
+    "slug": "vineland",
+    "county": "Cumberland",
+    "countySlug": "cumberland",
+    "type": "city",
+    "geoid": "3401176070"
+  },
+  {
+    "name": "Belleville",
+    "slug": "belleville",
+    "county": "Essex",
+    "countySlug": "essex",
+    "type": "township",
+    "geoid": "3401304695"
+  },
+  {
+    "name": "Bloomfield",
+    "slug": "bloomfield",
+    "county": "Essex",
+    "countySlug": "essex",
+    "type": "township",
+    "geoid": "3401306260"
+  },
+  {
+    "name": "Caldwell",
+    "slug": "caldwell",
+    "county": "Essex",
+    "countySlug": "essex",
+    "type": "borough",
+    "geoid": "3401309250"
+  },
+  {
+    "name": "Cedar Grove",
+    "slug": "cedar-grove",
+    "county": "Essex",
+    "countySlug": "essex",
+    "type": "township",
+    "geoid": "3401311200"
+  },
+  {
+    "name": "City of Orange",
+    "slug": "city-of-orange",
+    "county": "Essex",
+    "countySlug": "essex",
+    "type": "township",
+    "geoid": "3401313045"
+  },
+  {
+    "name": "East Orange",
+    "slug": "east-orange",
+    "county": "Essex",
+    "countySlug": "essex",
+    "type": "city",
+    "geoid": "3401319390"
+  },
+  {
+    "name": "Essex Fells",
+    "slug": "essex-fells",
+    "county": "Essex",
+    "countySlug": "essex",
+    "type": "borough",
+    "geoid": "3401321840"
+  },
+  {
+    "name": "Fairfield",
+    "slug": "fairfield-essex",
+    "county": "Essex",
+    "countySlug": "essex",
+    "type": "township",
+    "geoid": "3401322385"
+  },
+  {
+    "name": "Glen Ridge",
+    "slug": "glen-ridge",
+    "county": "Essex",
+    "countySlug": "essex",
+    "type": "borough",
+    "geoid": "3401326610"
+  },
+  {
+    "name": "Irvington",
+    "slug": "irvington",
+    "county": "Essex",
+    "countySlug": "essex",
+    "type": "township",
+    "geoid": "3401334450"
+  },
+  {
+    "name": "Livingston",
+    "slug": "livingston",
+    "county": "Essex",
+    "countySlug": "essex",
+    "type": "township",
+    "geoid": "3401340890"
+  },
+  {
+    "name": "Maplewood",
+    "slug": "maplewood",
+    "county": "Essex",
+    "countySlug": "essex",
+    "type": "township",
+    "geoid": "3401343800"
+  },
+  {
+    "name": "Millburn",
+    "slug": "millburn",
+    "county": "Essex",
+    "countySlug": "essex",
+    "type": "township",
+    "geoid": "3401346380"
+  },
+  {
+    "name": "Montclair",
+    "slug": "montclair",
+    "county": "Essex",
+    "countySlug": "essex",
+    "type": "township",
+    "geoid": "3401347500"
+  },
+  {
+    "name": "Newark",
+    "slug": "newark",
+    "county": "Essex",
+    "countySlug": "essex",
+    "type": "city",
+    "geoid": "3401351000"
+  },
+  {
+    "name": "North Caldwell",
+    "slug": "north-caldwell",
+    "county": "Essex",
+    "countySlug": "essex",
+    "type": "borough",
+    "geoid": "3401352620"
+  },
+  {
+    "name": "Nutley",
+    "slug": "nutley",
+    "county": "Essex",
+    "countySlug": "essex",
+    "type": "township",
+    "geoid": "3401353680"
+  },
+  {
+    "name": "Roseland",
+    "slug": "roseland",
+    "county": "Essex",
+    "countySlug": "essex",
+    "type": "borough",
+    "geoid": "3401364590"
+  },
+  {
+    "name": "South Orange Village",
+    "slug": "south-orange-village",
+    "county": "Essex",
+    "countySlug": "essex",
+    "type": "township",
+    "geoid": "3401369274"
+  },
+  {
+    "name": "Verona",
+    "slug": "verona",
+    "county": "Essex",
+    "countySlug": "essex",
+    "type": "township",
+    "geoid": "3401375815"
+  },
+  {
+    "name": "West Caldwell",
+    "slug": "west-caldwell",
+    "county": "Essex",
+    "countySlug": "essex",
+    "type": "township",
+    "geoid": "3401378510"
+  },
+  {
+    "name": "West Orange",
+    "slug": "west-orange",
+    "county": "Essex",
+    "countySlug": "essex",
+    "type": "township",
+    "geoid": "3401379800"
+  },
+  {
+    "name": "Clayton",
+    "slug": "clayton",
+    "county": "Gloucester",
+    "countySlug": "gloucester",
+    "type": "borough",
+    "geoid": "3401513360"
+  },
+  {
+    "name": "Deptford",
+    "slug": "deptford",
+    "county": "Gloucester",
+    "countySlug": "gloucester",
+    "type": "township",
+    "geoid": "3401517710"
+  },
+  {
+    "name": "East Greenwich",
+    "slug": "east-greenwich",
+    "county": "Gloucester",
+    "countySlug": "gloucester",
+    "type": "township",
+    "geoid": "3401519180"
+  },
+  {
+    "name": "Elk",
+    "slug": "elk",
+    "county": "Gloucester",
+    "countySlug": "gloucester",
+    "type": "township",
+    "geoid": "3401521060"
+  },
+  {
+    "name": "Franklin",
+    "slug": "franklin-gloucester",
+    "county": "Gloucester",
+    "countySlug": "gloucester",
+    "type": "township",
+    "geoid": "3401524840"
+  },
+  {
+    "name": "Glassboro",
+    "slug": "glassboro",
+    "county": "Gloucester",
+    "countySlug": "gloucester",
+    "type": "borough",
+    "geoid": "3401526340"
+  },
+  {
+    "name": "Greenwich",
+    "slug": "greenwich-gloucester",
+    "county": "Gloucester",
+    "countySlug": "gloucester",
+    "type": "township",
+    "geoid": "3401528185"
+  },
+  {
+    "name": "Harrison",
+    "slug": "harrison-gloucester",
+    "county": "Gloucester",
+    "countySlug": "gloucester",
+    "type": "township",
+    "geoid": "3401530180"
+  },
+  {
+    "name": "Logan",
+    "slug": "logan",
+    "county": "Gloucester",
+    "countySlug": "gloucester",
+    "type": "township",
+    "geoid": "3401541160"
+  },
+  {
+    "name": "Mantua",
+    "slug": "mantua",
+    "county": "Gloucester",
+    "countySlug": "gloucester",
+    "type": "township",
+    "geoid": "3401543440"
+  },
+  {
+    "name": "Monroe",
+    "slug": "monroe-gloucester",
+    "county": "Gloucester",
+    "countySlug": "gloucester",
+    "type": "township",
+    "geoid": "3401547250"
+  },
+  {
+    "name": "National Park",
+    "slug": "national-park",
+    "county": "Gloucester",
+    "countySlug": "gloucester",
+    "type": "borough",
+    "geoid": "3401549680"
+  },
+  {
+    "name": "Newfield",
+    "slug": "newfield",
+    "county": "Gloucester",
+    "countySlug": "gloucester",
+    "type": "borough",
+    "geoid": "3401551390"
+  },
+  {
+    "name": "Paulsboro",
+    "slug": "paulsboro",
+    "county": "Gloucester",
+    "countySlug": "gloucester",
+    "type": "borough",
+    "geoid": "3401557150"
+  },
+  {
+    "name": "Pitman",
+    "slug": "pitman",
+    "county": "Gloucester",
+    "countySlug": "gloucester",
+    "type": "borough",
+    "geoid": "3401559070"
+  },
+  {
+    "name": "South Harrison",
+    "slug": "south-harrison",
+    "county": "Gloucester",
+    "countySlug": "gloucester",
+    "type": "township",
+    "geoid": "3401569030"
+  },
+  {
+    "name": "Swedesboro",
+    "slug": "swedesboro",
+    "county": "Gloucester",
+    "countySlug": "gloucester",
+    "type": "borough",
+    "geoid": "3401571850"
+  },
+  {
+    "name": "Washington",
+    "slug": "washington-gloucester",
+    "county": "Gloucester",
+    "countySlug": "gloucester",
+    "type": "township",
+    "geoid": "3401577180"
+  },
+  {
+    "name": "Wenonah",
+    "slug": "wenonah",
+    "county": "Gloucester",
+    "countySlug": "gloucester",
+    "type": "borough",
+    "geoid": "3401578110"
+  },
+  {
+    "name": "West Deptford",
+    "slug": "west-deptford",
+    "county": "Gloucester",
+    "countySlug": "gloucester",
+    "type": "township",
+    "geoid": "3401578800"
+  },
+  {
+    "name": "Westville",
+    "slug": "westville",
+    "county": "Gloucester",
+    "countySlug": "gloucester",
+    "type": "borough",
+    "geoid": "3401580120"
+  },
+  {
+    "name": "Woodbury",
+    "slug": "woodbury",
+    "county": "Gloucester",
+    "countySlug": "gloucester",
+    "type": "city",
+    "geoid": "3401582120"
+  },
+  {
+    "name": "Woodbury Heights",
+    "slug": "woodbury-heights",
+    "county": "Gloucester",
+    "countySlug": "gloucester",
+    "type": "borough",
+    "geoid": "3401582180"
+  },
+  {
+    "name": "Woolwich",
+    "slug": "woolwich",
+    "county": "Gloucester",
+    "countySlug": "gloucester",
+    "type": "township",
+    "geoid": "3401582840"
+  },
+  {
+    "name": "Bayonne",
+    "slug": "bayonne",
+    "county": "Hudson",
+    "countySlug": "hudson",
+    "type": "city",
+    "geoid": "3401703580"
+  },
+  {
+    "name": "East Newark",
+    "slug": "east-newark",
+    "county": "Hudson",
+    "countySlug": "hudson",
+    "type": "borough",
+    "geoid": "3401719360"
+  },
+  {
+    "name": "Guttenberg",
+    "slug": "guttenberg",
+    "county": "Hudson",
+    "countySlug": "hudson",
+    "type": "town",
+    "geoid": "3401728650"
+  },
+  {
+    "name": "Harrison",
+    "slug": "harrison-hudson",
+    "county": "Hudson",
+    "countySlug": "hudson",
+    "type": "town",
+    "geoid": "3401730210"
+  },
+  {
+    "name": "Hoboken",
+    "slug": "hoboken",
+    "county": "Hudson",
+    "countySlug": "hudson",
+    "type": "city",
+    "geoid": "3401732250"
+  },
+  {
+    "name": "Jersey City",
+    "slug": "jersey-city",
+    "county": "Hudson",
+    "countySlug": "hudson",
+    "type": "city",
+    "geoid": "3401736000"
+  },
+  {
+    "name": "Kearny",
+    "slug": "kearny",
+    "county": "Hudson",
+    "countySlug": "hudson",
+    "type": "town",
+    "geoid": "3401736510"
+  },
+  {
+    "name": "North Bergen",
+    "slug": "north-bergen",
+    "county": "Hudson",
+    "countySlug": "hudson",
+    "type": "township",
+    "geoid": "3401752470"
+  },
+  {
+    "name": "Secaucus",
+    "slug": "secaucus",
+    "county": "Hudson",
+    "countySlug": "hudson",
+    "type": "town",
+    "geoid": "3401766570"
+  },
+  {
+    "name": "Union City",
+    "slug": "union-city",
+    "county": "Hudson",
+    "countySlug": "hudson",
+    "type": "city",
+    "geoid": "3401774630"
+  },
+  {
+    "name": "Weehawken",
+    "slug": "weehawken",
+    "county": "Hudson",
+    "countySlug": "hudson",
+    "type": "township",
+    "geoid": "3401777930"
+  },
+  {
+    "name": "West New York",
+    "slug": "west-new-york",
+    "county": "Hudson",
+    "countySlug": "hudson",
+    "type": "town",
+    "geoid": "3401779610"
+  },
+  {
+    "name": "Alexandria",
+    "slug": "alexandria",
+    "county": "Hunterdon",
+    "countySlug": "hunterdon",
+    "type": "township",
+    "geoid": "3401900550"
+  },
+  {
+    "name": "Bethlehem",
+    "slug": "bethlehem",
+    "county": "Hunterdon",
+    "countySlug": "hunterdon",
+    "type": "township",
+    "geoid": "3401905650"
+  },
+  {
+    "name": "Bloomsbury",
+    "slug": "bloomsbury",
+    "county": "Hunterdon",
+    "countySlug": "hunterdon",
+    "type": "borough",
+    "geoid": "3401906370"
+  },
+  {
+    "name": "Califon",
+    "slug": "califon",
+    "county": "Hunterdon",
+    "countySlug": "hunterdon",
+    "type": "borough",
+    "geoid": "3401909280"
+  },
+  {
+    "name": "Clinton",
+    "slug": "clinton-town",
+    "county": "Hunterdon",
+    "countySlug": "hunterdon",
+    "type": "town",
+    "geoid": "3401913720"
+  },
+  {
+    "name": "Clinton",
+    "slug": "clinton-township",
+    "county": "Hunterdon",
+    "countySlug": "hunterdon",
+    "type": "township",
+    "geoid": "3401913750"
+  },
+  {
+    "name": "Delaware",
+    "slug": "delaware",
+    "county": "Hunterdon",
+    "countySlug": "hunterdon",
+    "type": "township",
+    "geoid": "3401917170"
+  },
+  {
+    "name": "East Amwell",
+    "slug": "east-amwell",
+    "county": "Hunterdon",
+    "countySlug": "hunterdon",
+    "type": "township",
+    "geoid": "3401918820"
+  },
+  {
+    "name": "Flemington",
+    "slug": "flemington",
+    "county": "Hunterdon",
+    "countySlug": "hunterdon",
+    "type": "borough",
+    "geoid": "3401923700"
+  },
+  {
+    "name": "Franklin",
+    "slug": "franklin-hunterdon",
+    "county": "Hunterdon",
+    "countySlug": "hunterdon",
+    "type": "township",
+    "geoid": "3401924870"
+  },
+  {
+    "name": "Frenchtown",
+    "slug": "frenchtown",
+    "county": "Hunterdon",
+    "countySlug": "hunterdon",
+    "type": "borough",
+    "geoid": "3401925350"
+  },
+  {
+    "name": "Glen Gardner",
+    "slug": "glen-gardner",
+    "county": "Hunterdon",
+    "countySlug": "hunterdon",
+    "type": "borough",
+    "geoid": "3401926550"
+  },
+  {
+    "name": "Hampton",
+    "slug": "hampton-hunterdon",
+    "county": "Hunterdon",
+    "countySlug": "hunterdon",
+    "type": "borough",
+    "geoid": "3401929460"
+  },
+  {
+    "name": "High Bridge",
+    "slug": "high-bridge",
+    "county": "Hunterdon",
+    "countySlug": "hunterdon",
+    "type": "borough",
+    "geoid": "3401931320"
+  },
+  {
+    "name": "Holland",
+    "slug": "holland",
+    "county": "Hunterdon",
+    "countySlug": "hunterdon",
+    "type": "township",
+    "geoid": "3401932460"
+  },
+  {
+    "name": "Kingwood",
+    "slug": "kingwood",
+    "county": "Hunterdon",
+    "countySlug": "hunterdon",
+    "type": "township",
+    "geoid": "3401937065"
+  },
+  {
+    "name": "Lambertville",
+    "slug": "lambertville",
+    "county": "Hunterdon",
+    "countySlug": "hunterdon",
+    "type": "city",
+    "geoid": "3401938610"
+  },
+  {
+    "name": "Lebanon",
+    "slug": "lebanon-borough",
+    "county": "Hunterdon",
+    "countySlug": "hunterdon",
+    "type": "borough",
+    "geoid": "3401939630"
+  },
+  {
+    "name": "Lebanon",
+    "slug": "lebanon-township",
+    "county": "Hunterdon",
+    "countySlug": "hunterdon",
+    "type": "township",
+    "geoid": "3401939660"
+  },
+  {
+    "name": "Milford",
+    "slug": "milford",
+    "county": "Hunterdon",
+    "countySlug": "hunterdon",
+    "type": "borough",
+    "geoid": "3401946260"
+  },
+  {
+    "name": "Raritan",
+    "slug": "raritan-hunterdon",
+    "county": "Hunterdon",
+    "countySlug": "hunterdon",
+    "type": "township",
+    "geoid": "3401961920"
+  },
+  {
+    "name": "Readington",
+    "slug": "readington",
+    "county": "Hunterdon",
+    "countySlug": "hunterdon",
+    "type": "township",
+    "geoid": "3401962250"
+  },
+  {
+    "name": "Stockton",
+    "slug": "stockton",
+    "county": "Hunterdon",
+    "countySlug": "hunterdon",
+    "type": "borough",
+    "geoid": "3401970980"
+  },
+  {
+    "name": "Tewksbury",
+    "slug": "tewksbury",
+    "county": "Hunterdon",
+    "countySlug": "hunterdon",
+    "type": "township",
+    "geoid": "3401972510"
+  },
+  {
+    "name": "Union",
+    "slug": "union-hunterdon",
+    "county": "Hunterdon",
+    "countySlug": "hunterdon",
+    "type": "township",
+    "geoid": "3401974420"
+  },
+  {
+    "name": "West Amwell",
+    "slug": "west-amwell",
+    "county": "Hunterdon",
+    "countySlug": "hunterdon",
+    "type": "township",
+    "geoid": "3401978230"
+  },
+  {
+    "name": "East Windsor",
+    "slug": "east-windsor",
+    "county": "Mercer",
+    "countySlug": "mercer",
+    "type": "township",
+    "geoid": "3402119780"
+  },
+  {
+    "name": "Ewing",
+    "slug": "ewing",
+    "county": "Mercer",
+    "countySlug": "mercer",
+    "type": "township",
+    "geoid": "3402122185"
+  },
+  {
+    "name": "Hamilton",
+    "slug": "hamilton-mercer",
+    "county": "Mercer",
+    "countySlug": "mercer",
+    "type": "township",
+    "geoid": "3402129310"
+  },
+  {
+    "name": "Hightstown",
+    "slug": "hightstown",
+    "county": "Mercer",
+    "countySlug": "mercer",
+    "type": "borough",
+    "geoid": "3402131620"
+  },
+  {
+    "name": "Hopewell",
+    "slug": "hopewell-borough",
+    "county": "Mercer",
+    "countySlug": "mercer",
+    "type": "borough",
+    "geoid": "3402133150"
+  },
+  {
+    "name": "Hopewell",
+    "slug": "hopewell-township",
+    "county": "Mercer",
+    "countySlug": "mercer",
+    "type": "township",
+    "geoid": "3402133180"
+  },
+  {
+    "name": "Lawrence",
+    "slug": "lawrence-mercer",
+    "county": "Mercer",
+    "countySlug": "mercer",
+    "type": "township",
+    "geoid": "3402139510"
+  },
+  {
+    "name": "Pennington",
+    "slug": "pennington",
+    "county": "Mercer",
+    "countySlug": "mercer",
+    "type": "borough",
+    "geoid": "3402157600"
+  },
+  {
+    "name": "Princeton",
+    "slug": "princeton",
+    "county": "Mercer",
+    "countySlug": "mercer",
+    "type": "unknown",
+    "geoid": "3402160900"
+  },
+  {
+    "name": "Robbinsville",
+    "slug": "robbinsville",
+    "county": "Mercer",
+    "countySlug": "mercer",
+    "type": "township",
+    "geoid": "3402163850"
+  },
+  {
+    "name": "Trenton",
+    "slug": "trenton",
+    "county": "Mercer",
+    "countySlug": "mercer",
+    "type": "city",
+    "geoid": "3402174000"
+  },
+  {
+    "name": "West Windsor",
+    "slug": "west-windsor",
+    "county": "Mercer",
+    "countySlug": "mercer",
+    "type": "township",
+    "geoid": "3402180240"
+  },
+  {
+    "name": "Carteret",
+    "slug": "carteret",
+    "county": "Middlesex",
+    "countySlug": "middlesex",
+    "type": "borough",
+    "geoid": "3402310750"
+  },
+  {
+    "name": "Cranbury",
+    "slug": "cranbury",
+    "county": "Middlesex",
+    "countySlug": "middlesex",
+    "type": "township",
+    "geoid": "3402315550"
+  },
+  {
+    "name": "Dunellen",
+    "slug": "dunellen",
+    "county": "Middlesex",
+    "countySlug": "middlesex",
+    "type": "borough",
+    "geoid": "3402318490"
+  },
+  {
+    "name": "East Brunswick",
+    "slug": "east-brunswick",
+    "county": "Middlesex",
+    "countySlug": "middlesex",
+    "type": "township",
+    "geoid": "3402319000"
+  },
+  {
+    "name": "Edison",
+    "slug": "edison",
+    "county": "Middlesex",
+    "countySlug": "middlesex",
+    "type": "township",
+    "geoid": "3402320230"
+  },
+  {
+    "name": "Helmetta",
+    "slug": "helmetta",
+    "county": "Middlesex",
+    "countySlug": "middlesex",
+    "type": "borough",
+    "geoid": "3402330840"
+  },
+  {
+    "name": "Highland Park",
+    "slug": "highland-park",
+    "county": "Middlesex",
+    "countySlug": "middlesex",
+    "type": "borough",
+    "geoid": "3402331470"
+  },
+  {
+    "name": "Jamesburg",
+    "slug": "jamesburg",
+    "county": "Middlesex",
+    "countySlug": "middlesex",
+    "type": "borough",
+    "geoid": "3402334890"
+  },
+  {
+    "name": "Metuchen",
+    "slug": "metuchen",
+    "county": "Middlesex",
+    "countySlug": "middlesex",
+    "type": "borough",
+    "geoid": "3402345690"
+  },
+  {
+    "name": "Middlesex",
+    "slug": "middlesex",
+    "county": "Middlesex",
+    "countySlug": "middlesex",
+    "type": "borough",
+    "geoid": "3402345900"
+  },
+  {
+    "name": "Milltown",
+    "slug": "milltown",
+    "county": "Middlesex",
+    "countySlug": "middlesex",
+    "type": "borough",
+    "geoid": "3402346620"
+  },
+  {
+    "name": "Monroe",
+    "slug": "monroe-middlesex",
+    "county": "Middlesex",
+    "countySlug": "middlesex",
+    "type": "township",
+    "geoid": "3402347280"
+  },
+  {
+    "name": "New Brunswick",
+    "slug": "new-brunswick",
+    "county": "Middlesex",
+    "countySlug": "middlesex",
+    "type": "city",
+    "geoid": "3402351210"
+  },
+  {
+    "name": "North Brunswick",
+    "slug": "north-brunswick",
+    "county": "Middlesex",
+    "countySlug": "middlesex",
+    "type": "township",
+    "geoid": "3402352560"
+  },
+  {
+    "name": "Old Bridge",
+    "slug": "old-bridge",
+    "county": "Middlesex",
+    "countySlug": "middlesex",
+    "type": "township",
+    "geoid": "3402354705"
+  },
+  {
+    "name": "Perth Amboy",
+    "slug": "perth-amboy",
+    "county": "Middlesex",
+    "countySlug": "middlesex",
+    "type": "city",
+    "geoid": "3402358200"
+  },
+  {
+    "name": "Piscataway",
+    "slug": "piscataway",
+    "county": "Middlesex",
+    "countySlug": "middlesex",
+    "type": "township",
+    "geoid": "3402359010"
+  },
+  {
+    "name": "Plainsboro",
+    "slug": "plainsboro",
+    "county": "Middlesex",
+    "countySlug": "middlesex",
+    "type": "township",
+    "geoid": "3402359280"
+  },
+  {
+    "name": "Sayreville",
+    "slug": "sayreville",
+    "county": "Middlesex",
+    "countySlug": "middlesex",
+    "type": "borough",
+    "geoid": "3402365790"
+  },
+  {
+    "name": "South Amboy",
+    "slug": "south-amboy",
+    "county": "Middlesex",
+    "countySlug": "middlesex",
+    "type": "city",
+    "geoid": "3402368550"
+  },
+  {
+    "name": "South Brunswick",
+    "slug": "south-brunswick",
+    "county": "Middlesex",
+    "countySlug": "middlesex",
+    "type": "township",
+    "geoid": "3402368790"
+  },
+  {
+    "name": "South Plainfield",
+    "slug": "south-plainfield",
+    "county": "Middlesex",
+    "countySlug": "middlesex",
+    "type": "borough",
+    "geoid": "3402369390"
+  },
+  {
+    "name": "South River",
+    "slug": "south-river",
+    "county": "Middlesex",
+    "countySlug": "middlesex",
+    "type": "borough",
+    "geoid": "3402369420"
+  },
+  {
+    "name": "Spotswood",
+    "slug": "spotswood",
+    "county": "Middlesex",
+    "countySlug": "middlesex",
+    "type": "borough",
+    "geoid": "3402369810"
+  },
+  {
+    "name": "Woodbridge",
+    "slug": "woodbridge",
+    "county": "Middlesex",
+    "countySlug": "middlesex",
+    "type": "township",
+    "geoid": "3402382000"
+  },
+  {
+    "name": "Aberdeen",
+    "slug": "aberdeen",
+    "county": "Monmouth",
+    "countySlug": "monmouth",
+    "type": "township",
+    "geoid": "3402500070"
+  },
+  {
+    "name": "Allenhurst",
+    "slug": "allenhurst",
+    "county": "Monmouth",
+    "countySlug": "monmouth",
+    "type": "borough",
+    "geoid": "3402500730"
+  },
+  {
+    "name": "Allentown",
+    "slug": "allentown",
+    "county": "Monmouth",
+    "countySlug": "monmouth",
+    "type": "borough",
+    "geoid": "3402500760"
+  },
+  {
+    "name": "Asbury Park",
+    "slug": "asbury-park",
+    "county": "Monmouth",
+    "countySlug": "monmouth",
+    "type": "city",
+    "geoid": "3402501960"
+  },
+  {
+    "name": "Atlantic Highlands",
+    "slug": "atlantic-highlands",
+    "county": "Monmouth",
+    "countySlug": "monmouth",
+    "type": "borough",
+    "geoid": "3402502110"
+  },
+  {
+    "name": "Avon-by-the-Sea",
+    "slug": "avon-by-the-sea",
+    "county": "Monmouth",
+    "countySlug": "monmouth",
+    "type": "borough",
+    "geoid": "3402502440"
+  },
+  {
+    "name": "Belmar",
+    "slug": "belmar",
+    "county": "Monmouth",
+    "countySlug": "monmouth",
+    "type": "borough",
+    "geoid": "3402504930"
+  },
+  {
+    "name": "Bradley Beach",
+    "slug": "bradley-beach",
+    "county": "Monmouth",
+    "countySlug": "monmouth",
+    "type": "borough",
+    "geoid": "3402506970"
+  },
+  {
+    "name": "Brielle",
+    "slug": "brielle",
+    "county": "Monmouth",
+    "countySlug": "monmouth",
+    "type": "borough",
+    "geoid": "3402507750"
+  },
+  {
+    "name": "Colts Neck",
+    "slug": "colts-neck",
+    "county": "Monmouth",
+    "countySlug": "monmouth",
+    "type": "township",
+    "geoid": "3402514560"
+  },
+  {
+    "name": "Deal",
+    "slug": "deal",
+    "county": "Monmouth",
+    "countySlug": "monmouth",
+    "type": "borough",
+    "geoid": "3402516660"
+  },
+  {
+    "name": "Eatontown",
+    "slug": "eatontown",
+    "county": "Monmouth",
+    "countySlug": "monmouth",
+    "type": "borough",
+    "geoid": "3402519840"
+  },
+  {
+    "name": "Englishtown",
+    "slug": "englishtown",
+    "county": "Monmouth",
+    "countySlug": "monmouth",
+    "type": "borough",
+    "geoid": "3402521570"
+  },
+  {
+    "name": "Fair Haven",
+    "slug": "fair-haven",
+    "county": "Monmouth",
+    "countySlug": "monmouth",
+    "type": "borough",
+    "geoid": "3402522440"
+  },
+  {
+    "name": "Farmingdale",
+    "slug": "farmingdale",
+    "county": "Monmouth",
+    "countySlug": "monmouth",
+    "type": "borough",
+    "geoid": "3402522950"
+  },
+  {
+    "name": "Freehold",
+    "slug": "freehold-borough",
+    "county": "Monmouth",
+    "countySlug": "monmouth",
+    "type": "borough",
+    "geoid": "3402525200"
+  },
+  {
+    "name": "Freehold",
+    "slug": "freehold-township",
+    "county": "Monmouth",
+    "countySlug": "monmouth",
+    "type": "township",
+    "geoid": "3402525230"
+  },
+  {
+    "name": "Hazlet",
+    "slug": "hazlet",
+    "county": "Monmouth",
+    "countySlug": "monmouth",
+    "type": "township",
+    "geoid": "3402530690"
+  },
+  {
+    "name": "Highlands",
+    "slug": "highlands",
+    "county": "Monmouth",
+    "countySlug": "monmouth",
+    "type": "borough",
+    "geoid": "3402531500"
+  },
+  {
+    "name": "Holmdel",
+    "slug": "holmdel",
+    "county": "Monmouth",
+    "countySlug": "monmouth",
+    "type": "township",
+    "geoid": "3402532640"
+  },
+  {
+    "name": "Howell",
+    "slug": "howell",
+    "county": "Monmouth",
+    "countySlug": "monmouth",
+    "type": "township",
+    "geoid": "3402533300"
+  },
+  {
+    "name": "Interlaken",
+    "slug": "interlaken",
+    "county": "Monmouth",
+    "countySlug": "monmouth",
+    "type": "borough",
+    "geoid": "3402534200"
+  },
+  {
+    "name": "Keansburg",
+    "slug": "keansburg",
+    "county": "Monmouth",
+    "countySlug": "monmouth",
+    "type": "borough",
+    "geoid": "3402536480"
+  },
+  {
+    "name": "Keyport",
+    "slug": "keyport",
+    "county": "Monmouth",
+    "countySlug": "monmouth",
+    "type": "borough",
+    "geoid": "3402536810"
+  },
+  {
+    "name": "Lake Como",
+    "slug": "lake-como",
+    "county": "Monmouth",
+    "countySlug": "monmouth",
+    "type": "borough",
+    "geoid": "3402537560"
+  },
+  {
+    "name": "Little Silver",
+    "slug": "little-silver",
+    "county": "Monmouth",
+    "countySlug": "monmouth",
+    "type": "borough",
+    "geoid": "3402540770"
+  },
+  {
+    "name": "Loch Arbour",
+    "slug": "loch-arbour",
+    "county": "Monmouth",
+    "countySlug": "monmouth",
+    "type": "village",
+    "geoid": "3402541010"
+  },
+  {
+    "name": "Long Branch",
+    "slug": "long-branch",
+    "county": "Monmouth",
+    "countySlug": "monmouth",
+    "type": "city",
+    "geoid": "3402541310"
+  },
+  {
+    "name": "Manalapan",
+    "slug": "manalapan",
+    "county": "Monmouth",
+    "countySlug": "monmouth",
+    "type": "township",
+    "geoid": "3402542990"
+  },
+  {
+    "name": "Manasquan",
+    "slug": "manasquan",
+    "county": "Monmouth",
+    "countySlug": "monmouth",
+    "type": "borough",
+    "geoid": "3402543050"
+  },
+  {
+    "name": "Marlboro",
+    "slug": "marlboro",
+    "county": "Monmouth",
+    "countySlug": "monmouth",
+    "type": "township",
+    "geoid": "3402544070"
+  },
+  {
+    "name": "Matawan",
+    "slug": "matawan",
+    "county": "Monmouth",
+    "countySlug": "monmouth",
+    "type": "borough",
+    "geoid": "3402544520"
+  },
+  {
+    "name": "Middletown",
+    "slug": "middletown",
+    "county": "Monmouth",
+    "countySlug": "monmouth",
+    "type": "township",
+    "geoid": "3402545990"
+  },
+  {
+    "name": "Millstone",
+    "slug": "millstone-monmouth",
+    "county": "Monmouth",
+    "countySlug": "monmouth",
+    "type": "township",
+    "geoid": "3402546560"
+  },
+  {
+    "name": "Monmouth Beach",
+    "slug": "monmouth-beach",
+    "county": "Monmouth",
+    "countySlug": "monmouth",
+    "type": "borough",
+    "geoid": "3402547130"
+  },
+  {
+    "name": "Neptune",
+    "slug": "neptune",
+    "county": "Monmouth",
+    "countySlug": "monmouth",
+    "type": "township",
+    "geoid": "3402549890"
+  },
+  {
+    "name": "Neptune City",
+    "slug": "neptune-city",
+    "county": "Monmouth",
+    "countySlug": "monmouth",
+    "type": "borough",
+    "geoid": "3402549920"
+  },
+  {
+    "name": "Ocean",
+    "slug": "ocean-monmouth",
+    "county": "Monmouth",
+    "countySlug": "monmouth",
+    "type": "township",
+    "geoid": "3402554270"
+  },
+  {
+    "name": "Oceanport",
+    "slug": "oceanport",
+    "county": "Monmouth",
+    "countySlug": "monmouth",
+    "type": "borough",
+    "geoid": "3402554570"
+  },
+  {
+    "name": "Red Bank",
+    "slug": "red-bank",
+    "county": "Monmouth",
+    "countySlug": "monmouth",
+    "type": "borough",
+    "geoid": "3402562430"
+  },
+  {
+    "name": "Roosevelt",
+    "slug": "roosevelt",
+    "county": "Monmouth",
+    "countySlug": "monmouth",
+    "type": "borough",
+    "geoid": "3402564410"
+  },
+  {
+    "name": "Rumson",
+    "slug": "rumson",
+    "county": "Monmouth",
+    "countySlug": "monmouth",
+    "type": "borough",
+    "geoid": "3402565130"
+  },
+  {
+    "name": "Sea Bright",
+    "slug": "sea-bright",
+    "county": "Monmouth",
+    "countySlug": "monmouth",
+    "type": "borough",
+    "geoid": "3402566240"
+  },
+  {
+    "name": "Sea Girt",
+    "slug": "sea-girt",
+    "county": "Monmouth",
+    "countySlug": "monmouth",
+    "type": "borough",
+    "geoid": "3402566330"
+  },
+  {
+    "name": "Shrewsbury",
+    "slug": "shrewsbury-borough",
+    "county": "Monmouth",
+    "countySlug": "monmouth",
+    "type": "borough",
+    "geoid": "3402567350"
+  },
+  {
+    "name": "Shrewsbury",
+    "slug": "shrewsbury-township",
+    "county": "Monmouth",
+    "countySlug": "monmouth",
+    "type": "township",
+    "geoid": "3402567365"
+  },
+  {
+    "name": "Spring Lake",
+    "slug": "spring-lake",
+    "county": "Monmouth",
+    "countySlug": "monmouth",
+    "type": "borough",
+    "geoid": "3402570110"
+  },
+  {
+    "name": "Spring Lake Heights",
+    "slug": "spring-lake-heights",
+    "county": "Monmouth",
+    "countySlug": "monmouth",
+    "type": "borough",
+    "geoid": "3402570140"
+  },
+  {
+    "name": "Tinton Falls",
+    "slug": "tinton-falls",
+    "county": "Monmouth",
+    "countySlug": "monmouth",
+    "type": "borough",
+    "geoid": "3402573020"
+  },
+  {
+    "name": "Union Beach",
+    "slug": "union-beach",
+    "county": "Monmouth",
+    "countySlug": "monmouth",
+    "type": "borough",
+    "geoid": "3402574540"
+  },
+  {
+    "name": "Upper Freehold",
+    "slug": "upper-freehold",
+    "county": "Monmouth",
+    "countySlug": "monmouth",
+    "type": "township",
+    "geoid": "3402574900"
+  },
+  {
+    "name": "Wall",
+    "slug": "wall",
+    "county": "Monmouth",
+    "countySlug": "monmouth",
+    "type": "township",
+    "geoid": "3402576460"
+  },
+  {
+    "name": "West Long Branch",
+    "slug": "west-long-branch",
+    "county": "Monmouth",
+    "countySlug": "monmouth",
+    "type": "borough",
+    "geoid": "3402579310"
+  },
+  {
+    "name": "Boonton",
+    "slug": "boonton-town",
+    "county": "Morris",
+    "countySlug": "morris",
+    "type": "town",
+    "geoid": "3402706610"
+  },
+  {
+    "name": "Boonton",
+    "slug": "boonton-township",
+    "county": "Morris",
+    "countySlug": "morris",
+    "type": "township",
+    "geoid": "3402706640"
+  },
+  {
+    "name": "Butler",
+    "slug": "butler",
+    "county": "Morris",
+    "countySlug": "morris",
+    "type": "borough",
+    "geoid": "3402709040"
+  },
+  {
+    "name": "Chatham",
+    "slug": "chatham-borough",
+    "county": "Morris",
+    "countySlug": "morris",
+    "type": "borough",
+    "geoid": "3402712100"
+  },
+  {
+    "name": "Chatham",
+    "slug": "chatham-township",
+    "county": "Morris",
+    "countySlug": "morris",
+    "type": "township",
+    "geoid": "3402712130"
+  },
+  {
+    "name": "Chester",
+    "slug": "chester-borough",
+    "county": "Morris",
+    "countySlug": "morris",
+    "type": "borough",
+    "geoid": "3402712580"
+  },
+  {
+    "name": "Chester",
+    "slug": "chester-township",
+    "county": "Morris",
+    "countySlug": "morris",
+    "type": "township",
+    "geoid": "3402712610"
+  },
+  {
+    "name": "Denville",
+    "slug": "denville",
+    "county": "Morris",
+    "countySlug": "morris",
+    "type": "township",
+    "geoid": "3402717650"
+  },
+  {
+    "name": "Dover",
+    "slug": "dover",
+    "county": "Morris",
+    "countySlug": "morris",
+    "type": "town",
+    "geoid": "3402718070"
+  },
+  {
+    "name": "East Hanover",
+    "slug": "east-hanover",
+    "county": "Morris",
+    "countySlug": "morris",
+    "type": "township",
+    "geoid": "3402719210"
+  },
+  {
+    "name": "Florham Park",
+    "slug": "florham-park",
+    "county": "Morris",
+    "countySlug": "morris",
+    "type": "borough",
+    "geoid": "3402723910"
+  },
+  {
+    "name": "Hanover",
+    "slug": "hanover",
+    "county": "Morris",
+    "countySlug": "morris",
+    "type": "township",
+    "geoid": "3402729550"
+  },
+  {
+    "name": "Harding",
+    "slug": "harding",
+    "county": "Morris",
+    "countySlug": "morris",
+    "type": "township",
+    "geoid": "3402729700"
+  },
+  {
+    "name": "Jefferson",
+    "slug": "jefferson",
+    "county": "Morris",
+    "countySlug": "morris",
+    "type": "township",
+    "geoid": "3402734980"
+  },
+  {
+    "name": "Kinnelon",
+    "slug": "kinnelon",
+    "county": "Morris",
+    "countySlug": "morris",
+    "type": "borough",
+    "geoid": "3402737110"
+  },
+  {
+    "name": "Lincoln Park",
+    "slug": "lincoln-park",
+    "county": "Morris",
+    "countySlug": "morris",
+    "type": "borough",
+    "geoid": "3402740290"
+  },
+  {
+    "name": "Long Hill",
+    "slug": "long-hill",
+    "county": "Morris",
+    "countySlug": "morris",
+    "type": "township",
+    "geoid": "3402741362"
+  },
+  {
+    "name": "Madison",
+    "slug": "madison",
+    "county": "Morris",
+    "countySlug": "morris",
+    "type": "borough",
+    "geoid": "3402742510"
+  },
+  {
+    "name": "Mendham",
+    "slug": "mendham-borough",
+    "county": "Morris",
+    "countySlug": "morris",
+    "type": "borough",
+    "geoid": "3402745330"
+  },
+  {
+    "name": "Mendham",
+    "slug": "mendham-township",
+    "county": "Morris",
+    "countySlug": "morris",
+    "type": "township",
+    "geoid": "3402745360"
+  },
+  {
+    "name": "Mine Hill",
+    "slug": "mine-hill",
+    "county": "Morris",
+    "countySlug": "morris",
+    "type": "township",
+    "geoid": "3402746860"
+  },
+  {
+    "name": "Montville",
+    "slug": "montville",
+    "county": "Morris",
+    "countySlug": "morris",
+    "type": "township",
+    "geoid": "3402747670"
+  },
+  {
+    "name": "Morris",
+    "slug": "morris",
+    "county": "Morris",
+    "countySlug": "morris",
+    "type": "township",
+    "geoid": "3402748090"
+  },
+  {
+    "name": "Morris Plains",
+    "slug": "morris-plains",
+    "county": "Morris",
+    "countySlug": "morris",
+    "type": "borough",
+    "geoid": "3402748210"
+  },
+  {
+    "name": "Morristown",
+    "slug": "morristown",
+    "county": "Morris",
+    "countySlug": "morris",
+    "type": "town",
+    "geoid": "3402748300"
+  },
+  {
+    "name": "Mount Arlington",
+    "slug": "mount-arlington",
+    "county": "Morris",
+    "countySlug": "morris",
+    "type": "borough",
+    "geoid": "3402748690"
+  },
+  {
+    "name": "Mount Olive",
+    "slug": "mount-olive",
+    "county": "Morris",
+    "countySlug": "morris",
+    "type": "township",
+    "geoid": "3402749080"
+  },
+  {
+    "name": "Mountain Lakes",
+    "slug": "mountain-lakes",
+    "county": "Morris",
+    "countySlug": "morris",
+    "type": "borough",
+    "geoid": "3402748480"
+  },
+  {
+    "name": "Netcong",
+    "slug": "netcong",
+    "county": "Morris",
+    "countySlug": "morris",
+    "type": "borough",
+    "geoid": "3402750130"
+  },
+  {
+    "name": "Parsippany-Troy Hills",
+    "slug": "parsippany-troy-hills",
+    "county": "Morris",
+    "countySlug": "morris",
+    "type": "township",
+    "geoid": "3402756460"
+  },
+  {
+    "name": "Pequannock",
+    "slug": "pequannock",
+    "county": "Morris",
+    "countySlug": "morris",
+    "type": "township",
+    "geoid": "3402758110"
+  },
+  {
+    "name": "Randolph",
+    "slug": "randolph",
+    "county": "Morris",
+    "countySlug": "morris",
+    "type": "township",
+    "geoid": "3402761890"
+  },
+  {
+    "name": "Riverdale",
+    "slug": "riverdale",
+    "county": "Morris",
+    "countySlug": "morris",
+    "type": "borough",
+    "geoid": "3402763300"
+  },
+  {
+    "name": "Rockaway",
+    "slug": "rockaway-borough",
+    "county": "Morris",
+    "countySlug": "morris",
+    "type": "borough",
+    "geoid": "3402764050"
+  },
+  {
+    "name": "Rockaway",
+    "slug": "rockaway-township",
+    "county": "Morris",
+    "countySlug": "morris",
+    "type": "township",
+    "geoid": "3402764080"
+  },
+  {
+    "name": "Roxbury",
+    "slug": "roxbury",
+    "county": "Morris",
+    "countySlug": "morris",
+    "type": "township",
+    "geoid": "3402764980"
+  },
+  {
+    "name": "Victory Gardens",
+    "slug": "victory-gardens",
+    "county": "Morris",
+    "countySlug": "morris",
+    "type": "borough",
+    "geoid": "3402775890"
+  },
+  {
+    "name": "Washington",
+    "slug": "washington-morris",
+    "county": "Morris",
+    "countySlug": "morris",
+    "type": "township",
+    "geoid": "3402777240"
+  },
+  {
+    "name": "Wharton",
+    "slug": "wharton",
+    "county": "Morris",
+    "countySlug": "morris",
+    "type": "borough",
+    "geoid": "3402780390"
+  },
+  {
+    "name": "Barnegat",
+    "slug": "barnegat",
+    "county": "Ocean",
+    "countySlug": "ocean",
+    "type": "township",
+    "geoid": "3402903050"
+  },
+  {
+    "name": "Barnegat Light",
+    "slug": "barnegat-light",
+    "county": "Ocean",
+    "countySlug": "ocean",
+    "type": "borough",
+    "geoid": "3402903130"
+  },
+  {
+    "name": "Bay Head",
+    "slug": "bay-head",
+    "county": "Ocean",
+    "countySlug": "ocean",
+    "type": "borough",
+    "geoid": "3402903520"
+  },
+  {
+    "name": "Beach Haven",
+    "slug": "beach-haven",
+    "county": "Ocean",
+    "countySlug": "ocean",
+    "type": "borough",
+    "geoid": "3402903940"
+  },
+  {
+    "name": "Beachwood",
+    "slug": "beachwood",
+    "county": "Ocean",
+    "countySlug": "ocean",
+    "type": "borough",
+    "geoid": "3402904180"
+  },
+  {
+    "name": "Berkeley",
+    "slug": "berkeley",
+    "county": "Ocean",
+    "countySlug": "ocean",
+    "type": "township",
+    "geoid": "3402905305"
+  },
+  {
+    "name": "Brick",
+    "slug": "brick",
+    "county": "Ocean",
+    "countySlug": "ocean",
+    "type": "township",
+    "geoid": "3402907420"
+  },
+  {
+    "name": "Eagleswood",
+    "slug": "eagleswood",
+    "county": "Ocean",
+    "countySlug": "ocean",
+    "type": "township",
+    "geoid": "3402918670"
+  },
+  {
+    "name": "Harvey Cedars",
+    "slug": "harvey-cedars",
+    "county": "Ocean",
+    "countySlug": "ocean",
+    "type": "borough",
+    "geoid": "3402930390"
+  },
+  {
+    "name": "Island Heights",
+    "slug": "island-heights",
+    "county": "Ocean",
+    "countySlug": "ocean",
+    "type": "borough",
+    "geoid": "3402934530"
+  },
+  {
+    "name": "Jackson",
+    "slug": "jackson",
+    "county": "Ocean",
+    "countySlug": "ocean",
+    "type": "township",
+    "geoid": "3402934680"
+  },
+  {
+    "name": "Lacey",
+    "slug": "lacey",
+    "county": "Ocean",
+    "countySlug": "ocean",
+    "type": "township",
+    "geoid": "3402937380"
+  },
+  {
+    "name": "Lakehurst",
+    "slug": "lakehurst",
+    "county": "Ocean",
+    "countySlug": "ocean",
+    "type": "borough",
+    "geoid": "3402937770"
+  },
+  {
+    "name": "Lakewood",
+    "slug": "lakewood",
+    "county": "Ocean",
+    "countySlug": "ocean",
+    "type": "township",
+    "geoid": "3402938550"
+  },
+  {
+    "name": "Lavallette",
+    "slug": "lavallette",
+    "county": "Ocean",
+    "countySlug": "ocean",
+    "type": "borough",
+    "geoid": "3402939390"
+  },
+  {
+    "name": "Little Egg Harbor",
+    "slug": "little-egg-harbor",
+    "county": "Ocean",
+    "countySlug": "ocean",
+    "type": "township",
+    "geoid": "3402940560"
+  },
+  {
+    "name": "Long Beach",
+    "slug": "long-beach",
+    "county": "Ocean",
+    "countySlug": "ocean",
+    "type": "township",
+    "geoid": "3402941250"
+  },
+  {
+    "name": "Manchester",
+    "slug": "manchester",
+    "county": "Ocean",
+    "countySlug": "ocean",
+    "type": "township",
+    "geoid": "3402943140"
+  },
+  {
+    "name": "Mantoloking",
+    "slug": "mantoloking",
+    "county": "Ocean",
+    "countySlug": "ocean",
+    "type": "borough",
+    "geoid": "3402943380"
+  },
+  {
+    "name": "Ocean",
+    "slug": "ocean-ocean",
+    "county": "Ocean",
+    "countySlug": "ocean",
+    "type": "township",
+    "geoid": "3402954300"
+  },
+  {
+    "name": "Ocean Gate",
+    "slug": "ocean-gate",
+    "county": "Ocean",
+    "countySlug": "ocean",
+    "type": "borough",
+    "geoid": "3402954450"
+  },
+  {
+    "name": "Pine Beach",
+    "slug": "pine-beach",
+    "county": "Ocean",
+    "countySlug": "ocean",
+    "type": "borough",
+    "geoid": "3402958590"
+  },
+  {
+    "name": "Plumsted",
+    "slug": "plumsted",
+    "county": "Ocean",
+    "countySlug": "ocean",
+    "type": "township",
+    "geoid": "3402959790"
+  },
+  {
+    "name": "Point Pleasant",
+    "slug": "point-pleasant",
+    "county": "Ocean",
+    "countySlug": "ocean",
+    "type": "borough",
+    "geoid": "3402959880"
+  },
+  {
+    "name": "Point Pleasant Beach",
+    "slug": "point-pleasant-beach",
+    "county": "Ocean",
+    "countySlug": "ocean",
+    "type": "borough",
+    "geoid": "3402959910"
+  },
+  {
+    "name": "Seaside Heights",
+    "slug": "seaside-heights",
+    "county": "Ocean",
+    "countySlug": "ocean",
+    "type": "borough",
+    "geoid": "3402966450"
+  },
+  {
+    "name": "Seaside Park",
+    "slug": "seaside-park",
+    "county": "Ocean",
+    "countySlug": "ocean",
+    "type": "borough",
+    "geoid": "3402966480"
+  },
+  {
+    "name": "Ship Bottom",
+    "slug": "ship-bottom",
+    "county": "Ocean",
+    "countySlug": "ocean",
+    "type": "borough",
+    "geoid": "3402967110"
+  },
+  {
+    "name": "South Toms River",
+    "slug": "south-toms-river",
+    "county": "Ocean",
+    "countySlug": "ocean",
+    "type": "borough",
+    "geoid": "3402969510"
+  },
+  {
+    "name": "Stafford",
+    "slug": "stafford",
+    "county": "Ocean",
+    "countySlug": "ocean",
+    "type": "township",
+    "geoid": "3402970320"
+  },
+  {
+    "name": "Surf City",
+    "slug": "surf-city",
+    "county": "Ocean",
+    "countySlug": "ocean",
+    "type": "borough",
+    "geoid": "3402971640"
+  },
+  {
+    "name": "Toms River",
+    "slug": "toms-river",
+    "county": "Ocean",
+    "countySlug": "ocean",
+    "type": "township",
+    "geoid": "3402973125"
+  },
+  {
+    "name": "Tuckerton",
+    "slug": "tuckerton",
+    "county": "Ocean",
+    "countySlug": "ocean",
+    "type": "borough",
+    "geoid": "3402974210"
+  },
+  {
+    "name": "Bloomingdale",
+    "slug": "bloomingdale",
+    "county": "Passaic",
+    "countySlug": "passaic",
+    "type": "borough",
+    "geoid": "3403106340"
+  },
+  {
+    "name": "Clifton",
+    "slug": "clifton",
+    "county": "Passaic",
+    "countySlug": "passaic",
+    "type": "city",
+    "geoid": "3403113690"
+  },
+  {
+    "name": "Haledon",
+    "slug": "haledon",
+    "county": "Passaic",
+    "countySlug": "passaic",
+    "type": "borough",
+    "geoid": "3403129070"
+  },
+  {
+    "name": "Hawthorne",
+    "slug": "hawthorne",
+    "county": "Passaic",
+    "countySlug": "passaic",
+    "type": "borough",
+    "geoid": "3403130570"
+  },
+  {
+    "name": "Little Falls",
+    "slug": "little-falls",
+    "county": "Passaic",
+    "countySlug": "passaic",
+    "type": "township",
+    "geoid": "3403140620"
+  },
+  {
+    "name": "North Haledon",
+    "slug": "north-haledon",
+    "county": "Passaic",
+    "countySlug": "passaic",
+    "type": "borough",
+    "geoid": "3403153040"
+  },
+  {
+    "name": "Passaic",
+    "slug": "passaic",
+    "county": "Passaic",
+    "countySlug": "passaic",
+    "type": "city",
+    "geoid": "3403156550"
+  },
+  {
+    "name": "Paterson",
+    "slug": "paterson",
+    "county": "Passaic",
+    "countySlug": "passaic",
+    "type": "city",
+    "geoid": "3403157000"
+  },
+  {
+    "name": "Pompton Lakes",
+    "slug": "pompton-lakes",
+    "county": "Passaic",
+    "countySlug": "passaic",
+    "type": "borough",
+    "geoid": "3403160090"
+  },
+  {
+    "name": "Prospect Park",
+    "slug": "prospect-park",
+    "county": "Passaic",
+    "countySlug": "passaic",
+    "type": "borough",
+    "geoid": "3403161170"
+  },
+  {
+    "name": "Ringwood",
+    "slug": "ringwood",
+    "county": "Passaic",
+    "countySlug": "passaic",
+    "type": "borough",
+    "geoid": "3403163150"
+  },
+  {
+    "name": "Totowa",
+    "slug": "totowa",
+    "county": "Passaic",
+    "countySlug": "passaic",
+    "type": "borough",
+    "geoid": "3403173140"
+  },
+  {
+    "name": "Wanaque",
+    "slug": "wanaque",
+    "county": "Passaic",
+    "countySlug": "passaic",
+    "type": "borough",
+    "geoid": "3403176730"
+  },
+  {
+    "name": "Wayne",
+    "slug": "wayne",
+    "county": "Passaic",
+    "countySlug": "passaic",
+    "type": "township",
+    "geoid": "3403177840"
+  },
+  {
+    "name": "West Milford",
+    "slug": "west-milford",
+    "county": "Passaic",
+    "countySlug": "passaic",
+    "type": "township",
+    "geoid": "3403179460"
+  },
+  {
+    "name": "Woodland Park",
+    "slug": "woodland-park",
+    "county": "Passaic",
+    "countySlug": "passaic",
+    "type": "borough",
+    "geoid": "3403182423"
+  },
+  {
+    "name": "Alloway",
+    "slug": "alloway",
+    "county": "Salem",
+    "countySlug": "salem",
+    "type": "township",
+    "geoid": "3403300880"
+  },
+  {
+    "name": "Carneys Point",
+    "slug": "carneys-point",
+    "county": "Salem",
+    "countySlug": "salem",
+    "type": "township",
+    "geoid": "3403310610"
+  },
+  {
+    "name": "Elmer",
+    "slug": "elmer",
+    "county": "Salem",
+    "countySlug": "salem",
+    "type": "borough",
+    "geoid": "3403321240"
+  },
+  {
+    "name": "Elsinboro",
+    "slug": "elsinboro",
+    "county": "Salem",
+    "countySlug": "salem",
+    "type": "township",
+    "geoid": "3403321330"
+  },
+  {
+    "name": "Lower Alloways Creek",
+    "slug": "lower-alloways-creek",
+    "county": "Salem",
+    "countySlug": "salem",
+    "type": "township",
+    "geoid": "3403341640"
+  },
+  {
+    "name": "Mannington",
+    "slug": "mannington",
+    "county": "Salem",
+    "countySlug": "salem",
+    "type": "township",
+    "geoid": "3403343200"
+  },
+  {
+    "name": "Oldmans",
+    "slug": "oldmans",
+    "county": "Salem",
+    "countySlug": "salem",
+    "type": "township",
+    "geoid": "3403354810"
+  },
+  {
+    "name": "Penns Grove",
+    "slug": "penns-grove",
+    "county": "Salem",
+    "countySlug": "salem",
+    "type": "borough",
+    "geoid": "3403357750"
+  },
+  {
+    "name": "Pennsville",
+    "slug": "pennsville",
+    "county": "Salem",
+    "countySlug": "salem",
+    "type": "township",
+    "geoid": "3403357870"
+  },
+  {
+    "name": "Pilesgrove",
+    "slug": "pilesgrove",
+    "county": "Salem",
+    "countySlug": "salem",
+    "type": "township",
+    "geoid": "3403358530"
+  },
+  {
+    "name": "Pittsgrove",
+    "slug": "pittsgrove",
+    "county": "Salem",
+    "countySlug": "salem",
+    "type": "township",
+    "geoid": "3403359130"
+  },
+  {
+    "name": "Quinton",
+    "slug": "quinton",
+    "county": "Salem",
+    "countySlug": "salem",
+    "type": "township",
+    "geoid": "3403361470"
+  },
+  {
+    "name": "Salem",
+    "slug": "salem",
+    "county": "Salem",
+    "countySlug": "salem",
+    "type": "city",
+    "geoid": "3403365490"
+  },
+  {
+    "name": "Upper Pittsgrove",
+    "slug": "upper-pittsgrove",
+    "county": "Salem",
+    "countySlug": "salem",
+    "type": "township",
+    "geoid": "3403375110"
+  },
+  {
+    "name": "Woodstown",
+    "slug": "woodstown",
+    "county": "Salem",
+    "countySlug": "salem",
+    "type": "borough",
+    "geoid": "3403382720"
+  },
+  {
+    "name": "Bedminster",
+    "slug": "bedminster",
+    "county": "Somerset",
+    "countySlug": "somerset",
+    "type": "township",
+    "geoid": "3403504450"
+  },
+  {
+    "name": "Bernards",
+    "slug": "bernards",
+    "county": "Somerset",
+    "countySlug": "somerset",
+    "type": "township",
+    "geoid": "3403505560"
+  },
+  {
+    "name": "Bernardsville",
+    "slug": "bernardsville",
+    "county": "Somerset",
+    "countySlug": "somerset",
+    "type": "borough",
+    "geoid": "3403505590"
+  },
+  {
+    "name": "Bound Brook",
+    "slug": "bound-brook",
+    "county": "Somerset",
+    "countySlug": "somerset",
+    "type": "borough",
+    "geoid": "3403506790"
+  },
+  {
+    "name": "Branchburg",
+    "slug": "branchburg",
+    "county": "Somerset",
+    "countySlug": "somerset",
+    "type": "township",
+    "geoid": "3403507180"
+  },
+  {
+    "name": "Bridgewater",
+    "slug": "bridgewater",
+    "county": "Somerset",
+    "countySlug": "somerset",
+    "type": "township",
+    "geoid": "3403507720"
+  },
+  {
+    "name": "Far Hills",
+    "slug": "far-hills",
+    "county": "Somerset",
+    "countySlug": "somerset",
+    "type": "borough",
+    "geoid": "3403522890"
+  },
+  {
+    "name": "Franklin",
+    "slug": "franklin-somerset",
+    "county": "Somerset",
+    "countySlug": "somerset",
+    "type": "township",
+    "geoid": "3403524900"
+  },
+  {
+    "name": "Green Brook",
+    "slug": "green-brook",
+    "county": "Somerset",
+    "countySlug": "somerset",
+    "type": "township",
+    "geoid": "3403527510"
+  },
+  {
+    "name": "Hillsborough",
+    "slug": "hillsborough",
+    "county": "Somerset",
+    "countySlug": "somerset",
+    "type": "township",
+    "geoid": "3403531890"
+  },
+  {
+    "name": "Manville",
+    "slug": "manville",
+    "county": "Somerset",
+    "countySlug": "somerset",
+    "type": "borough",
+    "geoid": "3403543620"
+  },
+  {
+    "name": "Millstone",
+    "slug": "millstone-somerset",
+    "county": "Somerset",
+    "countySlug": "somerset",
+    "type": "borough",
+    "geoid": "3403546590"
+  },
+  {
+    "name": "Montgomery",
+    "slug": "montgomery",
+    "county": "Somerset",
+    "countySlug": "somerset",
+    "type": "township",
+    "geoid": "3403547580"
+  },
+  {
+    "name": "North Plainfield",
+    "slug": "north-plainfield",
+    "county": "Somerset",
+    "countySlug": "somerset",
+    "type": "borough",
+    "geoid": "3403553280"
+  },
+  {
+    "name": "Peapack and Gladstone",
+    "slug": "peapack-and-gladstone",
+    "county": "Somerset",
+    "countySlug": "somerset",
+    "type": "borough",
+    "geoid": "3403557300"
+  },
+  {
+    "name": "Raritan",
+    "slug": "raritan-somerset",
+    "county": "Somerset",
+    "countySlug": "somerset",
+    "type": "borough",
+    "geoid": "3403561980"
+  },
+  {
+    "name": "Rocky Hill",
+    "slug": "rocky-hill",
+    "county": "Somerset",
+    "countySlug": "somerset",
+    "type": "borough",
+    "geoid": "3403564320"
+  },
+  {
+    "name": "Somerville",
+    "slug": "somerville",
+    "county": "Somerset",
+    "countySlug": "somerset",
+    "type": "borough",
+    "geoid": "3403568460"
+  },
+  {
+    "name": "South Bound Brook",
+    "slug": "south-bound-brook",
+    "county": "Somerset",
+    "countySlug": "somerset",
+    "type": "borough",
+    "geoid": "3403568730"
+  },
+  {
+    "name": "Warren",
+    "slug": "warren",
+    "county": "Somerset",
+    "countySlug": "somerset",
+    "type": "township",
+    "geoid": "3403576940"
+  },
+  {
+    "name": "Watchung",
+    "slug": "watchung",
+    "county": "Somerset",
+    "countySlug": "somerset",
+    "type": "borough",
+    "geoid": "3403577600"
+  },
+  {
+    "name": "Andover",
+    "slug": "andover-borough",
+    "county": "Sussex",
+    "countySlug": "sussex",
+    "type": "borough",
+    "geoid": "3403701330"
+  },
+  {
+    "name": "Andover",
+    "slug": "andover-township",
+    "county": "Sussex",
+    "countySlug": "sussex",
+    "type": "township",
+    "geoid": "3403701360"
+  },
+  {
+    "name": "Branchville",
+    "slug": "branchville",
+    "county": "Sussex",
+    "countySlug": "sussex",
+    "type": "borough",
+    "geoid": "3403707300"
+  },
+  {
+    "name": "Byram",
+    "slug": "byram",
+    "county": "Sussex",
+    "countySlug": "sussex",
+    "type": "township",
+    "geoid": "3403709160"
+  },
+  {
+    "name": "Frankford",
+    "slug": "frankford",
+    "county": "Sussex",
+    "countySlug": "sussex",
+    "type": "township",
+    "geoid": "3403724810"
+  },
+  {
+    "name": "Franklin",
+    "slug": "franklin-sussex",
+    "county": "Sussex",
+    "countySlug": "sussex",
+    "type": "borough",
+    "geoid": "3403724930"
+  },
+  {
+    "name": "Fredon",
+    "slug": "fredon",
+    "county": "Sussex",
+    "countySlug": "sussex",
+    "type": "township",
+    "geoid": "3403725140"
+  },
+  {
+    "name": "Green",
+    "slug": "green",
+    "county": "Sussex",
+    "countySlug": "sussex",
+    "type": "township",
+    "geoid": "3403727420"
+  },
+  {
+    "name": "Hamburg",
+    "slug": "hamburg",
+    "county": "Sussex",
+    "countySlug": "sussex",
+    "type": "borough",
+    "geoid": "3403729220"
+  },
+  {
+    "name": "Hampton",
+    "slug": "hampton-sussex",
+    "county": "Sussex",
+    "countySlug": "sussex",
+    "type": "township",
+    "geoid": "3403729490"
+  },
+  {
+    "name": "Hardyston",
+    "slug": "hardyston",
+    "county": "Sussex",
+    "countySlug": "sussex",
+    "type": "township",
+    "geoid": "3403729850"
+  },
+  {
+    "name": "Hopatcong",
+    "slug": "hopatcong",
+    "county": "Sussex",
+    "countySlug": "sussex",
+    "type": "borough",
+    "geoid": "3403732910"
+  },
+  {
+    "name": "Lafayette",
+    "slug": "lafayette",
+    "county": "Sussex",
+    "countySlug": "sussex",
+    "type": "township",
+    "geoid": "3403737440"
+  },
+  {
+    "name": "Montague",
+    "slug": "montague",
+    "county": "Sussex",
+    "countySlug": "sussex",
+    "type": "township",
+    "geoid": "3403747430"
+  },
+  {
+    "name": "Newton",
+    "slug": "newton",
+    "county": "Sussex",
+    "countySlug": "sussex",
+    "type": "town",
+    "geoid": "3403751930"
+  },
+  {
+    "name": "Ogdensburg",
+    "slug": "ogdensburg",
+    "county": "Sussex",
+    "countySlug": "sussex",
+    "type": "borough",
+    "geoid": "3403754660"
+  },
+  {
+    "name": "Sandyston",
+    "slug": "sandyston",
+    "county": "Sussex",
+    "countySlug": "sussex",
+    "type": "township",
+    "geoid": "3403765700"
+  },
+  {
+    "name": "Sparta",
+    "slug": "sparta",
+    "county": "Sussex",
+    "countySlug": "sussex",
+    "type": "township",
+    "geoid": "3403769690"
+  },
+  {
+    "name": "Stanhope",
+    "slug": "stanhope",
+    "county": "Sussex",
+    "countySlug": "sussex",
+    "type": "borough",
+    "geoid": "3403770380"
+  },
+  {
+    "name": "Stillwater",
+    "slug": "stillwater",
+    "county": "Sussex",
+    "countySlug": "sussex",
+    "type": "township",
+    "geoid": "3403770890"
+  },
+  {
+    "name": "Sussex",
+    "slug": "sussex",
+    "county": "Sussex",
+    "countySlug": "sussex",
+    "type": "borough",
+    "geoid": "3403771670"
+  },
+  {
+    "name": "Vernon",
+    "slug": "vernon",
+    "county": "Sussex",
+    "countySlug": "sussex",
+    "type": "township",
+    "geoid": "3403775740"
+  },
+  {
+    "name": "Walpack",
+    "slug": "walpack",
+    "county": "Sussex",
+    "countySlug": "sussex",
+    "type": "township",
+    "geoid": "3403776640"
+  },
+  {
+    "name": "Wantage",
+    "slug": "wantage",
+    "county": "Sussex",
+    "countySlug": "sussex",
+    "type": "township",
+    "geoid": "3403776790"
+  },
+  {
+    "name": "Berkeley Heights",
+    "slug": "berkeley-heights",
+    "county": "Union",
+    "countySlug": "union",
+    "type": "township",
+    "geoid": "3403905320"
+  },
+  {
+    "name": "Clark",
+    "slug": "clark",
+    "county": "Union",
+    "countySlug": "union",
+    "type": "township",
+    "geoid": "3403913150"
+  },
+  {
+    "name": "Cranford",
+    "slug": "cranford",
+    "county": "Union",
+    "countySlug": "union",
+    "type": "township",
+    "geoid": "3403915640"
+  },
+  {
+    "name": "Elizabeth",
+    "slug": "elizabeth",
+    "county": "Union",
+    "countySlug": "union",
+    "type": "city",
+    "geoid": "3403921000"
+  },
+  {
+    "name": "Fanwood",
+    "slug": "fanwood",
+    "county": "Union",
+    "countySlug": "union",
+    "type": "borough",
+    "geoid": "3403922860"
+  },
+  {
+    "name": "Garwood",
+    "slug": "garwood",
+    "county": "Union",
+    "countySlug": "union",
+    "type": "borough",
+    "geoid": "3403925800"
+  },
+  {
+    "name": "Hillside",
+    "slug": "hillside",
+    "county": "Union",
+    "countySlug": "union",
+    "type": "township",
+    "geoid": "3403931980"
+  },
+  {
+    "name": "Kenilworth",
+    "slug": "kenilworth",
+    "county": "Union",
+    "countySlug": "union",
+    "type": "borough",
+    "geoid": "3403936690"
+  },
+  {
+    "name": "Linden",
+    "slug": "linden",
+    "county": "Union",
+    "countySlug": "union",
+    "type": "city",
+    "geoid": "3403940350"
+  },
+  {
+    "name": "Mountainside",
+    "slug": "mountainside",
+    "county": "Union",
+    "countySlug": "union",
+    "type": "borough",
+    "geoid": "3403948510"
+  },
+  {
+    "name": "New Providence",
+    "slug": "new-providence",
+    "county": "Union",
+    "countySlug": "union",
+    "type": "borough",
+    "geoid": "3403951810"
+  },
+  {
+    "name": "Plainfield",
+    "slug": "plainfield",
+    "county": "Union",
+    "countySlug": "union",
+    "type": "city",
+    "geoid": "3403959190"
+  },
+  {
+    "name": "Rahway",
+    "slug": "rahway",
+    "county": "Union",
+    "countySlug": "union",
+    "type": "city",
+    "geoid": "3403961530"
+  },
+  {
+    "name": "Roselle",
+    "slug": "roselle",
+    "county": "Union",
+    "countySlug": "union",
+    "type": "borough",
+    "geoid": "3403964620"
+  },
+  {
+    "name": "Roselle Park",
+    "slug": "roselle-park",
+    "county": "Union",
+    "countySlug": "union",
+    "type": "borough",
+    "geoid": "3403964650"
+  },
+  {
+    "name": "Scotch Plains",
+    "slug": "scotch-plains",
+    "county": "Union",
+    "countySlug": "union",
+    "type": "township",
+    "geoid": "3403966060"
+  },
+  {
+    "name": "Springfield",
+    "slug": "springfield-union",
+    "county": "Union",
+    "countySlug": "union",
+    "type": "township",
+    "geoid": "3403970020"
+  },
+  {
+    "name": "Summit",
+    "slug": "summit",
+    "county": "Union",
+    "countySlug": "union",
+    "type": "city",
+    "geoid": "3403971430"
+  },
+  {
+    "name": "Union",
+    "slug": "union-union",
+    "county": "Union",
+    "countySlug": "union",
+    "type": "township",
+    "geoid": "3403974480"
+  },
+  {
+    "name": "Westfield",
+    "slug": "westfield",
+    "county": "Union",
+    "countySlug": "union",
+    "type": "town",
+    "geoid": "3403979040"
+  },
+  {
+    "name": "Winfield",
+    "slug": "winfield",
+    "county": "Union",
+    "countySlug": "union",
+    "type": "township",
+    "geoid": "3403981650"
+  },
+  {
+    "name": "Allamuchy",
+    "slug": "allamuchy",
+    "county": "Warren",
+    "countySlug": "warren",
+    "type": "township",
+    "geoid": "3404100670"
+  },
+  {
+    "name": "Alpha",
+    "slug": "alpha",
+    "county": "Warren",
+    "countySlug": "warren",
+    "type": "borough",
+    "geoid": "3404101030"
+  },
+  {
+    "name": "Belvidere",
+    "slug": "belvidere",
+    "county": "Warren",
+    "countySlug": "warren",
+    "type": "town",
+    "geoid": "3404104990"
+  },
+  {
+    "name": "Blairstown",
+    "slug": "blairstown",
+    "county": "Warren",
+    "countySlug": "warren",
+    "type": "township",
+    "geoid": "3404106160"
+  },
+  {
+    "name": "Franklin",
+    "slug": "franklin-warren",
+    "county": "Warren",
+    "countySlug": "warren",
+    "type": "township",
+    "geoid": "3404124960"
+  },
+  {
+    "name": "Frelinghuysen",
+    "slug": "frelinghuysen",
+    "county": "Warren",
+    "countySlug": "warren",
+    "type": "township",
+    "geoid": "3404125320"
+  },
+  {
+    "name": "Greenwich",
+    "slug": "greenwich-warren",
+    "county": "Warren",
+    "countySlug": "warren",
+    "type": "township",
+    "geoid": "3404128260"
+  },
+  {
+    "name": "Hackettstown",
+    "slug": "hackettstown",
+    "county": "Warren",
+    "countySlug": "warren",
+    "type": "town",
+    "geoid": "3404128710"
+  },
+  {
+    "name": "Hardwick",
+    "slug": "hardwick",
+    "county": "Warren",
+    "countySlug": "warren",
+    "type": "township",
+    "geoid": "3404129820"
+  },
+  {
+    "name": "Harmony",
+    "slug": "harmony",
+    "county": "Warren",
+    "countySlug": "warren",
+    "type": "township",
+    "geoid": "3404130090"
+  },
+  {
+    "name": "Hope",
+    "slug": "hope",
+    "county": "Warren",
+    "countySlug": "warren",
+    "type": "township",
+    "geoid": "3404133060"
+  },
+  {
+    "name": "Independence",
+    "slug": "independence",
+    "county": "Warren",
+    "countySlug": "warren",
+    "type": "township",
+    "geoid": "3404133930"
+  },
+  {
+    "name": "Knowlton",
+    "slug": "knowlton",
+    "county": "Warren",
+    "countySlug": "warren",
+    "type": "township",
+    "geoid": "3404137320"
+  },
+  {
+    "name": "Liberty",
+    "slug": "liberty",
+    "county": "Warren",
+    "countySlug": "warren",
+    "type": "township",
+    "geoid": "3404140110"
+  },
+  {
+    "name": "Lopatcong",
+    "slug": "lopatcong",
+    "county": "Warren",
+    "countySlug": "warren",
+    "type": "township",
+    "geoid": "3404141490"
+  },
+  {
+    "name": "Mansfield",
+    "slug": "mansfield-warren",
+    "county": "Warren",
+    "countySlug": "warren",
+    "type": "township",
+    "geoid": "3404143320"
+  },
+  {
+    "name": "Oxford",
+    "slug": "oxford",
+    "county": "Warren",
+    "countySlug": "warren",
+    "type": "township",
+    "geoid": "3404155530"
+  },
+  {
+    "name": "Phillipsburg",
+    "slug": "phillipsburg",
+    "county": "Warren",
+    "countySlug": "warren",
+    "type": "town",
+    "geoid": "3404158350"
+  },
+  {
+    "name": "Pohatcong",
+    "slug": "pohatcong",
+    "county": "Warren",
+    "countySlug": "warren",
+    "type": "township",
+    "geoid": "3404159820"
+  },
+  {
+    "name": "Washington",
+    "slug": "washington-borough",
+    "county": "Warren",
+    "countySlug": "warren",
+    "type": "borough",
+    "geoid": "3404177270"
+  },
+  {
+    "name": "Washington",
+    "slug": "washington-township",
+    "county": "Warren",
+    "countySlug": "warren",
+    "type": "township",
+    "geoid": "3404177300"
+  },
+  {
+    "name": "White",
+    "slug": "white",
+    "county": "Warren",
+    "countySlug": "warren",
+    "type": "township",
+    "geoid": "3404180570"
+  }
+]
