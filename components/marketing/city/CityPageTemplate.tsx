@@ -152,7 +152,7 @@ export function CityPageTemplate({ page }: { page: CityPageViewModel }) {
       />
       <CityCtaBand
         label="Apply to Serve Lavo Buildings"
-        href="/signup?role=operator"
+        href={`/operators/apply${page.slug && page.slug !== 'new-jersey' ? `?city=${page.slug}` : ''}`}
         ctaType="city_page_operator_signup_click"
         citySlug={page.slug}
         countySlug={page.countySlug}
