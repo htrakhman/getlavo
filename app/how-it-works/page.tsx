@@ -1,9 +1,9 @@
 import { MarketingNav, MarketingFooter } from '@/components/MarketingNav';
-import { FinalCtaGrid } from '@/components/marketing/how-it-works/FinalCtaGrid';
+import { ForBuildingsAndTeams } from '@/components/marketing/how-it-works/ForBuildingsAndTeams';
 import { FourStepGrid } from '@/components/marketing/how-it-works/FourStepGrid';
-import { RoleTabs } from '@/components/marketing/how-it-works/RoleTabs';
-import { TrustTimeline } from '@/components/marketing/how-it-works/TrustTimeline';
-import { WorkflowHero } from '@/components/marketing/how-it-works/WorkflowHero';
+import { ProcessReassurance } from '@/components/marketing/how-it-works/ProcessReassurance';
+import { ResidentFinalCta } from '@/components/marketing/how-it-works/ResidentFinalCta';
+import { ResidentHero } from '@/components/marketing/how-it-works/ResidentHero';
 import { RelatedLinks } from '@/components/marketing/RelatedLinks';
 import { VisibleFaq } from '@/components/marketing/VisibleFaq';
 import { JsonLd } from '@/components/seo/JsonLd';
@@ -12,9 +12,9 @@ import { createPageMetadata } from '@/lib/seo/site';
 
 export const metadata = createPageMetadata({
   path: '/how-it-works',
-  title: 'How Lavo Coordinates Apartment Car Wash Days',
+  title: 'How Apartment Car Wash Works | Lavo',
   description:
-    'From building launch to resident booking, operator wash day, and payout — see how Lavo coordinates apartment car wash in one simple workflow.',
+    'Book a car wash from your phone. A vetted team comes to your building, washes your car, and notifies you when it’s done.',
 });
 
 const HOW_IT_WORKS_RELATED = [
@@ -27,34 +27,23 @@ const HOW_IT_WORKS_RELATED = [
 
 const FAQ = [
   {
-    question: 'Who pays for the car wash?',
+    question: 'Do I need to be there?',
     answer:
-      'Residents pay for washes they book. Buildings do not pay to offer Lavo as an amenity.',
+      'Usually not. Your building’s access process is followed, so the wash can happen while you go about your day.',
   },
   {
-    question: 'How does a building get started?',
+    question: 'Where does the wash happen?',
     answer:
-      'A property manager creates a building profile, shares the resident link or QR code, and connects with a mobile operator in the area.',
+      'At your building, either in your parking spot or in an approved wash area.',
   },
   {
-    question: 'Can residents book on-demand?',
-    answer:
-      'Yes, when the partnered operator has open capacity. Building wash days are often shown first at building-day rates.',
+    question: 'How do I know when my car is done?',
+    answer: 'You’ll get notified when the wash is complete.',
   },
   {
-    question: 'How do operators get paid?',
+    question: 'What if my building does not have Lavo yet?',
     answer:
-      'Stripe processes resident payments. Lavo retains a platform fee and queues the remainder for operator payout.',
-  },
-  {
-    question: 'How do operators access my car?',
-    answer:
-      'Many buildings arrange key collection or concierge handoff before the crew arrives so the operator can move your vehicle to the approved wash area. Your building sets the protocol; the partnered operator follows it on wash day.',
-  },
-  {
-    question: 'Who is responsible if something happens to my car?',
-    answer:
-      'Building–operator partnership terms assign liability for vehicle damage to the operator, including during movement to the wash area. See the damage policy for how to report an issue.',
+      'You can request Lavo for your building and we’ll let you know when it becomes available.',
   },
 ];
 
@@ -70,11 +59,11 @@ export default function HowItWorksPage() {
       <div className="absolute inset-x-0 top-0 h-[500px] bg-gleam-fade" />
       <MarketingNav />
 
-      <WorkflowHero />
+      <ResidentHero />
       <FourStepGrid />
-      <TrustTimeline />
-      <RoleTabs />
-      <FinalCtaGrid />
+      <ProcessReassurance />
+      <ForBuildingsAndTeams />
+      <ResidentFinalCta />
 
       <section className="mx-auto max-w-3xl px-6 py-10">
         <VisibleFaq items={[...FAQ]} />
