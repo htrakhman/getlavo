@@ -9,6 +9,7 @@ import {
   webPageSchema,
 } from '@/lib/seo/schema';
 import { AtAGlanceBox } from './AtAGlanceBox';
+import { CityNextSteps } from './CityNextSteps';
 import { AudienceCards } from './AudienceCards';
 import { CityCtaBand } from './CityCtaBand';
 import { CityFaqAccordion } from './CityFaqAccordion';
@@ -85,6 +86,11 @@ export function CityPageTemplate({ page }: { page: CityPageViewModel }) {
         title={`Lavo in ${page.localName} at a glance`}
         fields={page.atAGlance}
         summary={page.hero.aeoSummary}
+      />
+      <CityNextSteps
+        cityName={page.localName}
+        citySlug={page.slug}
+        countySlug={page.countySlug}
       />
       <SeoContentSection
         title={page.overview.title}

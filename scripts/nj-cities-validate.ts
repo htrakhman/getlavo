@@ -4,8 +4,14 @@
  */
 
 import manifest from '../data/nj-municipalities.json';
+import tierData from '../data/city-tiers.json';
 import { getAllCityPages, getMunicipalityCityPages, NJ_MUNICIPALITIES } from '../lib/seo/cities';
+import { SHORE_COUNTY_SLUGS } from '../lib/seo/cities/region-flags';
 import { countWords } from '../lib/seo/cities/utils';
+
+const TIER1 = new Set(tierData.tier1);
+const SHORE = new Set(SHORE_COUNTY_SLUGS);
+const SHORE_PHRASES = ['Shore-adjacent', 'shore-adjacent', 'shore-season'];
 
 const EXISTING_SLUGS = [
   'new-jersey',
@@ -125,6 +131,32 @@ function main() {
     if (!body.includes(page.county)) {
       fail(`${page.slug} missing county in body`);
     }
+
+    for (const phrase of SHORE_PHRASES) {
+      if (body.includes(phrase) && !SHORE.has(page.countySlug)) {
+        fail(`${page.slug} has shore-specific copy "${phrase}" but is not in a shore county`);
+      }
+    }
+
+    if (TIER1.has(page.slug)) {
+      if (page.overview.paragraphs.length < 3) {
+        fail(`${page.slug} tier-1 needs at least 3 overview paragraphs`);
+      }
+    }
+
+    const audienceHash = page.audience.cards.map((c) => c.bullets.join('|')).join('||');
+    // tracked per run below
+    (page as { _audienceHash?: string })._audienceHash = audienceHash;
+  }
+
+  const audienceHashes = new Map<string, number>();
+  for (const page of municipalityPages) {
+    const h = (page as { _audienceHash?: string })._audienceHash;
+    if (h) audienceHashes.set(h, (audienceHashes.get(h) ?? 0) + 1);
+  }
+  const audienceDupe = [...audienceHashes.entries()].find(([, n]) => n > 2);
+  if (audienceDupe && audienceDupe[1] > 100) {
+    fail(`Audience cards identical on ${audienceDupe[1]} pages — variation insufficient`);
   }
 
   const byCounty = new Map<string, typeof municipalityPages>();

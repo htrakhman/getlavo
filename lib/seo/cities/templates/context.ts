@@ -1,5 +1,10 @@
 import { getCountyProfile } from '../county-profiles';
-import { getCityEnrichment } from '../enrichment';
+import { getMergedEnrichment } from '../enrichment';
+import {
+  getCountyVehicleCareFactors,
+  getRegionFlags,
+  type RegionFlags,
+} from '../region-flags';
 import {
   alphabeticalNeighbors,
   getCityTier,
@@ -22,6 +27,7 @@ export type CityTemplateContext = {
   muni: NjMunicipality;
   tier: CityTier;
   enrichment: CityEnrichment;
+  flags: RegionFlags;
   /** Display name for H2 copy */
   name: string;
   /** Label for meta title (may include county) */
@@ -44,9 +50,17 @@ export type CityTemplateContext = {
   neighborhoods?: string[];
 };
 
+const GENERIC_VEHICLE_FACTORS = [
+  'winter road salt',
+  'road grime',
+  'pollen',
+  'everyday parking lot dust',
+];
+
 export function buildContext(muni: NjMunicipality): CityTemplateContext {
   const profile = getCountyProfile(muni.countySlug);
-  const enrichment = getCityEnrichment(muni.slug) ?? {};
+  const enrichment = getMergedEnrichment(muni.slug);
+  const flags = getRegionFlags(muni.countySlug);
   const neighbors = alphabeticalNeighbors(muni).map((n) => {
     const match = getMunicipalitiesByCounty(muni.countySlug).find((x) => x.name === n);
     return match ? getLocalDisplayName(match) : n;
@@ -77,11 +91,25 @@ export function buildContext(muni: NjMunicipality): CityTemplateContext {
     neighborText: neighbors.length ? neighbors.join(' and ') : `nearby ${muni.county} County communities`,
     commonPropertyTypes:
       'apartment buildings, condo communities, garden apartments, and managed residential properties',
-    localVehicleCareFactors:
-      enrichment.localVehicleCareFactors?.join(', ') ??
-      'winter salt, road grime, pollen, and everyday parking lot dust',
+    localVehicleCareFactors: (() => {
+      const factors = enrichment.localVehicleCareFactors;
+      const isGeneric =
+        !factors?.length ||
+        (factors.length === 4 &&
+          factors.every((f, i) => f === GENERIC_VEHICLE_FACTORS[i]));
+      if (isGeneric) {
+        return getCountyVehicleCareFactors(muni.countySlug).join(', ');
+      }
+      return factors.join(', ');
+    })(),
     neighborhoods: enrichment.neighborhoods,
+    flags,
   };
+}
+
+/** Deterministic pick unique per municipality and section key. */
+export function pickFor(ctx: CityTemplateContext, key: string, options: string[]): string {
+  return pick(ctx.seed + ctx.slug + key, options);
 }
 
 export { pick };

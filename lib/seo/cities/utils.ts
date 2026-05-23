@@ -58,6 +58,12 @@ export function pick(seed: string, options: string[]): string {
   return options[idx]!;
 }
 
+export function pickIndex(seed: string, length: number): number {
+  if (length <= 0) return 0;
+  const hash = createHash('md5').update(seed).digest('hex');
+  return parseInt(hash.slice(0, 8), 16) % length;
+}
+
 export function trimMetaDescription(text: string, max = 160): string {
   if (text.length <= max) return text;
   const trimmed = text.slice(0, max - 1);
