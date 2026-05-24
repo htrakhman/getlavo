@@ -160,15 +160,15 @@ function BranchB({ m }: { m: MatchB }) {
     m.place.formattedAddress?.trim() ||
     '';
 
-  const pendingOperator = m.pendingOperator === true && m.building;
+  const registeredBuilding = m.pendingOperator && m.building ? m.building : null;
 
   return (
     <div className="card space-y-6 p-6">
-      {pendingOperator ? (
+      {registeredBuilding ? (
         <BuildingPendingOperatorPanel
           buildingCandidateKey={m.candidateKey}
-          buildingId={m.building.id}
-          buildingName={m.building.name}
+          buildingId={registeredBuilding.id}
+          buildingName={registeredBuilding.name}
           formattedAddress={m.place.formattedAddress}
           placeId={m.place.placeId}
           requestCount={m.requestCount}
