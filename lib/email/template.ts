@@ -3,7 +3,8 @@
 // the footer, and unsubscribe links.
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_BASE_URL || 'https://getlavo.io';
-const SUPPORT_EMAIL = process.env.ADMIN_EMAIL || 'hello@getlavo.io';
+/** Resident-facing support line in email footers (not ADMIN_EMAIL, which is for internal ops). */
+const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL || 'harold@getlavo.io';
 
 /** Lavo ribbon mark + wordmark for email clients (absolute URL required). */
 export function emailBrandHeader() {
