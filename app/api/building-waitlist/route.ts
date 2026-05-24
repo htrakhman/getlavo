@@ -4,8 +4,9 @@ import { rateLimit, clientIp, rateLimitResponse } from '@/lib/rate-limit';
 import { getSessionUser } from '@/lib/supabase/server';
 import { insertBuildingWaitlistRow } from '@/lib/building-waitlist-insert';
 import {
-  sendWaitlistJoinConfirmation,
-  wasAlreadyOnBuildingWaitlist,
+  ensureWaitlistConfirmationEmail,
+  findExistingWaitlistRow,
+  normalizeWaitlistEmail,
 } from '@/lib/building-waitlist-email';
 
 export async function POST(req: NextRequest) {
@@ -19,7 +20,7 @@ export async function POST(req: NextRequest) {
       : typeof body.buildingId === 'string'
         ? `building:${body.buildingId}`
         : '';
-  const email = typeof body.email === 'string' ? body.email.trim() : '';
+  const email = typeof body.email === 'string' ? normalizeWaitlistEmail(body.email) : '';
   const phone = typeof body.phone === 'string' ? body.phone.trim() : '';
   const fullName = typeof body.fullName === 'string' ? body.fullName.trim() : '';
   const buildingId = typeof body.buildingId === 'string' ? body.buildingId : null;
@@ -45,48 +46,49 @@ export async function POST(req: NextRequest) {
   const formattedAddress =
     typeof body.formattedAddress === 'string' ? body.formattedAddress.trim() : '';
 
+  let confirmationEmailSent = false;
+
   if (email.includes('@')) {
     const notifyEmail = body.notifyEmail !== false;
-    const alreadyOnWaitlist = await wasAlreadyOnBuildingWaitlist(
+    const existing = await findExistingWaitlistRow(sb, email, buildingCandidateKey, buildingId);
+
+    if (!existing) {
+      const waitlistResult = await insertBuildingWaitlistRow(sb, {
+        building_candidate_key: buildingCandidateKey,
+        building_id: buildingId,
+        email,
+        full_name: fullName || null,
+        profile_id: profileId,
+        building_label: buildingLabel || 'Unknown building',
+        formatted_address: formattedAddress || null,
+        notify_email: notifyEmail,
+        notify_sms: body.notifySms !== false,
+      });
+
+      if (!waitlistResult.ok) {
+        return NextResponse.json({ error: 'Could not save' }, { status: 500 });
+      }
+    }
+
+    const confirm = await ensureWaitlistConfirmationEmail({
       sb,
       email,
       buildingCandidateKey,
       buildingId,
-    );
-
-    const waitlistResult = await insertBuildingWaitlistRow(sb, {
-      building_candidate_key: buildingCandidateKey,
-      building_id: buildingId,
-      email,
-      full_name: fullName || null,
-      profile_id: profileId,
-      building_label: buildingLabel || 'Unknown building',
-      formatted_address: formattedAddress || null,
-      notify_email: notifyEmail,
-      notify_sms: body.notifySms !== false,
+      buildingLabel: buildingLabel || 'Unknown building',
+      formattedAddress: formattedAddress || null,
+      firstName: fullName || null,
+      notifyEmail,
+      waitlistRowId: existing?.id ?? null,
     });
-
-    if (!waitlistResult.ok) {
-      return NextResponse.json({ error: 'Could not save' }, { status: 500 });
-    }
-
-    if (!alreadyOnWaitlist && notifyEmail) {
-      await sendWaitlistJoinConfirmation({
-        sb,
-        email,
-        buildingId,
-        buildingLabel: buildingLabel || 'Unknown building',
-        formattedAddress: formattedAddress || null,
-        firstName: fullName || null,
-      }).catch((e) => console.error('waitlist confirmation email', e));
-    }
+    confirmationEmailSent = confirm.sent;
 
     if (phone) {
       await sb
         .from('building_waitlist')
         .update({ phone })
-        .eq('building_candidate_key', buildingCandidateKey)
-        .eq('email', email);
+        .ilike('email', email)
+        .eq('building_candidate_key', buildingCandidateKey);
     }
   } else {
     const { error } = await sb.from('building_waitlist').insert({
@@ -119,5 +121,5 @@ export async function POST(req: NextRequest) {
     building_display_name: typeof body.buildingName === 'string' ? body.buildingName : null,
   });
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, confirmationEmailSent });
 }

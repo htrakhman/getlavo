@@ -9,8 +9,9 @@ import { insertBuildingRequestRow } from '@/lib/building-request-insert';
 import { createBuildingShareToken } from '@/lib/building-share-insert';
 import { insertBuildingWaitlistRow } from '@/lib/building-waitlist-insert';
 import {
-  sendWaitlistJoinConfirmation,
-  wasAlreadyOnBuildingWaitlist,
+  ensureWaitlistConfirmationEmail,
+  findExistingWaitlistRow,
+  normalizeWaitlistEmail,
 } from '@/lib/building-waitlist-email';
 import { rateLimit, clientIp, rateLimitResponse } from '@/lib/rate-limit';
 import { getSessionUser } from '@/lib/supabase/server';
@@ -30,7 +31,8 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
   const buildingCandidateKey =
     typeof body.buildingCandidateKey === 'string' ? body.buildingCandidateKey.trim() : '';
-  const residentEmail = typeof body.residentEmail === 'string' ? body.residentEmail.trim() : '';
+  const residentEmail =
+    typeof body.residentEmail === 'string' ? normalizeWaitlistEmail(body.residentEmail) : '';
   const buildingLabel = typeof body.buildingLabel === 'string' ? body.buildingLabel.trim() : '';
   const residentFirstName =
     typeof body.residentFirstName === 'string' ? body.residentFirstName.trim() : '';
@@ -72,39 +74,41 @@ export async function POST(req: NextRequest) {
     resolvedBuildingId = byPlace?.id ?? null;
   }
 
-  const alreadyOnWaitlist = await wasAlreadyOnBuildingWaitlist(
+  const existingWaitlist = await findExistingWaitlistRow(
     sb,
     residentEmail,
     buildingCandidateKey,
     resolvedBuildingId,
   );
 
-  const waitlistResult = await insertBuildingWaitlistRow(sb, {
-    building_candidate_key: buildingCandidateKey,
-    building_id: resolvedBuildingId,
-    email: residentEmail,
-    full_name: residentFirstName || null,
-    profile_id: profileId,
-    building_label: buildingLabel,
-    formatted_address: formattedAddress || null,
-    notify_email: true,
-    notify_sms: false,
-  });
-
-  if (!waitlistResult.ok) {
-    return NextResponse.json({ error: 'Could not save request' }, { status: 500 });
-  }
-
-  if (!alreadyOnWaitlist) {
-    await sendWaitlistJoinConfirmation({
-      sb,
+  if (!existingWaitlist) {
+    const waitlistResult = await insertBuildingWaitlistRow(sb, {
+      building_candidate_key: buildingCandidateKey,
+      building_id: resolvedBuildingId,
       email: residentEmail,
-      buildingId: resolvedBuildingId,
-      buildingLabel,
-      formattedAddress: formattedAddress || null,
-      firstName: residentFirstName || null,
-    }).catch((e) => console.error('waitlist confirmation email', e));
+      full_name: residentFirstName || null,
+      profile_id: profileId,
+      building_label: buildingLabel,
+      formatted_address: formattedAddress || null,
+      notify_email: true,
+      notify_sms: false,
+    });
+
+    if (!waitlistResult.ok) {
+      return NextResponse.json({ error: 'Could not save request' }, { status: 500 });
+    }
   }
+
+  await ensureWaitlistConfirmationEmail({
+    sb,
+    email: residentEmail,
+    buildingCandidateKey,
+    buildingId: resolvedBuildingId,
+    buildingLabel,
+    formattedAddress: formattedAddress || null,
+    firstName: residentFirstName || null,
+    waitlistRowId: existingWaitlist?.id ?? null,
+  }).catch((e) => console.error('waitlist confirmation email', e));
 
   const requestRow = await insertBuildingRequestRow(sb, {
     building_candidate_key: buildingCandidateKey,

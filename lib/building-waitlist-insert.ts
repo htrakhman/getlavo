@@ -20,7 +20,7 @@ export async function insertBuildingWaitlistRow(
   const base = {
     building_candidate_key: input.building_candidate_key,
     building_id: input.building_id,
-    email: input.email,
+    email: input.email.trim().toLowerCase(),
     full_name: input.full_name,
     profile_id: input.profile_id,
     notify_email: input.notify_email ?? true,

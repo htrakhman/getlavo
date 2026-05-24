@@ -51,6 +51,10 @@ export function BuildingPendingOperatorPanel({
         setErr(typeof data.error === 'string' ? data.error : 'Could not save. Try again.');
         return;
       }
+      if (data.confirmationEmailSent === false) {
+        setErr('You are on the list, but we could not send the confirmation email. Try again or check spam.');
+        return;
+      }
       setDone(true);
     } catch {
       setErr('Network error. Try again.');
