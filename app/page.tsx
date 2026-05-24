@@ -134,11 +134,15 @@ export default async function Home({
       </section>
 
       <section className="relative mx-auto max-w-6xl px-6 py-20 border-t border-white/10">
-        <div className="text-center mb-10">
-          <div className="text-xs uppercase tracking-[0.18em] text-gleam mb-2">How it works</div>
-          <h2 className="font-display text-4xl">How Lavo works</h2>
-          <p className="mx-auto mt-3 max-w-lg text-sm text-ink-400">
-            Buildings, residents, and operators — one platform from setup to payout.
+        <div className="mx-auto mb-12 max-w-3xl text-center">
+          <div className="text-xs uppercase tracking-[0.18em] text-gleam mb-3">How it works</div>
+          <h2 className="font-display text-3xl font-semibold tracking-tight text-ink-100 sm:text-4xl md:text-[2.75rem] md:leading-[1.12]">
+            Launch a car wash amenity without adding work for your team
+          </h2>
+          <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-ink-300 sm:text-base">
+            On-site mobile car washes for apartment buildings.{' '}
+            <span className="font-medium text-ink-100">Buildings pay $0.</span>{' '}
+            Residents book and pay from their phone. Vetted local operators complete each wash while Lavo coordinates scheduling, reminders, payments, and payouts.
           </p>
         </div>
         <HowLavoWorksPreview />
