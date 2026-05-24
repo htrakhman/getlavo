@@ -3,6 +3,10 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
 import { rateLimit, clientIp, rateLimitResponse } from '@/lib/rate-limit';
 import { getSessionUser } from '@/lib/supabase/server';
 import { insertBuildingWaitlistRow } from '@/lib/building-waitlist-insert';
+import {
+  sendWaitlistJoinConfirmation,
+  wasAlreadyOnBuildingWaitlist,
+} from '@/lib/building-waitlist-email';
 
 export async function POST(req: NextRequest) {
   const rl = rateLimit(`bwl:${clientIp(req)}`, { limit: 15, windowMs: 60_000 });
@@ -42,6 +46,14 @@ export async function POST(req: NextRequest) {
     typeof body.formattedAddress === 'string' ? body.formattedAddress.trim() : '';
 
   if (email.includes('@')) {
+    const notifyEmail = body.notifyEmail !== false;
+    const alreadyOnWaitlist = await wasAlreadyOnBuildingWaitlist(
+      sb,
+      email,
+      buildingCandidateKey,
+      buildingId,
+    );
+
     const waitlistResult = await insertBuildingWaitlistRow(sb, {
       building_candidate_key: buildingCandidateKey,
       building_id: buildingId,
@@ -50,12 +62,23 @@ export async function POST(req: NextRequest) {
       profile_id: profileId,
       building_label: buildingLabel || 'Unknown building',
       formatted_address: formattedAddress || null,
-      notify_email: body.notifyEmail !== false,
+      notify_email: notifyEmail,
       notify_sms: body.notifySms !== false,
     });
 
     if (!waitlistResult.ok) {
       return NextResponse.json({ error: 'Could not save' }, { status: 500 });
+    }
+
+    if (!alreadyOnWaitlist && notifyEmail) {
+      await sendWaitlistJoinConfirmation({
+        sb,
+        email,
+        buildingId,
+        buildingLabel: buildingLabel || 'Unknown building',
+        formattedAddress: formattedAddress || null,
+        firstName: fullName || null,
+      }).catch((e) => console.error('waitlist confirmation email', e));
     }
 
     if (phone) {

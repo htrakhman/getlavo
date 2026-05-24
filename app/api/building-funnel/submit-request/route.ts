@@ -8,6 +8,10 @@ import {
 import { insertBuildingRequestRow } from '@/lib/building-request-insert';
 import { createBuildingShareToken } from '@/lib/building-share-insert';
 import { insertBuildingWaitlistRow } from '@/lib/building-waitlist-insert';
+import {
+  sendWaitlistJoinConfirmation,
+  wasAlreadyOnBuildingWaitlist,
+} from '@/lib/building-waitlist-email';
 import { rateLimit, clientIp, rateLimitResponse } from '@/lib/rate-limit';
 import { getSessionUser } from '@/lib/supabase/server';
 
@@ -68,6 +72,13 @@ export async function POST(req: NextRequest) {
     resolvedBuildingId = byPlace?.id ?? null;
   }
 
+  const alreadyOnWaitlist = await wasAlreadyOnBuildingWaitlist(
+    sb,
+    residentEmail,
+    buildingCandidateKey,
+    resolvedBuildingId,
+  );
+
   const waitlistResult = await insertBuildingWaitlistRow(sb, {
     building_candidate_key: buildingCandidateKey,
     building_id: resolvedBuildingId,
@@ -82,6 +93,17 @@ export async function POST(req: NextRequest) {
 
   if (!waitlistResult.ok) {
     return NextResponse.json({ error: 'Could not save request' }, { status: 500 });
+  }
+
+  if (!alreadyOnWaitlist) {
+    await sendWaitlistJoinConfirmation({
+      sb,
+      email: residentEmail,
+      buildingId: resolvedBuildingId,
+      buildingLabel,
+      formattedAddress: formattedAddress || null,
+      firstName: residentFirstName || null,
+    }).catch((e) => console.error('waitlist confirmation email', e));
   }
 
   const requestRow = await insertBuildingRequestRow(sb, {

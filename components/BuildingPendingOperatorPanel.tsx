@@ -64,8 +64,8 @@ export function BuildingPendingOperatorPanel({
       <div className="space-y-4">
         <h3 className="font-display text-2xl">You&apos;re on the list.</h3>
         <p className="text-sm text-ink-300 leading-relaxed">
-          We&apos;ll email you at <span className="text-ink-100">{email.trim()}</span> as soon as{' '}
-          {buildingName} is matched with a car wash operator and booking opens.
+          Check your inbox at <span className="text-ink-100">{email.trim()}</span> for a confirmation. We&apos;ll send
+          a second email when {buildingName} is matched with a car wash operator and booking opens.
         </p>
       </div>
     );
