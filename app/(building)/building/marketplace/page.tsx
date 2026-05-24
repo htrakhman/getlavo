@@ -39,10 +39,10 @@ export default async function MyOperator() {
         .eq('status', 'pending')
     : { data: null };
 
-  const operatorRequests = (incomingOperatorRequests ?? []).filter(
-    (p: { requested_by: string; operator: { owner_id: string } | null }) =>
-      p.operator && p.requested_by === p.operator.owner_id,
-  );
+  const operatorRequests = ((incomingOperatorRequests ?? []) as any[]).filter((p) => {
+    const op = Array.isArray(p.operator) ? p.operator[0] : p.operator;
+    return op && p.requested_by === op.owner_id;
+  });
 
   // Load marketplace operators when no partner assigned
   const { data: operators } = !operator

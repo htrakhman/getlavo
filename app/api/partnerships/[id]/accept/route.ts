@@ -22,8 +22,8 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
 
   if (!partnership) return NextResponse.json({ error: 'Partnership request not found' }, { status: 404 });
 
-  const building = partnership.building as { name: string; manager_id: string };
-  const operator = partnership.operator as { name: string; owner_id: string };
+  const building = (partnership.building as any) ?? {};
+  const operator = (partnership.operator as any) ?? {};
   const operatorInitiated = partnership.requested_by === operator.owner_id;
   const managerInitiated = partnership.requested_by === building.manager_id;
 
