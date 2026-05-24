@@ -4,7 +4,7 @@ import { money } from '@/lib/format';
 import Link from 'next/link';
 import { BuildingAttributor } from '@/app/b/[slug]/BuildingAttributor';
 import { Logo } from '@/components/Logo';
-import { BuildingRequestForm } from '@/components/BuildingRequestForm';
+import { BuildingPendingOperatorPanel } from '@/components/BuildingPendingOperatorPanel';
 
 export default async function BuildingCanonicalPage({ params }: { params: { slug: string } }) {
   const sb = supabaseServer();
@@ -134,15 +134,15 @@ export default async function BuildingCanonicalPage({ params }: { params: { slug
             </div>
           ) : (
             <div className="mt-10 card p-6">
-              <BuildingRequestForm
+              <BuildingPendingOperatorPanel
                 buildingCandidateKey={candidateKey}
                 buildingId={building.id}
+                buildingName={building.name}
                 placeId={building.google_place_id}
                 formattedAddress={
                   [building.address_line1, building.city, building.region].filter(Boolean).join(', ') || undefined
                 }
-                defaultBuildingLabel={building.name}
-                registeredBuildingSlug={params.slug}
+                requestCount={requestCount}
               />
             </div>
           )}

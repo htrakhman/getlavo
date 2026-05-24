@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { PlacesAutocomplete, type PlacePick } from '@/components/PlacesAutocomplete';
 import { BuildingRequestForm } from '@/components/BuildingRequestForm';
+import { BuildingPendingOperatorPanel } from '@/components/BuildingPendingOperatorPanel';
 import { money } from '@/lib/format';
 
 type Place = { placeId?: string; formattedAddress: string; displayName: string };
@@ -23,6 +24,7 @@ type MatchB = {
   candidateKey: string;
   place: Place;
   building: { id: string; name: string; slug: string } | null;
+  pendingOperator?: boolean;
   operator: unknown;
   packages: unknown[];
   requestCount: number;
@@ -64,15 +66,19 @@ export function CheckBuildingFlow() {
         setMatch(null);
         return;
       }
-      setMatch(data as Match);
+      const resolved = data as Match;
+      setMatch(resolved);
       await fetch('/api/building-funnel/request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          buildingCandidateKey: data.candidateKey,
-          placeId: data.place?.placeId,
-          formattedAddress: data.place?.formattedAddress,
-          buildingName: data.place?.displayName,
+          buildingCandidateKey: resolved.candidateKey,
+          buildingId: resolved.branch !== 'C' && resolved.building ? resolved.building.id : undefined,
+          placeId: resolved.place.placeId,
+          formattedAddress: resolved.place.formattedAddress,
+          buildingName:
+            (resolved.branch !== 'C' && resolved.building ? resolved.building.name : null) ||
+            resolved.place.displayName,
           channel: 'check_flow',
         }),
       }).catch(() => {});
@@ -154,23 +160,38 @@ function BranchB({ m }: { m: MatchB }) {
     m.place.formattedAddress?.trim() ||
     '';
 
+  const pendingOperator = m.pendingOperator === true && m.building;
+
   return (
     <div className="card space-y-6 p-6">
-      {m.requestCount > 0 && (
-        <p className="text-sm text-ink-400">
-          <span className="text-gleam">
-            {m.requestCount} {m.requestCount === 1 ? 'neighbor has' : 'neighbors have'} already requested Lavo here.
-          </span>
-        </p>
+      {pendingOperator ? (
+        <BuildingPendingOperatorPanel
+          buildingCandidateKey={m.candidateKey}
+          buildingId={m.building.id}
+          buildingName={m.building.name}
+          formattedAddress={m.place.formattedAddress}
+          placeId={m.place.placeId}
+          requestCount={m.requestCount}
+        />
+      ) : (
+        <>
+          {m.requestCount > 0 && (
+            <p className="text-sm text-ink-400">
+              <span className="text-gleam">
+                {m.requestCount} {m.requestCount === 1 ? 'neighbor has' : 'neighbors have'} already requested Lavo here.
+              </span>
+            </p>
+          )}
+          <BuildingRequestForm
+            buildingCandidateKey={m.candidateKey}
+            placeId={m.place.placeId}
+            formattedAddress={m.place.formattedAddress}
+            defaultBuildingLabel={defaultBuildingLabel}
+            buildingId={m.building?.id ?? null}
+            registeredBuildingSlug={m.building?.slug ?? null}
+          />
+        </>
       )}
-      <BuildingRequestForm
-        buildingCandidateKey={m.candidateKey}
-        placeId={m.place.placeId}
-        formattedAddress={m.place.formattedAddress}
-        defaultBuildingLabel={defaultBuildingLabel}
-        buildingId={m.building?.id ?? null}
-        registeredBuildingSlug={m.building?.slug ?? null}
-      />
     </div>
   );
 }
