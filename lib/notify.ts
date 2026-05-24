@@ -25,7 +25,7 @@ export async function notify(profileId: string, type: NotificationType, data: Re
   const allowSms = prefRespects(type, prefs, 'sms');
 
   const titles: Record<NotificationType, string> = {
-    wash_complete: 'Your car is done ✨',
+    wash_complete: 'Your car is done.',
     wash_flagged: "We couldn't complete your wash",
     wash_reminder: 'Your wash is tomorrow',
     payment_failed: 'Payment issue — update your card',

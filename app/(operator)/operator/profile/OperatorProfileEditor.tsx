@@ -136,7 +136,6 @@ export function OperatorProfileEditor({ op }: { op: any }) {
             </>
           ) : (
             <div className="flex flex-col items-center justify-center h-full gap-2 text-ink-500">
-              <span className="text-3xl">📸</span>
               <span className="text-sm">Upload a cover photo of your team or work</span>
             </div>
           )}

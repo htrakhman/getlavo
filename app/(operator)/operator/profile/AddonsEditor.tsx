@@ -48,7 +48,7 @@ export function AddonsEditor({ operatorId, initial }: { operatorId: string; init
                 <div className="flex items-center gap-3">
                   <span className="text-gleam text-sm">${(a.price_cents / 100).toFixed(2)}</span>
                   <button onClick={() => setEditing(a.id)} className="text-xs text-gleam">✎</button>
-                  <button onClick={() => remove(a.id)} className="text-xs text-ink-400 hover:text-red-400">🗑</button>
+                  <button onClick={() => remove(a.id)} className="text-xs text-ink-400 hover:text-red-400">Remove</button>
                 </div>
               </div>
             )}

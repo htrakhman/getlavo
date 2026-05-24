@@ -183,7 +183,6 @@ export default function FlyerPage() {
               borderRadius: '14px', padding: '18px',
               color: 'white', textAlign: 'center',
             }}>
-              <div style={{ fontSize: '22px', marginBottom: '6px' }}>🚗✨</div>
               <div style={{ fontSize: '13px', fontWeight: 700, marginBottom: '4px' }}>Free to sign up</div>
               <div style={{ fontSize: '11px', opacity: 0.85, lineHeight: 1.4 }}>
                 Only pay when you book a wash. Cancel any time.

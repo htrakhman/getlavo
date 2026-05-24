@@ -129,6 +129,7 @@ export function buildCountyPage(countySlug: string): CountyPageViewModel | undef
       { href: '/cities', label: 'All Lavo cities' },
       { href: '/buildings', label: 'For property managers' },
       { href: '/operators', label: 'For operators' },
+      { href: '/residents', label: 'For residents' },
       { href: '/how-it-works', label: 'How Lavo works' },
     ],
   };

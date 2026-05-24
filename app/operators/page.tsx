@@ -15,6 +15,7 @@ export const metadata = createPageMetadata({
 const OPERATORS_RELATED = [
   { href: '/how-it-works', label: 'How it works' },
   { href: '/contact', label: 'Contact' },
+  { href: '/residents', label: 'For residents' },
   { href: '/buildings', label: 'For properties' },
   { href: '/resources/mobile-detailing-leads-apartments', label: 'Recurring apartment customers' },
   { href: '/resources/apartment-wash-day-playbook', label: 'Apartment wash day playbook' },
@@ -124,13 +125,12 @@ export default function OperatorsPage() {
       <section className="mx-auto max-w-5xl px-6 py-20">
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           {[
-            ['🗓️', 'Crew tool', 'Run wash days from your phone. Each vehicle row shows the resident, spot label, make/model/color, and plate. Mark done or flag in one tap.'],
-            ['📊', 'Earnings dashboard', 'See gross revenue, Lavo fee, and your net payout per period. Full transaction history at a glance.'],
-            ['📍', 'Radius matching', 'Set your service area in miles. Lavo only shows you to buildings inside your radius — no wasted lead chasing.'],
-            ['➕', 'Add-on revenue', 'Offer residents extras like interior detail, wax, or tire shine. Billed separately via Stripe. You keep the proceeds minus the platform fee.'],
-          ].map(([icon, title, body]) => (
+            ['Crew tool', 'Run wash days from your phone. Each vehicle row shows the resident, spot label, make/model/color, and plate. Mark done or flag in one tap.'],
+            ['Earnings dashboard', 'See gross revenue, Lavo fee, and your net payout per period. Full transaction history at a glance.'],
+            ['Radius matching', 'Set your service area in miles. Lavo only shows you to buildings inside your radius — no wasted lead chasing.'],
+            ['Add-on revenue', 'Offer residents extras like interior detail, wax, or tire shine. Billed separately via Stripe. You keep the proceeds minus the platform fee.'],
+          ].map(([title, body]) => (
             <div key={String(title)} className="card p-6">
-              <div className="text-3xl mb-3">{icon}</div>
               <h3 className="font-display text-xl mb-2">{title}</h3>
               <p className="text-sm text-ink-300 leading-relaxed">{body}</p>
             </div>

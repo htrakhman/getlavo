@@ -18,6 +18,7 @@ export const metadata = createPageMetadata({
 const ABOUT_RELATED = [
   { href: '/buildings', label: 'For properties' },
   { href: '/operators', label: 'For operators' },
+  { href: '/residents', label: 'For residents' },
   { href: '/safety', label: 'Safety' },
   { href: '/contact', label: 'Contact' },
 ];

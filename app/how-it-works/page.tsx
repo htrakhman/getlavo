@@ -20,6 +20,7 @@ export const metadata = createPageMetadata({
 const HOW_IT_WORKS_RELATED = [
   { href: '/buildings', label: 'For properties' },
   { href: '/operators', label: 'For operators' },
+  { href: '/residents', label: 'For residents' },
   { href: '/safety', label: 'Safety' },
   { href: '/legal/damage-policy', label: 'Damage policy' },
   { href: '/resources/mobile-car-wash-apartment-garage', label: 'Mobile car wash in apartment garages' },

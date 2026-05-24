@@ -138,6 +138,7 @@ export function buildCityPage(muni: NjMunicipality): CityPageViewModel {
       { href: '/how-it-works', label: 'How Lavo works' },
       { href: '/buildings', label: 'For properties' },
       { href: '/operators', label: 'For operators' },
+      { href: '/residents', label: 'For residents' },
       { href: '/help', label: 'Help center' },
       { href: '/safety', label: 'Safety' },
       { href: '/legal/damage-policy', label: 'Damage policy' },

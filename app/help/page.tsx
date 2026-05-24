@@ -103,6 +103,7 @@ export default function HelpPage() {
           { href: '/contact', label: 'Contact' },
           { href: '/buildings', label: 'For properties' },
           { href: '/operators', label: 'For operators' },
+          { href: '/residents', label: 'For residents' },
         ]}
       />
     </ContentPageShell>

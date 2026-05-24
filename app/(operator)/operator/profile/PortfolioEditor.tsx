@@ -103,8 +103,8 @@ export function PortfolioEditor({ operatorId, initial }: { operatorId: string; i
           className="h-32 rounded-xl border-2 border-dashed border-ink-600 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-gleam/50 transition-colors"
           onClick={() => fileInputRef.current?.click()}
         >
-          <span className="text-2xl">🖼️</span>
-          <span className="text-sm text-ink-400">Upload photos or videos of your work</span>
+          <span className="text-sm font-medium text-ink-300">Upload photos or videos</span>
+          <span className="text-sm text-ink-400">Show your work to buildings</span>
           <span className="text-xs text-ink-600">JPG, PNG, MP4, MOV · Operators with 4+ photos get 3× more partnerships</span>
         </div>
       )}
@@ -138,7 +138,7 @@ export function PortfolioEditor({ operatorId, initial }: { operatorId: string; i
                     className="w-8 h-8 rounded-full bg-white/20 text-white text-sm hover:bg-red-600 transition-colors"
                     title="Remove"
                   >
-                    🗑
+                    Remove
                   </button>
                 </div>
               </div>

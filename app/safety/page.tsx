@@ -18,6 +18,7 @@ export const metadata = createPageMetadata({
 const RELATED = [
   { href: '/buildings', label: 'For properties' },
   { href: '/operators', label: 'For operators' },
+  { href: '/residents', label: 'For residents' },
   { href: '/contact', label: 'Contact' },
   { href: '/resources/car-wash-amenity-insurance-damage', label: 'Insurance and damage handling' },
 ];

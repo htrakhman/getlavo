@@ -17,6 +17,7 @@ const BUILDINGS_RELATED = [
   { href: '/how-it-works', label: 'How it works' },
   { href: '/safety', label: 'Safety' },
   { href: '/contact', label: 'Contact' },
+  { href: '/residents', label: 'For residents' },
   { href: '/operators', label: 'For operators' },
   { href: '/resources/apartment-car-wash-amenity', label: 'Apartment car wash amenity' },
   { href: '/resources/car-wash-amenity-for-property-managers', label: 'Car wash amenity for property managers' },
@@ -73,38 +74,31 @@ export default function BuildingsPage() {
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           {[
             {
-              icon: '🆓',
               title: 'Free. Always.',
               body: 'Buildings pay nothing. Not now, not later. Lavo is funded by residents through a small transaction fee on each booking.',
             },
             {
-              icon: '⚡',
               title: 'Live in 5 minutes',
               body: 'Enter your building address, get a QR code. Post it in the lobby. Done. Residents can start signing up immediately.',
             },
             {
-              icon: '📊',
               title: 'One stat a month',
               body: 'Your dashboard shows total washes booked and resident adoption — a clean number to show leadership, no effort required.',
             },
             {
-              icon: '🤝',
               title: 'We handle the operator',
               body: "Browse local car wash operators, send a partnership request, and they handle the schedule. You're not managing anything.",
             },
             {
-              icon: '📱',
               title: 'Residents love it',
               body: 'No app download. Residents scan your QR, sign up in under a minute, and book washes from any browser.',
             },
             {
-              icon: '🔒',
               title: 'Insurance you can show leadership',
               body: "Every operator carries general liability and commercial auto insurance, with a COI on file naming your building as additional insured.",
             },
           ].map((item) => (
             <div key={item.title} className="card p-6">
-              <div className="text-3xl mb-3">{item.icon}</div>
               <h3 className="font-display text-xl mb-2">{item.title}</h3>
               <p className="text-sm text-ink-300 leading-relaxed">{item.body}</p>
             </div>

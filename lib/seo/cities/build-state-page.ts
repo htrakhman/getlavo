@@ -208,6 +208,7 @@ export function buildStatePage(): CityPageViewModel {
       { href: '/resources/mobile-car-wash-apartment-garage', label: 'Mobile car wash in apartment garages' },
       { href: '/buildings', label: 'For properties' },
       { href: '/operators', label: 'For operators' },
+      { href: '/residents', label: 'For residents' },
       { href: '/help', label: 'Help center' },
     ],
     finalCta: {

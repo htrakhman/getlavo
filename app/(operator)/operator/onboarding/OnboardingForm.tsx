@@ -344,7 +344,6 @@ export function OnboardingForm() {
                     <img src={coverPreview} alt="Cover" className="w-full h-full object-cover" />
                   ) : (
                     <div className="flex flex-col items-center justify-center h-full gap-2 text-ink-500">
-                      <span className="text-3xl">📸</span>
                       <span className="text-sm">Upload a cover photo of your team or work</span>
                     </div>
                   )}
@@ -450,8 +449,7 @@ export function OnboardingForm() {
                 className="h-28 rounded-xl border-2 border-dashed border-ink-600 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-gleam/60 transition-colors"
                 onClick={() => portfolioInputRef.current?.click()}
               >
-                <span className="text-2xl">🖼️</span>
-                <span className="text-sm text-ink-400">Click to add photos or videos</span>
+                <span className="text-sm font-medium text-ink-300">Click to add photos or videos</span>
                 <span className="text-xs text-ink-600">JPG, PNG, MP4, MOV · max 50 MB each</span>
               </div>
               <input ref={portfolioInputRef} type="file" multiple accept="image/*,video/*" className="hidden" onChange={addPortfolioFiles} />
