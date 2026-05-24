@@ -62,7 +62,14 @@ export function CitiesIndexFilter({ counties }: CitiesIndexFilterProps) {
       <div className="space-y-10">
         {filtered.map((group) => (
           <section key={group.countySlug} id={group.countySlug}>
-            <h2 className="font-display text-xl text-ink-100">{group.county} County</h2>
+            <h2 className="font-display text-xl text-ink-100">
+              <Link
+                href={`/cities/counties/${group.countySlug}`}
+                className="hover:text-gleam transition-colors"
+              >
+                {group.county} County
+              </Link>
+            </h2>
             <ul className="mt-4 columns-1 gap-x-8 sm:columns-2 lg:columns-3">
               {group.cities.map((city) => (
                 <li key={city.slug} className="mb-2 break-inside-avoid">

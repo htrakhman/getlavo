@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
+import { CityPageTemplate } from '@/components/marketing/city/CityPageTemplate';
 import { ContentPageShell } from '@/components/marketing/ContentPageShell';
-import { CityLanding } from '@/components/marketing/CityLanding';
-import { CITY_SLUGS, getCityBySlug } from '@/lib/seo/cities';
+import { CITY_SLUGS, getCityPageBySlug } from '@/lib/seo/cities';
 import { createPageMetadata } from '@/lib/seo/site';
 
 type Props = { params: { slug: string } };
@@ -11,22 +11,22 @@ export function generateStaticParams() {
 }
 
 export function generateMetadata({ params }: Props) {
-  const city = getCityBySlug(params.slug);
-  if (!city) return {};
+  const page = getCityPageBySlug(params.slug);
+  if (!page) return {};
   return createPageMetadata({
-    path: `/cities/${city.slug}`,
-    title: city.title,
-    description: city.description,
+    path: page.meta.canonicalPath,
+    title: page.meta.title,
+    description: page.meta.description,
   });
 }
 
-export default function CityPage({ params }: Props) {
-  const city = getCityBySlug(params.slug);
-  if (!city) notFound();
+export default function CitySlugPage({ params }: Props) {
+  const page = getCityPageBySlug(params.slug);
+  if (!page) notFound();
 
   return (
-    <ContentPageShell fadeHeight="h-[320px]">
-      <CityLanding city={city} />
+    <ContentPageShell fadeHeight="h-[320px]" wide>
+      <CityPageTemplate page={page} />
     </ContentPageShell>
   );
 }

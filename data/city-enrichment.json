@@ -1,0 +1,367 @@
+{
+  "jersey-city": {
+    "overviewExtra": [
+      "Jersey City has dense high rise living from Downtown to Newport and Paulus Hook, with many residents parking in structured garages.",
+      "Journal Square and the Heights add mid-rise stock where surface and small garage formats mix on the same operator route.",
+      "Salt exposure from winter roads and tight urban schedules make on-site washing attractive for commuters who already struggle with tunnel wait times."
+    ],
+    "neighborhoods": [
+      "Downtown",
+      "Newport",
+      "Journal Square",
+      "Paulus Hook",
+      "the Heights"
+    ],
+    "nearbyTransit": "PATH stations, ferries, and Hudson River commuter patterns",
+    "localVehicleCareFactors": [
+      "winter road salt",
+      "road grime",
+      "pollen"
+    ]
+  },
+  "hoboken": {
+    "overviewExtra": [
+      "Hoboken is block-after-block of walk-up and elevator buildings with tight parking economics. Many residents keep cars in small garages or nearby lots.",
+      "Waterfront towers along the river share the same commuter profile as Jersey City: low time tolerance for errands.",
+      "Dense apartment living means one approved operator visit can serve multiple neighbors in a single garage window."
+    ],
+    "neighborhoods": [
+      "waterfront",
+      "walk-up blocks"
+    ],
+    "nearbyTransit": "PATH stations, ferries, and Hudson River commuter patterns",
+    "localVehicleCareFactors": [
+      "winter road salt",
+      "road grime",
+      "pollen"
+    ]
+  },
+  "newark": {
+    "overviewExtra": [
+      "Newark combines downtown high rises near Penn Station with Ironbound neighborhoods where mid-rise and garden apartments use surface and garage parking.",
+      "Commuter and airport traffic patterns mean many households rely on daily drivers that need regular exterior care.",
+      "Programs work best when buildings define operator access for downtown garages and Ironbound lots separately."
+    ],
+    "neighborhoods": [
+      "downtown",
+      "Ironbound"
+    ],
+    "nearbyTransit": "Penn Station and Newark Airport commuter patterns",
+    "localVehicleCareFactors": [
+      "winter road salt",
+      "road grime",
+      "pollen"
+    ]
+  },
+  "paterson": {
+    "overviewExtra": [
+      "Paterson combines urban mid-rises and garden stock near Route 19 and the Passaic River corridor, with many residents using small garages and managed lots.",
+      "Hospital and logistics corridors add steady daily driving, which can make regular exterior care practical when service happens on-site.",
+      "Building-approved wash zones help operators serve Paterson properties without random vendor knock-throughs."
+    ],
+    "nearbyTransit": "NYC and Passaic County bus and highway commuters",
+    "localVehicleCareFactors": [
+      "urban road film",
+      "winter road salt",
+      "warehouse-district dust",
+      "pollen"
+    ]
+  },
+  "elizabeth": {
+    "overviewExtra": [
+      "Elizabeth mixes port-adjacent corridors, mid-rises, and garden apartments near Routes 1 and 9 with many residents using urban garages and surface lots.",
+      "Newark Airport and NYC-bound commuters often want time-saving services without adding another stop after work.",
+      "Properties can coordinate operator access once garage and lot rules are documented for Elizabeth residents."
+    ],
+    "nearbyTransit": "Newark Airport, NJ Transit, and NYC commuter patterns",
+    "localVehicleCareFactors": [
+      "Newark Airport corridor film",
+      "winter salt",
+      "urban garage dust",
+      "pollen"
+    ]
+  },
+  "edison": {
+    "overviewExtra": [
+      "Edison has large garden-style communities and Turnpike-corridor apartments where residents often park in surface lots and podiums.",
+      "Corporate-campus and NYC-bound commuters frequently treat car care as a weekend errand they would rather skip.",
+      "Operators can link Edison garden stops with New Brunswick and Woodbridge-area buildings on Middlesex routes."
+    ],
+    "nearbyTransit": "NJ Turnpike corridor and Middlesex County corporate campuses",
+    "localVehicleCareFactors": [
+      "Turnpike corridor grime",
+      "winter salt",
+      "corporate-campus pollen",
+      "lot dust"
+    ]
+  },
+  "new-brunswick": {
+    "overviewExtra": [
+      "New Brunswick combines university-adjacent housing, downtown mid-rises, and Route 18 corridor garden stock with mixed garage and lot parking.",
+      "Residents who commute to campuses or NYC often want convenient booking without losing a parking spot on busy streets.",
+      "Clear stall labeling matters when operators serve blocks with both surface lots and small garages."
+    ],
+    "nearbyTransit": "Rutgers area traffic and NYC-bound commuters",
+    "localVehicleCareFactors": [
+      "campus-area pollen",
+      "Route 18 road film",
+      "winter salt",
+      "garage dust"
+    ]
+  },
+  "princeton": {
+    "overviewExtra": [
+      "Princeton and the surrounding Route 1 corridor mix historic walk-ups, garden apartments, and campus-adjacent housing with assigned lots and small garages.",
+      "Pharma and education commuters often prefer services that fit tight weekday schedules.",
+      "Properties can offer Lavo as a convenience perk without building wash infrastructure."
+    ],
+    "nearbyTransit": "Route 1 corridor and regional rail commuters",
+    "localVehicleCareFactors": [
+      "Route 1 corridor film",
+      "campus-area pollen",
+      "winter salt",
+      "tree-lined road dust"
+    ]
+  },
+  "morristown": {
+    "overviewExtra": [
+      "Morristown blends walkable downtown living with suburban-style garden apartments on the outskirts of town.",
+      "Many communities use surface lots and small carports rather than towering garages, which simplifies operator movement when rules are posted.",
+      "Residents who commute to NYC or Morris County offices often want time-saving services at home."
+    ],
+    "localVehicleCareFactors": [
+      "winter road salt",
+      "road grime",
+      "pollen"
+    ]
+  },
+  "montclair": {
+    "overviewExtra": [
+      "Montclair blends walkable village-center housing with hillside streets and mid-rises where parking is often tight and time-sensitive.",
+      "Many residents commute to NYC via bus or train and want car care without sacrificing weekend hours to tunnel washes.",
+      "Garage and driveway rules should be clear before operators schedule the first visit."
+    ],
+    "nearbyTransit": "Montclair-Boonton Line and NYC bus commuters",
+    "localVehicleCareFactors": [
+      "urban tunnel grime",
+      "winter salt",
+      "tree pollen",
+      "hillside road dust"
+    ]
+  },
+  "hackensack": {
+    "overviewExtra": [
+      "Hackensack mixes county-seat office traffic with garden apartments and mid-rises near Main Street and the hospital corridor.",
+      "Parking lots and low-rise garages are common, which can speed up operator turnover versus downtown high rises.",
+      "Bergen County commuters often want suburban convenience without spending Saturday mornings at tunnels."
+    ],
+    "localVehicleCareFactors": [
+      "winter road salt",
+      "road grime",
+      "pollen"
+    ]
+  },
+  "fort-lee": {
+    "overviewExtra": [
+      "Fort Lee is known for high rise apartments overlooking the George Washington Bridge corridor, with extensive parking garages.",
+      "Bridge commuters often want services that fit early mornings and late evenings without extra driving.",
+      "Operator efficiency improves when multiple towers near Linwood Park and the main bridge approaches book the same day."
+    ],
+    "localVehicleCareFactors": [
+      "winter road salt",
+      "road grime",
+      "pollen"
+    ]
+  },
+  "edgewater": {
+    "overviewExtra": [
+      "Edgewater waterfront towers and mid-rises along River Road concentrate residents with garage parking and limited spare time.",
+      "Views and commute patterns mirror other Hudson River communities where tunnel trips feel expensive in time, not just dollars.",
+      "Garage ventilation and hose routing rules should be set upfront because many buildings are sensitive to water runoff on lower levels."
+    ],
+    "localVehicleCareFactors": [
+      "winter road salt",
+      "road grime",
+      "pollen"
+    ]
+  },
+  "weehawken": {
+    "overviewExtra": [
+      "Weehawken waterfront towers and hillside apartments sit between Hoboken and Jersey City with similar garage constraints.",
+      "Residents often park in structured garages with river views and tight rush-hour schedules.",
+      "Operators can link Weehawken stops with Hoboken and Jersey City buildings on the same Hudson River route."
+    ],
+    "nearbyTransit": "PATH stations, ferries, and Hudson River commuter patterns",
+    "localVehicleCareFactors": [
+      "winter road salt",
+      "road grime",
+      "pollen"
+    ]
+  },
+  "harrison": {
+    "overviewExtra": [
+      "Harrison sits on the PATH corridor with newer waterfront-adjacent and downtown stock that often uses structured parking.",
+      "Residents commuting to Newark and Manhattan may prefer on-site washes when garage access is already solved.",
+      "Operators can pair Harrison with Jersey City and Newark stops on Hudson and Essex routes."
+    ],
+    "nearbyTransit": "PATH and Newark job-center commuters",
+    "localVehicleCareFactors": [
+      "PATH corridor grime",
+      "winter salt",
+      "garage dust",
+      "pollen"
+    ]
+  },
+  "bloomfield": {
+    "overviewExtra": [
+      "Bloomfield mixes garden apartments along Bloomfield Avenue with smaller garages and surface lots common in Essex County suburbs.",
+      "NYC commuters often want practical services that fit work-from-home or evening schedules.",
+      "Building wash days can bundle neighbor demand when management sets one recurring window."
+    ],
+    "nearbyTransit": "NYC and Newark job-center commuters",
+    "localVehicleCareFactors": [
+      "urban commuter film",
+      "winter salt",
+      "pollen",
+      "garden-lot dust"
+    ]
+  },
+  "englewood": {
+    "overviewExtra": [
+      "Englewood combines Bergen County mid-rises and garden stock near Route 4 and local arterials with a mix of garages and lots.",
+      "Bridge-and-tunnel commuters often compare buildings on convenience, including how easy car care is at home.",
+      "Management can standardize vendor access instead of approving one-off detailers per resident request."
+    ],
+    "nearbyTransit": "Manhattan bridge-and-tunnel commuters",
+    "localVehicleCareFactors": [
+      "bridge-and-tunnel grime",
+      "winter salt",
+      "garage dust",
+      "pollen"
+    ]
+  },
+  "clifton": {
+    "overviewExtra": [
+      "Clifton spans Route 3 and Route 46 corridors with urban garages, garden lots, and commuter-heavy households.",
+      "Residents driving toward NYC or North Jersey job centers often want to avoid extra weekend trips to tunnel washes.",
+      "Operators serving Passaic County can link Clifton with Paterson and Woodland Park buildings."
+    ],
+    "nearbyTransit": "Routes 3 and 46 and NYC-bound commuters",
+    "localVehicleCareFactors": [
+      "Route 3 corridor film",
+      "winter salt",
+      "warehouse-corridor dust",
+      "pollen"
+    ]
+  },
+  "paramus": {
+    "overviewExtra": [
+      "Paramus has suburban apartment communities and townhome-style clusters with lot parking spread near major retail corridors.",
+      "Residents often drive daily on Route 17 and local arterials, which builds steady exterior wash demand.",
+      "Operators can connect Paramus garden communities with Hackensack and Woodland Park buildings on Bergen routes."
+    ],
+    "localVehicleCareFactors": [
+      "winter road salt",
+      "road grime",
+      "pollen"
+    ]
+  },
+  "cherry-hill": {
+    "overviewExtra": [
+      "Cherry Hill has large garden-style and townhome-adjacent communities with lot parking spread along Routes 38 and 70.",
+      "Philadelphia commuters often want suburban convenience without spending time on cross-river wash trips.",
+      "Operators can connect Cherry Hill with Camden and Moorestown-area buildings on shared Camden County days."
+    ],
+    "nearbyTransit": "PATCO and Philadelphia commuters",
+    "localVehicleCareFactors": [
+      "Philadelphia commuter grime",
+      "winter salt",
+      "pollen",
+      "suburban lot dust"
+    ]
+  },
+  "atlantic-city": {
+    "overviewExtra": [
+      "Atlantic City mixes casino-district towers, mainland garden stock, and seasonal traffic patterns along the Expressway corridor.",
+      "Hospitality workers and commuters often need flexible wash windows that fit shift schedules.",
+      "Properties should document garage runoff and quiet-hour rules before launching on-site service."
+    ],
+    "nearbyTransit": "Atlantic City Expressway and hospitality shift workers",
+    "localVehicleCareFactors": [
+      "coastal salt air",
+      "boardwalk and casino district dust",
+      "winter road salt",
+      "pollen"
+    ]
+  },
+  "asbury-park": {
+    "overviewExtra": [
+      "Asbury Park combines shore-adjacent apartments and walkable blocks where parking is often tight during summer weekends.",
+      "Year-round residents and seasonal renters may both value on-site service when management approves a lot or garage zone.",
+      "Operators serving the Route 35 corridor can pair Asbury Park with neighboring shore towns."
+    ],
+    "nearbyTransit": "North Jersey Coast Line and shore-season traffic",
+    "localVehicleCareFactors": [
+      "coastal salt air",
+      "summer tourism dust",
+      "winter salt",
+      "sand and pollen"
+    ]
+  },
+  "long-branch": {
+    "overviewExtra": [
+      "Long Branch has waterfront towers and mid-rises where residents often use garages and assigned spaces near the shore.",
+      "Seasonal traffic on Route 36 can make driving to a wash less appealing than booking at the building.",
+      "Management should set clear service zones before peak summer weekends."
+    ],
+    "nearbyTransit": "shore rail and NYC weekend commuters",
+    "localVehicleCareFactors": [
+      "coastal salt air",
+      "Route 36 summer traffic film",
+      "winter salt",
+      "pollen"
+    ]
+  },
+  "red-bank": {
+    "overviewExtra": [
+      "Red Bank mixes downtown mid-rises and nearby garden communities along the Route 35 corridor with commuter-heavy households.",
+      "NYC ferry and rail commuters often want time-saving amenities tied to parking they already pay for.",
+      "Operators can anchor Monmouth County routes with Red Bank and neighboring river towns."
+    ],
+    "nearbyTransit": "NYC ferry and rail commuters",
+    "localVehicleCareFactors": [
+      "coastal salt air",
+      "commuter road film",
+      "winter salt",
+      "downtown pollen and dust"
+    ]
+  },
+  "freehold": {
+    "overviewExtra": [
+      "Freehold borough and surrounding townships combine suburban lots, townhome courts, and Route 9 corridor apartments.",
+      "Families and commuters driving toward the Shore or Turnpike often prefer on-site service on weekends.",
+      "Garden-style properties can support higher throughput when stall numbers are posted clearly."
+    ],
+    "nearbyTransit": "Garden State Parkway and regional commuters",
+    "localVehicleCareFactors": [
+      "Parkway corridor film",
+      "winter salt",
+      "pollen",
+      "suburban lot dust"
+    ]
+  },
+  "toms-river": {
+    "overviewExtra": [
+      "Toms River is a mainland Ocean County hub with large garden communities and Parkway access where many residents use surface lots.",
+      "North Jersey bedroom-community commuters and local Shore traffic both add steady daily driving.",
+      "Operators can link Toms River with Brick and Lakewood-area buildings on shared Ocean County routes."
+    ],
+    "nearbyTransit": "Garden State Parkway and Shore commuter patterns",
+    "localVehicleCareFactors": [
+      "barrier-island salt air influence",
+      "Parkway film",
+      "winter salt",
+      "sand and pollen"
+    ]
+  }
+}

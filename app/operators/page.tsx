@@ -59,7 +59,7 @@ export default function OperatorsPage() {
             and get paid automatically on every wash.
           </p>
           <div className="mt-10">
-            <Link href="/signup?role=operator" className="btn-primary px-8 py-3 text-base">
+            <Link href="/operators/apply" className="btn-primary px-8 py-3 text-base">
               Apply as an operator →
             </Link>
           </div>
@@ -161,7 +161,7 @@ export default function OperatorsPage() {
       <section className="mx-auto max-w-2xl px-6 py-20 text-center">
         <h2 className="font-display text-4xl mb-4">Ready to grow your book?</h2>
         <p className="text-ink-300 mb-8">Apply takes 5 minutes. We review within 48 hours.</p>
-        <Link href="/signup?role=operator" className="btn-primary px-10 py-4 text-base">
+        <Link href="/operators/apply" className="btn-primary px-10 py-4 text-base">
           Apply as an operator →
         </Link>
       </section>

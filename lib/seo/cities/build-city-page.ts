@@ -1,0 +1,1 @@
+export { buildCityPage } from './templates';
