@@ -129,7 +129,6 @@ export default async function ResidentBook() {
 
       {!partnerOperator && nearbyOperators.length === 0 && (
         <div className="card p-8 text-center">
-          <div className="text-3xl mb-3">🔍</div>
           <h2 className="font-display text-xl">No operators nearby yet</h2>
           <p className="mt-2 text-sm text-ink-400">
             We're growing our operator network. Check back soon.

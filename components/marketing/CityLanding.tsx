@@ -11,6 +11,7 @@ import type { CityPage } from '@/lib/seo/cities';
 const CITY_RELATED_LINKS: RelatedLink[] = [
   { href: '/buildings', label: 'For properties' },
   { href: '/operators', label: 'For operators' },
+  { href: '/residents', label: 'For residents' },
   { href: '/how-it-works', label: 'How it works' },
   { href: '/resources/mobile-car-wash-apartment-garage', label: 'Mobile car wash in apartment garages' },
   { href: '/resources/apartment-car-wash-amenity', label: 'Apartment car wash amenity' },

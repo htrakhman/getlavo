@@ -59,7 +59,7 @@ export default async function HealthPage() {
                     <td className="px-4 py-2 text-xs">{e.message}</td>
                   </tr>
                 ))}
-                {!errors?.length && <tr><td colSpan={3} className="px-4 py-6 text-center text-ink-400">No errors. ✨</td></tr>}
+                {!errors?.length && <tr><td colSpan={3} className="px-4 py-6 text-center text-ink-400">No errors.</td></tr>}
               </tbody>
             </table>
           </div>

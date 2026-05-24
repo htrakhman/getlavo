@@ -43,6 +43,7 @@ export function MarketingNav() {
         <Link href="/help" className="hover:text-ink-100">Help</Link>
         <Link href="/how-it-works" className="hover:text-ink-100">How it works</Link>
         <Link href="/operators" className="hover:text-ink-100">For operators</Link>
+        <Link href="/residents" className="hover:text-ink-100">For residents</Link>
         <Link href="/buildings" className="hover:text-ink-100">For properties</Link>
       </nav>
       <div className="flex items-center gap-2">
@@ -89,6 +90,7 @@ export function MarketingFooter() {
           <Link href="/how-it-works" className="hover:text-ink-100">How it works</Link>
           <Link href="/help" className="hover:text-ink-100">Help</Link>
           <Link href="/operators" className="hover:text-ink-100">Operators</Link>
+          <Link href="/residents" className="hover:text-ink-100">Residents</Link>
           <Link href="/buildings" className="hover:text-ink-100">Properties</Link>
           <Link href="/legal/terms" className="hover:text-ink-100">Terms</Link>
           <Link href="/legal/privacy" className="hover:text-ink-100">Privacy</Link>

@@ -109,7 +109,7 @@ const STEPS = [
 
 const PRICING = [
   { label: 'Buildings pay', value: '$0', icon: '$' },
-  { label: 'Residents pay', value: 'Per wash', icon: '◎' },
+  { label: 'Residents pay', value: 'Per wash', icon: '·' },
   { label: 'Operators paid', value: 'After job', icon: '→' },
 ] as const;
 

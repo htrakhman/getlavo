@@ -18,7 +18,7 @@ export default async function AdminFlagsPage() {
     <>
       <PageHeader eyebrow="Admin" title="Flagged washes" />
       {!flagged?.length ? (
-        <div className="card p-10 text-center text-ink-400">No flagged washes. ✨</div>
+        <div className="card p-10 text-center text-ink-400">No flagged washes.</div>
       ) : (
         <div className="space-y-3">
           {flagged.map((w: any) => (

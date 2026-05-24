@@ -5,6 +5,7 @@ const STATIC_ROUTES = [
   '/',
   '/buildings',
   '/operators',
+  '/residents',
   '/how-it-works',
   '/help',
   '/contact',

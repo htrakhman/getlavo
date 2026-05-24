@@ -5,6 +5,7 @@ export type RelatedLink = { href: string; label: string };
 const DEFAULT_RESOURCE_LINKS: RelatedLink[] = [
   { href: '/buildings', label: 'For properties' },
   { href: '/operators', label: 'For operators' },
+  { href: '/residents', label: 'For residents' },
   { href: '/how-it-works', label: 'How it works' },
   { href: '/safety', label: 'Safety' },
   { href: '/cities/new-jersey', label: 'New Jersey' },
