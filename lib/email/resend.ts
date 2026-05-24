@@ -128,6 +128,45 @@ export async function sendPartnershipAccepted(args: {
   });
 }
 
+export async function sendOperatorPartnershipInterest(args: {
+  to: string;
+  managerName: string;
+  buildingName: string;
+  operatorName: string;
+  partnershipId: string;
+}) {
+  return client().emails.send({
+    from: FROM,
+    to: args.to,
+    subject: `${escapeHtml(args.operatorName)} wants to partner with ${escapeHtml(args.buildingName)}`,
+    html: `
+      <p>Hi ${escapeHtml(args.managerName)},</p>
+      <p><strong>${escapeHtml(args.operatorName)}</strong> has requested to become the car wash operator for <strong>${escapeHtml(args.buildingName)}</strong> on Lavo.</p>
+      <p>Review their profile and accept the partnership to let residents book washes, or Lavo can finalize the match for you.</p>
+      <p><a href="${APP_URL}/building/marketplace" style="display:inline-block;padding:12px 18px;border-radius:8px;background:#00ff88;color:#000;font-weight:600;text-decoration:none">Review request</a></p>
+    `,
+  });
+}
+
+export async function sendPartnershipAcceptedByManager(args: {
+  to: string;
+  operatorName: string;
+  buildingName: string;
+  managerName: string;
+}) {
+  return client().emails.send({
+    from: FROM,
+    to: args.to,
+    subject: `${escapeHtml(args.buildingName)} accepted your partnership request`,
+    html: `
+      <p>Hi ${escapeHtml(args.operatorName)},</p>
+      <p><strong>${escapeHtml(args.buildingName)}</strong> (managed by ${escapeHtml(args.managerName)}) has accepted your partnership request on Lavo.</p>
+      <p>Residents can now book washes with you at this building.</p>
+      <p><a href="${APP_URL}/operator/buildings" style="display:inline-block;padding:12px 18px;border-radius:8px;background:#00ff88;color:#000;font-weight:600;text-decoration:none">View buildings</a></p>
+    `,
+  });
+}
+
 function escapeHtml(s: string) {
   return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
 }

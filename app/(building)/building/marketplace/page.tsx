@@ -3,6 +3,7 @@ import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { getCurrentBuildingForSession } from '@/lib/building';
 import { PreferredWashDayForm } from './PreferredWashDayForm';
+import { IncomingOperatorRequests } from './IncomingOperatorRequests';
 import Link from 'next/link';
 import { money } from '@/lib/format';
 
@@ -22,11 +23,26 @@ export default async function MyOperator() {
         .from('partnerships')
         .select('id, status, operator:operators(id, name, slug, description, rating_avg, rating_count, insurance_expires_at, contact_email, contact_phone)')
         .eq('building_id', building.id)
-        .in('status', ['active', 'pilot'])
+        .eq('status', 'active')
         .maybeSingle()
     : { data: null };
 
   const operator = (partnership?.operator as any) ?? null;
+
+  const { data: incomingOperatorRequests } = building && !operator
+    ? await sb
+        .from('partnerships')
+        .select(
+          'id, created_at, requested_by, operator:operators(name, description, rating_avg, rating_count, owner_id)',
+        )
+        .eq('building_id', building.id)
+        .eq('status', 'pending')
+    : { data: null };
+
+  const operatorRequests = (incomingOperatorRequests ?? []).filter(
+    (p: { requested_by: string; operator: { owner_id: string } | null }) =>
+      p.operator && p.requested_by === p.operator.owner_id,
+  );
 
   // Load marketplace operators when no partner assigned
   const { data: operators } = !operator
@@ -45,6 +61,10 @@ export default async function MyOperator() {
 
       {!operator ? (
         <div className="space-y-8">
+          {operatorRequests.length > 0 && (
+            <IncomingOperatorRequests requests={operatorRequests as any[]} />
+          )}
+
           {/* Waiting state */}
           <div className="card border-gleam/30 p-6">
             <h3 className="font-display text-xl">We're finding your crew</h3>

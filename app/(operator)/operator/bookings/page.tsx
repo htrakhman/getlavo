@@ -26,7 +26,7 @@ export default async function OperatorBookings() {
 
   const [{ data: pendingPartnerships }, { data: upcoming }, { data: past }] = await Promise.all([
     sb.from('partnerships')
-      .select('id, created_at, building:buildings(id, name, city, address_line1)')
+      .select('id, created_at, requested_by, building:buildings(id, name, city, address_line1, manager_id)')
       .eq('operator_id', op.id)
       .eq('status', 'pending')
       .order('created_at'),
@@ -59,7 +59,11 @@ export default async function OperatorBookings() {
       )}
 
       {pendingPartnerships && pendingPartnerships.length > 0 && (
-        <PartnershipRequests requests={pendingPartnerships as any[]} />
+        <PartnershipRequests
+          requests={(pendingPartnerships as any[]).filter(
+            (p) => p.requested_by === p.building?.manager_id,
+          )}
+        />
       )}
 
       <div className="space-y-8 mt-6">
