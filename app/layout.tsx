@@ -10,9 +10,24 @@ export const metadata: Metadata = {
   manifest: '/manifest.webmanifest',
 };
 
+const GA_MEASUREMENT_ID = 'G-SKYHNFC6DY';
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
+      <head>
+        <script async src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`} />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', '${GA_MEASUREMENT_ID}');
+            `,
+          }}
+        />
+      </head>
       <body className="grain min-h-screen bg-ink-950 text-ink-100 antialiased">
         {process.env.NEXT_PUBLIC_POSTHOG_KEY ? (
           <Script id="posthog" strategy="afterInteractive">
