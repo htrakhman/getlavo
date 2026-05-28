@@ -8,6 +8,7 @@ import {
   findExistingWaitlistRow,
   normalizeWaitlistEmail,
 } from '@/lib/building-waitlist-email';
+import { sendInternalBuildingRequestEmail } from '@/lib/email/building-request';
 
 export async function POST(req: NextRequest) {
   const rl = rateLimit(`bwl:${clientIp(req)}`, { limit: 15, windowMs: 60_000 });
@@ -121,5 +122,32 @@ export async function POST(req: NextRequest) {
     building_display_name: typeof body.buildingName === 'string' ? body.buildingName : null,
   });
 
-  return NextResponse.json({ ok: true, confirmationEmailSent });
+  const submittedAt = new Date().toISOString();
+  const notes = [
+    'Waitlist join',
+    `building_candidate_key: ${buildingCandidateKey}`,
+    buildingId ? `building_id: ${buildingId}` : null,
+    phone ? `phone: ${phone}` : null,
+    profileId ? `profile_id: ${profileId}` : null,
+  ]
+    .filter(Boolean)
+    .join('\n');
+
+  const internalEmailSent = await sendInternalBuildingRequestEmail({
+    residentEmail: email.includes('@') ? email : '',
+    residentFirstName: fullName || null,
+    buildingLabel: buildingLabel || null,
+    formattedAddress: formattedAddress || null,
+    mgmtContactName: null,
+    mgmtEmail: null,
+    notes,
+    source,
+    submittedAt,
+    shareUrl: 'Not created',
+  }).catch((e) => {
+    console.error('sendInternalBuildingRequestEmail (waitlist)', e);
+    return false;
+  });
+
+  return NextResponse.json({ ok: true, confirmationEmailSent, internalEmailSent });
 }

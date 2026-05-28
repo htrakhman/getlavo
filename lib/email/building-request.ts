@@ -1,7 +1,7 @@
 import { wrapEmail, paragraph, escape } from '@/lib/email/template';
 
 const DEFAULT_FROM = 'Harold <harold@getlavo.io>';
-const DEFAULT_OPS = ['harold@getlavo.io', 'haroldtrakhman@gmail.com'];
+const DEFAULT_OPS = ['harold@getlavo.io'];
 
 export type BuildingRequestEmailPayload = {
   residentEmail: string;
@@ -23,7 +23,11 @@ function fromAddress() {
 function opsRecipients(): string[] {
   const raw = process.env.BUILDING_REQUEST_OPS_EMAILS;
   if (raw?.trim()) {
-    return raw.split(',').map((e) => e.trim()).filter((e) => e.includes('@'));
+    const parsed = raw.split(',').map((e) => e.trim()).filter((e) => e.includes('@'));
+    // Keep request tracking in one inbox for operational visibility.
+    if (parsed.some((e) => e.toLowerCase() === 'harold@getlavo.io')) {
+      return ['harold@getlavo.io'];
+    }
   }
   return DEFAULT_OPS;
 }

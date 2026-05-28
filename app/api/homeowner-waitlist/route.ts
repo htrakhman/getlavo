@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { rateLimit, clientIp, rateLimitResponse } from '@/lib/rate-limit';
+import { sendInternalBuildingRequestEmail } from '@/lib/email/building-request';
 
 export async function POST(req: NextRequest) {
   const rl = rateLimit(`ho-wl:${clientIp(req)}`, { limit: 10, windowMs: 60_000 });
@@ -24,5 +25,22 @@ export async function POST(req: NextRequest) {
     place_id: placeId,
   });
 
-  return NextResponse.json({ ok: true });
+  const submittedAt = new Date().toISOString();
+  const internalEmailSent = await sendInternalBuildingRequestEmail({
+    residentEmail: email,
+    residentFirstName: null,
+    buildingLabel: partnerSlug ? `Homeowner lead (${partnerSlug})` : 'Homeowner lead',
+    formattedAddress: null,
+    mgmtContactName: null,
+    mgmtEmail: null,
+    notes: placeId ? `place_id: ${placeId}` : 'Homeowner waitlist signup',
+    source: 'organic',
+    submittedAt,
+    shareUrl: 'Not created',
+  }).catch((e) => {
+    console.error('sendInternalBuildingRequestEmail (homeowner waitlist)', e);
+    return false;
+  });
+
+  return NextResponse.json({ ok: true, internalEmailSent });
 }
