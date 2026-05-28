@@ -56,7 +56,7 @@ export async function notify(profileId: string, type: NotificationType, data: Re
         link ? button(linkAbsolute(link), data.cta ?? 'View in app') : '',
       ].join('');
       await resend.emails.send({
-        from: process.env.RESEND_FROM_EMAIL || 'Lavo <hello@getlavo.io>',
+        from: process.env.RESEND_FROM_EMAIL || 'Lavo <harold@getlavo.io>',
         to: profile.email,
         subject: titles[type],
         html: wrapEmail({ preheader: body, content: inner }),

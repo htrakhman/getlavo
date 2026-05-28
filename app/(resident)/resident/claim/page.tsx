@@ -19,7 +19,7 @@ export default function ResidentClaimPage() {
     });
     setBusy(false);
     if (res.ok) setMsg('We received your claim. Support will respond within five business days.');
-    else setMsg('Could not submit. Try again or email hello@getlavo.io');
+    else setMsg('Could not submit. Try again or email harold@getlavo.io');
   }
 
   return (

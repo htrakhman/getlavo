@@ -66,7 +66,7 @@ export default async function ChargesPage() {
       </div>
 
       <p className="mt-4 text-xs text-ink-500">
-        Need a copy of a receipt? Email hello@getlavo.io with the date and we'll send one over.
+        Need a copy of a receipt? Email harold@getlavo.io with the date and we'll send one over.
       </p>
     </>
   );

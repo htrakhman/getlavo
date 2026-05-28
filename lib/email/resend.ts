@@ -9,7 +9,7 @@ function client() {
   return cached;
 }
 
-const FROM = process.env.RESEND_FROM_EMAIL || 'Lavo <hello@getlavo.io>';
+const FROM = process.env.RESEND_FROM_EMAIL || 'Lavo <harold@getlavo.io>';
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
 export async function sendBookingConfirmation(args: {

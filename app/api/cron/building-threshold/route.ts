@@ -58,7 +58,7 @@ export async function GET(req: NextRequest) {
         paragraph(`<strong>Total rows:</strong> ${n}`),
       ].join('');
       await resend.emails.send({
-        from: process.env.RESEND_FROM_EMAIL || 'Lavo <hello@getlavo.io>',
+        from: process.env.RESEND_FROM_EMAIL || 'Lavo <harold@getlavo.io>',
         to: opsEmail,
         subject: `Lavo ops: ${THRESHOLD}+ requests for a building`,
         html: wrapEmail({ preheader: `Demand alert ${key}`, content: inner }),

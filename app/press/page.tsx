@@ -46,8 +46,8 @@ export default function PressPage() {
       />
       <p className="text-sm text-ink-300">
         General support:{' '}
-        <Link href="mailto:hello@getlavo.io" className="text-gleam hover:underline">
-          hello@getlavo.io
+        <Link href="mailto:harold@getlavo.io" className="text-gleam hover:underline">
+          harold@getlavo.io
         </Link>
       </p>
     </ContentPageShell>

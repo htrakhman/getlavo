@@ -28,7 +28,7 @@ const RESIDENT_FAQ = [
   {
     question: 'How do I report an issue?',
     answer:
-      'Use the in-app issue flow or email hello@getlavo.io with your booking date and photos.',
+      'Use the in-app issue flow or email harold@getlavo.io with your booking date and photos.',
   },
 ];
 
@@ -77,7 +77,7 @@ export default function HelpPage() {
       />
       <SeoPageHeader
         h1="Help center"
-        opening="Find answers for residents, property managers, and mobile car wash operators. Email hello@getlavo.io for urgent issues."
+        opening="Find answers for residents, property managers, and mobile car wash operators. Email harold@getlavo.io for urgent issues."
       />
       <VisibleFaq title="Residents" items={RESIDENT_FAQ} />
       <VisibleFaq title="Buildings and property managers" items={BUILDING_FAQ} />

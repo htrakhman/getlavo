@@ -23,7 +23,7 @@ export async function POST(req: Request) {
     return twiml('You\'re subscribed to Lavo alerts. Msg & data rates may apply.');
   }
   if (body === 'help') {
-    return twiml('Lavo: in-garage car wash alerts. Reply STOP to unsubscribe. Help: hello@getlavo.io');
+    return twiml('Lavo: in-garage car wash alerts. Reply STOP to unsubscribe. Help: harold@getlavo.io');
   }
 
   return twiml('');

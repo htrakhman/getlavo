@@ -57,7 +57,7 @@ export async function POST(req: Request) {
         (inserted ?? []).map((row: any) => {
           const link = `${appUrl}/b/${building.slug}?invite=${row.token}`;
           return resend.emails.send({
-            from: process.env.RESEND_FROM_EMAIL || 'Lavo <hello@getlavo.io>',
+            from: process.env.RESEND_FROM_EMAIL || 'Lavo <harold@getlavo.io>',
             to: row.email,
             subject: `Car wash service at ${building.name}`,
             html: invitationHtml({

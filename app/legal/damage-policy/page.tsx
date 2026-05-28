@@ -34,7 +34,7 @@ export default function DamagePolicyPage() {
       </p>
       <h2 className="mt-6 font-display text-xl">How to report an issue</h2>
       <p className="mt-2 text-sm text-ink-300">
-        Open the booking in your resident account or email hello@getlavo.io with the date, photos, and a short description of the concern.
+        Open the booking in your resident account or email harold@getlavo.io with the date, photos, and a short description of the concern.
       </p>
       <h2 className="mt-6 font-display text-xl">Review process</h2>
       <p className="mt-2 text-sm text-ink-300">

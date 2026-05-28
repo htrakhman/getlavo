@@ -28,7 +28,7 @@ export async function POST(req: Request) {
       (residents ?? []).map((r) => r.profile_id).filter(Boolean),
     );
 
-  const from = process.env.RESEND_FROM_EMAIL || 'Lavo <hello@getlavo.io>';
+  const from = process.env.RESEND_FROM_EMAIL || 'Lavo <harold@getlavo.io>';
   if (channels.includes('email') && process.env.RESEND_API_KEY && profiles?.length) {
     const Resend = (await import('resend')).Resend;
     const resend = new Resend(process.env.RESEND_API_KEY);

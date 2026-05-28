@@ -60,8 +60,8 @@ export default function AboutPage() {
       <RelatedLinks links={ABOUT_RELATED} />
       <p className="mt-6 text-sm text-ink-400">
         Questions? Email{' '}
-        <Link href="mailto:hello@getlavo.io" className="text-gleam hover:underline">
-          hello@getlavo.io
+        <Link href="mailto:harold@getlavo.io" className="text-gleam hover:underline">
+          harold@getlavo.io
         </Link>
         .
       </p>

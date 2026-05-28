@@ -31,7 +31,7 @@ export default function LegalPrivacyPage() {
           We use data to run bookings, payments, operator payouts, building programs, and support. We do not sell personal information.
         </p>
         <h2 className="mt-6 font-display text-xl">CCPA</h2>
-        <p className="mt-2 text-sm text-ink-300">California residents may request access or deletion at hello@getlavo.io.</p>
+        <p className="mt-2 text-sm text-ink-300">California residents may request access or deletion at harold@getlavo.io.</p>
       </div>
     </ContentPageShell>
   );

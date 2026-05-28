@@ -8,7 +8,7 @@ async function getResend() {
 }
 
 function fromAddress() {
-  return process.env.RESEND_FROM_EMAIL || 'Lavo <hello@getlavo.io>';
+  return process.env.RESEND_FROM_EMAIL || 'Lavo <harold@getlavo.io>';
 }
 
 export type WaitlistJoinConfirmationPayload = {

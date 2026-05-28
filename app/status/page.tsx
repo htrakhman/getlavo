@@ -15,8 +15,8 @@ export default function StatusPage() {
       <h1 className="mt-10 font-display text-3xl">System status</h1>
       <p className="mt-4 text-sm text-ink-300">
         Status updates are posted here when needed. For urgent booking or access issues, email{' '}
-        <a href="mailto:hello@getlavo.io" className="text-gleam hover:underline">
-          hello@getlavo.io
+        <a href="mailto:harold@getlavo.io" className="text-gleam hover:underline">
+          harold@getlavo.io
         </a>
         .
       </p>

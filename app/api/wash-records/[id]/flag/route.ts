@@ -30,7 +30,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       const { Resend } = await import('resend');
       const resend = new Resend(process.env.RESEND_API_KEY);
       await resend.emails.send({
-        from: process.env.RESEND_FROM_EMAIL || 'Lavo <hello@getlavo.io>',
+        from: process.env.RESEND_FROM_EMAIL || 'Lavo <harold@getlavo.io>',
         to: process.env.ADMIN_EMAIL,
         subject: 'Wash flagged',
         html: `<p>A wash record was flagged.</p><p>Reason: ${escapeHtml(reason)}</p><p>Notes: ${escapeHtml(notes ?? '')}</p>`,

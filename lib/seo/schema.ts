@@ -12,7 +12,7 @@ export function organizationSchema() {
     logo: `${SITE_ORIGIN}/lavo-email-logo.svg`,
     description:
       'Lavo connects apartment residents, property managers, and vetted mobile car wash operators so residents can book car washes without leaving home.',
-    email: 'hello@getlavo.io',
+    email: 'harold@getlavo.io',
   };
 }
 

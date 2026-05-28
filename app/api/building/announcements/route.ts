@@ -56,7 +56,7 @@ export async function POST(req: Request) {
           .filter((r: any) => r.profile?.email)
           .map((r: any) =>
             resend.emails.send({
-              from: process.env.RESEND_FROM_EMAIL || 'Lavo <hello@getlavo.io>',
+              from: process.env.RESEND_FROM_EMAIL || 'Lavo <harold@getlavo.io>',
               to: r.profile.email,
               subject: `[${building.name}] ${subject}`,
               html,

@@ -46,7 +46,7 @@ async function sendWaitlistNotifications(
 ) {
   const slug = building.slug || building.id.slice(0, 8);
   const admin = supabaseAdmin();
-  const from = process.env.RESEND_FROM_EMAIL || 'Lavo <hello@getlavo.io>';
+  const from = process.env.RESEND_FROM_EMAIL || 'Lavo <harold@getlavo.io>';
   const Resend = (await import('resend')).Resend;
   const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
   const link = `${APP()}/signup?role=resident&building=${encodeURIComponent(slug)}&promo=${encodeURIComponent(code)}`;
