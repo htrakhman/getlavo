@@ -15,5 +15,6 @@ export const ANALYTICS_EVENTS = {
 
 export function captureEvent(event: string, properties?: Record<string, unknown>) {
   if (typeof window === 'undefined' || !process.env.NEXT_PUBLIC_POSTHOG_KEY) return;
+  if (!posthog.__loaded) return;
   posthog.capture(event, properties);
 }
