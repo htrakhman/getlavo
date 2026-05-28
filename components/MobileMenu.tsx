@@ -30,7 +30,13 @@ export function MobileMenu({ nav, accent, user }: { nav: NavItem[]; accent: stri
           <div className="fixed inset-0 z-40 bg-black/70" onClick={() => setOpen(false)} />
           <aside className="fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-white/5 bg-ink-900 px-4 py-6">
             <div className="flex items-center justify-between">
-              <span className="font-display text-lg">Lavo</span>
+              <Link
+                href="/"
+                onClick={() => setOpen(false)}
+                className="font-display text-lg text-ink-100 hover:text-white"
+              >
+                Lavo
+              </Link>
               <button onClick={() => setOpen(false)} className="text-ink-400 hover:text-ink-100">✕</button>
             </div>
             <div className="mt-2 text-[11px] uppercase tracking-[0.18em] text-gleam">{accent}</div>
