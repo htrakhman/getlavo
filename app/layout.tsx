@@ -1,7 +1,9 @@
 import './globals.css';
 import type { Metadata } from 'next';
-import Script from 'next/script';
+import { Suspense } from 'react';
 import { ClientProviders } from '@/components/ClientProviders';
+import { PostHogPageView } from '@/components/PostHogPageView';
+import { PostHogProvider } from '@/components/PostHogProvider';
 
 export const metadata: Metadata = {
   title: 'Lavo — Premium car wash, delivered to your garage',
@@ -19,24 +21,22 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script async src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`} />
         <script
           dangerouslySetInnerHTML={{
-            __html: `
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
-              gtag('js', new Date());
-              gtag('config', '${GA_MEASUREMENT_ID}');
-            `,
+            __html: `window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', '${GA_MEASUREMENT_ID}');`,
           }}
         />
       </head>
       <body className="grain min-h-screen bg-ink-950 text-ink-100 antialiased">
-        {process.env.NEXT_PUBLIC_POSTHOG_KEY ? (
-          <Script id="posthog" strategy="afterInteractive">
-            {`window.posthog=window.posthog||[];posthog.init(${JSON.stringify(process.env.NEXT_PUBLIC_POSTHOG_KEY)},{api_host:'https://us.i.posthog.com',person_profiles:'identified_only'});`}
-          </Script>
-        ) : null}
-        <ClientProviders>
-          <div className="relative z-10">{children}</div>
-        </ClientProviders>
+        <PostHogProvider>
+          <Suspense fallback={null}>
+            <PostHogPageView />
+          </Suspense>
+          <ClientProviders>
+            <div className="relative z-10">{children}</div>
+          </ClientProviders>
+        </PostHogProvider>
       </body>
     </html>
   );
