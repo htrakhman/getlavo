@@ -4,26 +4,28 @@ import { CheckBuildingFlow } from '@/components/CheckBuildingFlow';
 
 export function ResidentFinalCta() {
   return (
-    <section id="check-building" className="mx-auto max-w-xl scroll-mt-24 px-6 py-16">
+    <section id="check-building" className="mx-auto max-w-xl scroll-mt-24 px-6 py-20">
       <h2 className="font-display text-center text-3xl font-semibold tracking-tight md:text-4xl">
-        See if Lavo is available at your building
+        Check availability at your building
       </h2>
       <p className="mx-auto mt-4 max-w-lg text-center text-ink-300">
-        Enter your building to check availability or request Lavo where you live.
+        Search your address to see if Lavo is live — or request it for your building.
       </p>
       <div className="mt-10">
-        <Suspense fallback={<div className="text-center text-sm text-ink-500">Loading address search…</div>}>
+        <Suspense
+          fallback={
+            <div className="text-center text-sm text-ink-500">Loading address search…</div>
+          }
+        >
           <CheckBuildingFlow />
         </Suspense>
       </div>
-      <div className="mt-10 flex flex-col items-center gap-3 text-center">
-        <Link href="/buildings" className="text-sm font-medium text-gleam hover:underline">
-          I manage a property
+      <p className="mt-8 text-center text-sm text-ink-500">
+        Already on Lavo?{' '}
+        <Link href="/login" className="text-ink-300 underline-offset-2 hover:text-ink-100 hover:underline">
+          Sign in
         </Link>
-        <Link href="/operators" className="text-sm text-ink-400 hover:text-ink-200 hover:underline">
-          I run a mobile car wash
-        </Link>
-      </div>
+      </p>
     </section>
   );
 }
