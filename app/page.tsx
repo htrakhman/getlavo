@@ -182,8 +182,8 @@ export default async function Home({
             </Link>
           </div>
           <div className="rounded-2xl border border-white/15 bg-ink-900/85 p-6 sm:p-8 shadow-card backdrop-blur-xl ring-1 ring-inset ring-white/[0.06]">
-            <div className="text-xs font-medium uppercase tracking-[0.18em] text-gleam mb-6">What you get</div>
-            <div className="space-y-0">
+            <div className="text-xs font-medium uppercase tracking-[0.18em] text-gleam mb-5">What you get</div>
+            <div className="divide-y divide-white/15">
               {[
                 {
                   title: 'Custom resident booking link',
@@ -202,18 +202,15 @@ export default async function Home({
                   body: 'A ready to share amenity summary for resident newsletters and leasing follow up.',
                 },
               ].map((item, index) => (
-                <div
-                  key={item.title}
-                  className={index > 0 ? 'border-t border-white/15 pt-5 mt-5' : undefined}
-                >
+                <div key={item.title} className={index === 0 ? 'pb-5' : 'py-5'}>
                   <div className="text-sm font-medium text-ink-100">{item.title}</div>
                   <p className="mt-1.5 text-sm leading-relaxed text-ink-300">{item.body}</p>
                 </div>
               ))}
+              <p className="pt-5 text-xs leading-relaxed text-ink-400">
+                No building cost. No contract. No staff training.
+              </p>
             </div>
-            <p className="mt-6 border-t border-white/15 pt-5 text-xs leading-relaxed text-ink-400">
-              No building cost. No contract. No staff training.
-            </p>
           </div>
         </div>
       </section>
