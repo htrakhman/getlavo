@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { Suspense } from 'react';
 import { MarketingNav, MarketingFooter } from '@/components/MarketingNav';
 import { RelatedLinks } from '@/components/marketing/RelatedLinks';
-import { HowLavoWorksPreview } from '@/components/marketing/HowLavoWorksVisual';
+import { FourStepGrid } from '@/components/marketing/how-it-works/FourStepGrid';
 import { CheckBuildingFlow } from '@/components/CheckBuildingFlow';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { organizationSchema, websiteSchema } from '@/lib/seo/schema';
@@ -105,7 +105,7 @@ export default async function Home({
         </div>
       </section>
 
-      <section className="relative mx-auto max-w-6xl px-6 py-14">
+      <section className="relative mx-auto max-w-6xl px-6 py-12">
         <div className="grid gap-5 md:grid-cols-2 md:gap-6">
           <div className="card p-7 text-left ring-1 ring-inset ring-white/[0.04] transition-colors hover:border-white/10">
             <div className="text-xs font-medium uppercase tracking-widest text-ink-500">Coverage</div>
@@ -133,23 +133,15 @@ export default async function Home({
         </div>
       </section>
 
-      <section className="relative mx-auto max-w-6xl px-6 py-20 border-t border-white/10">
-        <div className="mx-auto mb-12 max-w-3xl text-center">
-          <div className="text-xs uppercase tracking-[0.18em] text-gleam mb-3">How it works</div>
-          <h2 className="font-display text-3xl font-semibold tracking-tight text-ink-100 sm:text-4xl md:text-[2.75rem] md:leading-[1.12]">
-            Launch a car wash amenity without adding work for your team
-          </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-ink-300 sm:text-base">
-            On-site mobile car washes for apartment buildings.{' '}
-            <span className="font-medium text-ink-100">Buildings pay $0.</span>{' '}
-            Residents book and pay from their phone. Vetted local operators complete each wash while Lavo coordinates scheduling, reminders, payments, and payouts.
-          </p>
-        </div>
-        <HowLavoWorksPreview />
-      </section>
+      <FourStepGrid
+        className="border-t border-white/10"
+        title="How it works"
+        subtitle="Book from your phone. A vetted crew washes your car at your building. You get notified when it's done."
+        footerHref="/how-it-works"
+        footerLabel="Full guide for buildings and operators"
+      />
 
-      {/* Resident features */}
-      <section className="relative mx-auto max-w-6xl px-6 py-20">
+      <section className="relative mx-auto max-w-6xl px-6 py-20 border-t border-white/10">
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-2 items-center">
           <div>
             <div className="text-xs uppercase tracking-[0.18em] text-gleam mb-3">For residents</div>
@@ -331,7 +323,6 @@ export default async function Home({
         </dl>
       </section>
 
-      {/* Operator pitch */}
       {/* CTA strip */}
       <section className="relative mx-auto max-w-6xl px-6 py-20">
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">

@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 const STEPS = [
   {
     num: 1,
@@ -21,15 +23,32 @@ const STEPS = [
   },
 ] as const;
 
-export function FourStepGrid() {
+type FourStepGridProps = {
+  id?: string;
+  className?: string;
+  title?: string;
+  subtitle?: string;
+  footerHref?: string;
+  footerLabel?: string;
+};
+
+export function FourStepGrid({
+  id = 'how-lavo-works',
+  className = '',
+  title = 'How Lavo works',
+  subtitle = 'Simple enough to understand in a few seconds.',
+  footerHref,
+  footerLabel,
+}: FourStepGridProps) {
   return (
-    <section id="how-lavo-works" className="mx-auto max-w-6xl scroll-mt-24 px-6 py-20">
-      <h2 className="font-display text-center text-3xl font-semibold tracking-tight md:text-4xl">
-        How Lavo works
-      </h2>
-      <p className="mx-auto mt-4 max-w-xl text-center text-ink-300">
-        Simple enough to understand in a few seconds.
-      </p>
+    <section
+      id={id}
+      className={`relative mx-auto max-w-6xl scroll-mt-24 px-6 py-20 ${className}`.trim()}
+    >
+      <div className="mx-auto max-w-2xl text-center">
+        <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">{title}</h2>
+        <p className="mx-auto mt-4 text-ink-300">{subtitle}</p>
+      </div>
       <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
         {STEPS.map((step) => (
           <div key={step.num} className="card flex flex-col p-6">
@@ -41,6 +60,13 @@ export function FourStepGrid() {
           </div>
         ))}
       </div>
+      {footerHref && footerLabel && (
+        <p className="mt-10 text-center">
+          <Link href={footerHref} className="text-sm text-gleam transition-colors hover:text-gleam-300">
+            {footerLabel} →
+          </Link>
+        </p>
+      )}
     </section>
   );
 }
