@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
+import { FourStepGrid } from '@/components/marketing/how-it-works/FourStepGrid';
 
 /* ─── Shared UI primitives ───────────────────────────────────────────────── */
 
@@ -735,10 +736,15 @@ export function HowLavoWorksInfographic(props: { className?: string; showSidebar
   return <HowLavoWorksVisual className={props.className} variant={props.showSidebar === false ? 'preview' : 'full'} />;
 }
 
+/** @deprecated Homepage uses FourStepGrid — kept so stale imports never render mockups. */
 export function HowLavoWorksPreview({ className = '' }: { className?: string }) {
   return (
-    <div className={className}>
-      <HowLavoWorksVisual variant="preview" />
-    </div>
+    <FourStepGrid
+      className={className}
+      title="How it works"
+      subtitle="Book from your phone. A vetted crew washes your car at your building. You get notified when it's done."
+      footerHref="/how-it-works"
+      footerLabel="Full guide for buildings and operators"
+    />
   );
 }
