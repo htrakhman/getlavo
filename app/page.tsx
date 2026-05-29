@@ -98,14 +98,14 @@ export default async function Home({
           <div className="mt-12 border-t border-white/10 pt-10">
             <p className="text-xs uppercase tracking-[0.18em] text-ink-300 mb-5">Who are you?</p>
             <div className="mx-auto flex max-w-2xl flex-col gap-3 sm:flex-row sm:justify-center">
+              <Link href="/signup?role=building_manager" className="w-full sm:flex-1 rounded-full border border-white/25 bg-white/5 px-5 py-3 text-center text-sm text-ink-100 transition-colors hover:border-white/40 hover:bg-white/10">
+                I manage a property
+              </Link>
               <Link href="/signup?role=resident" className="w-full sm:flex-1 rounded-full border border-white/25 bg-white/5 px-5 py-3 text-center text-sm text-ink-100 transition-colors hover:border-white/40 hover:bg-white/10">
                 I&apos;m a resident
               </Link>
               <Link href="/signup?role=operator" className="w-full sm:flex-1 rounded-full border border-white/25 bg-white/5 px-5 py-3 text-center text-sm text-ink-100 transition-colors hover:border-white/40 hover:bg-white/10">
                 I run a wash crew
-              </Link>
-              <Link href="/signup?role=building_manager" className="w-full sm:flex-1 rounded-full border border-white/25 bg-white/5 px-5 py-3 text-center text-sm text-ink-100 transition-colors hover:border-white/40 hover:bg-white/10">
-                I manage a property
               </Link>
             </div>
           </div>
@@ -147,6 +147,76 @@ export default async function Home({
         footerHref="/how-it-works"
         footerLabel="Full guide for buildings and operators"
       />
+
+      {/* Property manager features */}
+      <section className="relative mx-auto max-w-6xl px-6 py-20 border-t border-white/10">
+        <div className="grid grid-cols-1 gap-12 lg:grid-cols-2 lg:gap-16 items-start">
+          <div className="max-w-lg">
+            <div className="text-xs uppercase tracking-[0.18em] text-gleam mb-3">For property managers</div>
+            <h2 className="font-display text-4xl font-semibold tracking-tight leading-[1.1] md:text-5xl mb-4">
+              A resident amenity your team does not have to manage
+            </h2>
+            <p className="text-ink-400 text-sm leading-relaxed mb-8">
+              Give residents access to convenient on site car washes without adding budget, staff time, or operational complexity.
+            </p>
+            <ul className="space-y-4 text-sm text-ink-300">
+              {[
+                'Free to add. Lavo never charges the building',
+                'Residents book and pay directly through your building link',
+                'Lavo vets local operators before they service your property',
+                'We provide QR codes, flyers, and resident announcement copy',
+                'Monthly wash day recap you can use in newsletters and renewal communication',
+                'Works with garages, surface lots, and scheduled service days',
+              ].map((text) => (
+                <li key={text} className="flex gap-3.5">
+                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-gleam/70" aria-hidden />
+                  <span className="leading-relaxed">{text}</span>
+                </li>
+              ))}
+            </ul>
+            <Link
+              href="/signup?role=building_manager"
+              className="mt-8 inline-block text-sm font-medium text-gleam hover:text-gleam-300 transition-colors"
+            >
+              Get your building link →
+            </Link>
+          </div>
+          <div className="rounded-2xl border border-white/15 bg-ink-900/85 p-6 sm:p-8 shadow-card backdrop-blur-xl ring-1 ring-inset ring-white/[0.06]">
+            <div className="text-xs font-medium uppercase tracking-[0.18em] text-gleam mb-6">What you get</div>
+            <div className="space-y-0">
+              {[
+                {
+                  title: 'Custom resident booking link',
+                  body: 'A shareable page residents can use to book washes directly.',
+                },
+                {
+                  title: 'Launch materials included',
+                  body: 'QR code, flyer copy, email copy, and resident announcement language.',
+                },
+                {
+                  title: 'Operator coordination handled',
+                  body: 'Lavo manages scheduling, payments, provider communication, and service flow.',
+                },
+                {
+                  title: 'Simple monthly recap',
+                  body: 'A ready to share amenity summary for resident newsletters and leasing follow up.',
+                },
+              ].map((item, index) => (
+                <div
+                  key={item.title}
+                  className={index > 0 ? 'border-t border-white/15 pt-5 mt-5' : undefined}
+                >
+                  <div className="text-sm font-medium text-ink-100">{item.title}</div>
+                  <p className="mt-1.5 text-sm leading-relaxed text-ink-300">{item.body}</p>
+                </div>
+              ))}
+            </div>
+            <p className="mt-6 border-t border-white/15 pt-5 text-xs leading-relaxed text-ink-400">
+              No building cost. No contract. No staff training.
+            </p>
+          </div>
+        </div>
+      </section>
 
       <section className="relative mx-auto max-w-6xl px-6 py-20 border-t border-white/10">
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-2 items-center">
@@ -243,55 +313,6 @@ export default async function Home({
             </div>
             <p className="text-xs leading-relaxed text-ink-400">
               Background check required. Stripe Connect onboarding takes under 10 minutes.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Property manager features */}
-      <section className="relative mx-auto max-w-6xl px-6 py-20 border-t border-white/10">
-        <div className="grid grid-cols-1 gap-12 lg:grid-cols-2 items-center">
-          <div>
-            <div className="text-xs uppercase tracking-[0.18em] text-gleam mb-3">For property managers</div>
-            <h2 className="font-display text-4xl font-semibold tracking-tight leading-[1.1] md:text-5xl mb-3">
-              A premium amenity, <span className="gleam-text">zero cost</span>
-            </h2>
-            <p className="text-ink-400 text-sm leading-relaxed max-w-md mb-8">
-              Add Lavo to your building in minutes. Residents get a curated car wash experience. You get a talking point for every lease renewal.
-            </p>
-            <ul className="space-y-5 text-sm text-ink-300">
-              {[
-                'Free to add — Lavo never charges the building',
-                'We vet and insure every operator before they set foot on your property',
-                'Share a QR code or link — residents sign up themselves',
-                'Monthly wash-day summary you can drop into your resident newsletter',
-                'Works with any garage or surface lot setup',
-              ].map((text) => (
-                <li key={text} className="flex gap-3.5">
-                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-gleam/70" aria-hidden />
-                  <span className="leading-relaxed">{text}</span>
-                </li>
-              ))}
-            </ul>
-            <Link href="/signup?role=building_manager" className="mt-8 inline-block text-sm text-gleam hover:text-gleam-300 transition-colors">
-              Get your building link →
-            </Link>
-          </div>
-          <div className="rounded-2xl border border-white/15 bg-ink-900/85 p-8 shadow-card backdrop-blur-xl ring-1 ring-inset ring-white/[0.06] space-y-5">
-            <div>
-              <div className="text-xs font-medium uppercase tracking-[0.18em] text-gleam">Setup</div>
-              <p className="mt-2 text-sm leading-relaxed text-ink-200">
-                Create your building profile, set your garage layout, and generate a shareable resident link — all in under 5 minutes.
-              </p>
-            </div>
-            <div className="border-t border-white/15 pt-5">
-              <div className="text-xs font-medium uppercase tracking-[0.18em] text-gleam">Ongoing</div>
-              <p className="mt-2 text-sm leading-relaxed text-ink-200">
-                Operators handle scheduling, payments, and resident communication. You just watch the amenity run itself.
-              </p>
-            </div>
-            <p className="text-xs leading-relaxed text-ink-400">
-              No contracts. No fees. Cancel any time.
             </p>
           </div>
         </div>
