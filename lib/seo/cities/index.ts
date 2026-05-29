@@ -1,3 +1,4 @@
+import { KEEP_CITY_SLUG_SET } from '@/lib/seo/keep-cities';
 import { buildCityPage } from './build-city-page';
 import { buildStatePage } from './build-state-page';
 import { NJ_MUNICIPALITIES, getMunicipalityBySlug } from './nj-municipalities';
@@ -9,6 +10,7 @@ export {
   NJ_COUNTY_SLUGS,
   getMunicipalityBySlug,
   getMunicipalitiesByCounty,
+  getKeptMunicipalitiesByCounty,
   getCountiesGrouped,
 } from './nj-municipalities';
 export type { NjMunicipality, NjCountySlug } from './nj-municipalities';
@@ -18,10 +20,20 @@ export { getCountyProfile, COUNTY_PROFILES } from './county-profiles';
 
 const STATE_SLUG = 'new-jersey';
 
-export const CITY_SLUGS = [STATE_SLUG, ...NJ_MUNICIPALITIES.map((m) => m.slug)];
+export const KEPT_MUNICIPALITIES = NJ_MUNICIPALITIES.filter((m) =>
+  KEEP_CITY_SLUG_SET.has(m.slug),
+);
+
+/** Indexable city routes: state overview plus kept municipalities only. */
+export const CITY_SLUGS = [STATE_SLUG, ...KEPT_MUNICIPALITIES.map((m) => m.slug)];
+
+export function isIndexableCitySlug(slug: string): boolean {
+  return slug === STATE_SLUG || KEEP_CITY_SLUG_SET.has(slug);
+}
 
 export function getCityPageBySlug(slug: string): CityPageViewModel | undefined {
   if (slug === STATE_SLUG) return buildStatePage();
+  if (!KEEP_CITY_SLUG_SET.has(slug)) return undefined;
   const muni = getMunicipalityBySlug(slug);
   if (!muni) return undefined;
   return buildCityPage(muni);
@@ -33,7 +45,7 @@ export function getCityBySlug(slug: string): CityPageViewModel | undefined {
 }
 
 export function getMunicipalityCityPages(): CityPageViewModel[] {
-  return NJ_MUNICIPALITIES.map((m) => buildCityPage(m));
+  return KEPT_MUNICIPALITIES.map((m) => buildCityPage(m));
 }
 
 export function getAllCityPages(): CityPageViewModel[] {

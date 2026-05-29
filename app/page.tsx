@@ -6,6 +6,8 @@ import { FourStepGrid } from '@/components/marketing/how-it-works/FourStepGrid';
 import { CheckBuildingFlow } from '@/components/CheckBuildingFlow';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { organizationSchema, websiteSchema } from '@/lib/seo/schema';
+import { FEATURED_CITY_SLUGS } from '@/lib/seo/keep-cities';
+import { getMunicipalityBySlug } from '@/lib/seo/cities';
 import { createPageMetadata } from '@/lib/seo/site';
 import { getSessionUser } from '@/lib/supabase/server';
 import { pickLandingPortal } from '@/lib/portal-routing';
@@ -19,6 +21,7 @@ export const metadata = createPageMetadata({
 });
 
 const HOME_RELATED = [
+  { href: '/cities', label: 'Lavo cities' },
   { href: '/buildings', label: 'For properties' },
   { href: '/operators', label: 'For operators' },
   { href: '/residents', label: 'For residents' },
@@ -27,6 +30,10 @@ const HOME_RELATED = [
   { href: '/safety', label: 'Safety' },
   { href: '/resources/apartment-car-wash-amenity', label: 'Apartment car wash amenity' },
   { href: '/cities/new-jersey', label: 'New Jersey' },
+  ...FEATURED_CITY_SLUGS.map((slug) => {
+    const m = getMunicipalityBySlug(slug);
+    return { href: `/cities/${slug}`, label: m?.name ?? slug };
+  }),
 ];
 
 export default async function Home({

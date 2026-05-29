@@ -1,4 +1,4 @@
-export type CityFaq = { question: string; answer: string };
+export type CityFaq = { question: string; answer: string; citySpecific?: boolean };
 
 export type CityTier = 1 | 2 | 3;
 
@@ -62,6 +62,26 @@ export type CityPageViewModel = {
   requestResident: { title: string; paragraphs: string[]; steps: string[] };
   launchProperty: { title: string; paragraphs: string[]; steps: string[] };
   faqs: CityFaq[];
+  neighborhoodsSection?: {
+    title: string;
+    neighborhoods: string[];
+    paragraph: string;
+  };
+  buildingsSection?: {
+    title: string;
+    paragraph: string;
+    buildings: { name: string; slug: string | null; status: string }[];
+  };
+  operatorsSection?: {
+    title: string;
+    paragraph: string;
+    operators: { name: string; slug: string }[];
+    bullets: string[];
+  };
+  schedulingSection?: {
+    title: string;
+    paragraphs: string[];
+  };
   nearbyCities: { slug: string; name: string }[];
   relatedLinks: { href: string; label: string }[];
   finalCta: {

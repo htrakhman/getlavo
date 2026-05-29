@@ -1,7 +1,8 @@
 import { createHash } from 'crypto';
 import tierData from '@/data/city-tiers.json';
+import { KEEP_CITY_SLUG_SET } from '@/lib/seo/keep-cities';
 import { NJ_MUNICIPALITIES, type NjMunicipality } from './nj-municipalities';
-import { getMunicipalitiesByCounty } from './nj-municipalities';
+import { getKeptMunicipalitiesByCounty } from './nj-municipalities';
 import type { CityTier } from './types';
 
 const TIER1 = new Set(tierData.tier1);
@@ -76,7 +77,7 @@ export function countWords(texts: string[]): number {
 }
 
 export function alphabeticalNeighbors(muni: NjMunicipality): string[] {
-  const inCounty = getMunicipalitiesByCounty(muni.countySlug)
+  const inCounty = getKeptMunicipalitiesByCounty(muni.countySlug)
     .map((m) => m.name)
     .sort((a, b) => a.localeCompare(b));
   const idx = inCounty.indexOf(muni.name);
@@ -89,10 +90,9 @@ export function alphabeticalNeighbors(muni: NjMunicipality): string[] {
 }
 
 export function getNearbyCities(muni: NjMunicipality): { slug: string; name: string }[] {
-  const inCounty = getMunicipalitiesByCounty(muni.countySlug).sort((a, b) =>
+  const inCounty = getKeptMunicipalitiesByCounty(muni.countySlug).sort((a, b) =>
     a.name.localeCompare(b.name),
   );
-  const tier1InCounty = inCounty.filter((m) => TIER1.has(m.slug) && m.slug !== muni.slug);
   const neighbors = inCounty.filter((m) => {
     if (m.slug === muni.slug) return false;
     const names = alphabeticalNeighbors(muni);
@@ -100,8 +100,8 @@ export function getNearbyCities(muni: NjMunicipality): { slug: string; name: str
   });
   const seen = new Set<string>();
   const result: { slug: string; name: string }[] = [];
-  for (const m of [...tier1InCounty, ...neighbors, ...inCounty]) {
-    if (m.slug === muni.slug || seen.has(m.slug)) continue;
+  for (const m of [...neighbors, ...inCounty]) {
+    if (m.slug === muni.slug || !KEEP_CITY_SLUG_SET.has(m.slug) || seen.has(m.slug)) continue;
     seen.add(m.slug);
     result.push({ slug: m.slug, name: getLocalDisplayName(m) });
     if (result.length >= 6) break;

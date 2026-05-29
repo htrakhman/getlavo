@@ -1,4 +1,5 @@
 import manifest from '@/data/nj-municipalities.json';
+import { KEEP_CITY_SLUG_SET, KEEP_COUNTY_SLUG_SET } from '@/lib/seo/keep-cities';
 
 export type NjMunicipality = {
   name: string;
@@ -47,14 +48,23 @@ export function getMunicipalitiesByCounty(countySlug: string): NjMunicipality[] 
   return NJ_MUNICIPALITIES.filter((m) => m.countySlug === countySlug);
 }
 
+/** Kept municipalities in a county (for public SEO surfaces). */
+export function getKeptMunicipalitiesByCounty(countySlug: string): NjMunicipality[] {
+  if (!KEEP_COUNTY_SLUG_SET.has(countySlug)) return [];
+  return NJ_MUNICIPALITIES.filter(
+    (m) => m.countySlug === countySlug && KEEP_CITY_SLUG_SET.has(m.slug),
+  );
+}
+
 export function getCountiesGrouped(): { county: string; countySlug: string; municipalities: NjMunicipality[] }[] {
   const map = new Map<string, NjMunicipality[]>();
   for (const m of NJ_MUNICIPALITIES) {
+    if (!KEEP_CITY_SLUG_SET.has(m.slug)) continue;
     const list = map.get(m.countySlug) ?? [];
     list.push(m);
     map.set(m.countySlug, list);
   }
-  return NJ_COUNTY_SLUGS.filter((slug) => map.has(slug)).map((countySlug) => {
+  return NJ_COUNTY_SLUGS.filter((slug) => KEEP_COUNTY_SLUG_SET.has(slug) && map.has(slug)).map((countySlug) => {
     const municipalities = map.get(countySlug)!;
     return {
       county: municipalities[0]!.county,

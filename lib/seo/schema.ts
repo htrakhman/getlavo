@@ -163,6 +163,45 @@ export function webPageSchema({ path, name, description }: WebPageSchemaInput) {
 
 type FaqItem = { question: string; answer: string };
 
+type LocalBusinessBuildingInput = {
+  name: string;
+  path: string;
+  city: string;
+  state: string;
+  county?: string;
+};
+
+export function localBusinessSchema({
+  name,
+  path,
+  city,
+  state,
+  county,
+}: LocalBusinessBuildingInput) {
+  const url = `${SITE_ORIGIN}${path}`;
+  const schema: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'LocalBusiness',
+    '@id': `${url}#localbusiness`,
+    name,
+    url,
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: city,
+      addressRegion: state,
+      addressCountry: 'US',
+    },
+  };
+  if (county) {
+    (schema.address as Record<string, unknown>).addressRegion = `${state}`;
+    schema.areaServed = {
+      '@type': 'AdministrativeArea',
+      name: `${county} County`,
+    };
+  }
+  return schema;
+}
+
 export function faqPageSchema(path: string, items: FaqItem[]) {
   return {
     '@context': 'https://schema.org',

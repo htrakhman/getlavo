@@ -1,11 +1,9 @@
+import { KEEP_COUNTY_SLUGS } from '@/lib/seo/keep-cities';
 import { getCountyProfile } from './county-profiles';
-import { getMunicipalitiesByCounty, NJ_COUNTY_SLUGS } from './nj-municipalities';
+import { getKeptMunicipalitiesByCounty } from './nj-municipalities';
 import { getCityTier } from './utils';
-import tierData from '@/data/city-tiers.json';
 import type { CityFaq, CityPageViewModel } from './types';
 import { trimMetaDescription } from './utils';
-
-const TIER1 = new Set(tierData.tier1);
 
 export type CountyPageViewModel = {
   county: string;
@@ -24,11 +22,11 @@ export type CountyPageViewModel = {
 };
 
 export function getCountySlugs(): string[] {
-  return [...NJ_COUNTY_SLUGS];
+  return [...KEEP_COUNTY_SLUGS];
 }
 
 export function buildCountyPage(countySlug: string): CountyPageViewModel | undefined {
-  const municipalities = getMunicipalitiesByCounty(countySlug);
+  const municipalities = getKeptMunicipalitiesByCounty(countySlug);
   if (!municipalities.length) return undefined;
 
   const county = municipalities[0]!.county;
@@ -39,7 +37,6 @@ export function buildCountyPage(countySlug: string): CountyPageViewModel | undef
     .sort((a, b) => a.name.localeCompare(b.name));
 
   const topCities = municipalities
-    .filter((m) => TIER1.has(m.slug))
     .map((m) => ({ slug: m.slug, name: m.name }))
     .sort((a, b) => a.name.localeCompare(b.name))
     .slice(0, 8);

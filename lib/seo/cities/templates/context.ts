@@ -12,7 +12,7 @@ import {
   getSeoLocalityLabel,
   pick,
 } from '../utils';
-import { getMunicipalitiesByCounty, type NjMunicipality } from '../nj-municipalities';
+import { getKeptMunicipalitiesByCounty, type NjMunicipality } from '../nj-municipalities';
 import type { CityEnrichment, CityTier } from '../types';
 
 const PARKING_BY_TYPE: Record<string, string> = {
@@ -62,7 +62,7 @@ export function buildContext(muni: NjMunicipality): CityTemplateContext {
   const enrichment = getMergedEnrichment(muni.slug);
   const flags = getRegionFlags(muni.countySlug);
   const neighbors = alphabeticalNeighbors(muni).map((n) => {
-    const match = getMunicipalitiesByCounty(muni.countySlug).find((x) => x.name === n);
+    const match = getKeptMunicipalitiesByCounty(muni.countySlug).find((x) => x.name === n);
     return match ? getLocalDisplayName(match) : n;
   });
   const parkingTypes =
