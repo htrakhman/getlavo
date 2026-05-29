@@ -1,5 +1,7 @@
+import { FEATURED_CITY_SLUGS } from '@/lib/seo/keep-cities';
+import { getMunicipalityBySlug } from './nj-municipalities';
 import type { CityPageViewModel } from './types';
-import { trimMetaDescription } from './utils';
+import { getLocalDisplayName, trimMetaDescription } from './utils';
 
 export function buildStatePage(): CityPageViewModel {
   const name = 'New Jersey';
@@ -202,7 +204,10 @@ export function buildStatePage(): CityPageViewModel {
       { question: 'Where does service happen?', answer: 'In approved garage, lot, or designated building areas per property rules.' },
       { question: 'Can street parking work?', answer: 'Lavo works best with property-approved areas; street parking is often harder to support.' },
     ],
-    nearbyCities: [],
+    nearbyCities: FEATURED_CITY_SLUGS.map((slug) => {
+      const m = getMunicipalityBySlug(slug)!;
+      return { slug, name: getLocalDisplayName(m) };
+    }),
     relatedLinks: [
       { href: '/cities', label: 'All Lavo cities' },
       { href: '/resources/mobile-car-wash-apartment-garage', label: 'Mobile car wash in apartment garages' },

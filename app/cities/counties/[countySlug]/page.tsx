@@ -6,6 +6,8 @@ import { createPageMetadata } from '@/lib/seo/site';
 
 type Props = { params: { countySlug: string } };
 
+export const dynamicParams = false;
+
 export function generateStaticParams() {
   return getCountySlugs().map((countySlug) => ({ countySlug }));
 }

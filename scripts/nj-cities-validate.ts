@@ -5,7 +5,13 @@
 
 import manifest from '../data/nj-municipalities.json';
 import tierData from '../data/city-tiers.json';
-import { getAllCityPages, getMunicipalityCityPages, NJ_MUNICIPALITIES } from '../lib/seo/cities';
+import { KEEP_CITY_SLUGS } from '../lib/seo/keep-cities';
+import {
+  getAllCityPages,
+  getMunicipalityCityPages,
+  KEPT_MUNICIPALITIES,
+  NJ_MUNICIPALITIES,
+} from '../lib/seo/cities';
 import { SHORE_COUNTY_SLUGS } from '../lib/seo/cities/region-flags';
 import { countWords } from '../lib/seo/cities/utils';
 
@@ -13,18 +19,7 @@ const TIER1 = new Set(tierData.tier1);
 const SHORE = new Set(SHORE_COUNTY_SLUGS);
 const SHORE_PHRASES = ['Shore-adjacent', 'shore-adjacent', 'shore-season'];
 
-const EXISTING_SLUGS = [
-  'new-jersey',
-  'jersey-city',
-  'hoboken',
-  'newark',
-  'morristown',
-  'edgewater',
-  'fort-lee',
-  'weehawken',
-  'hackensack',
-  'paramus',
-];
+const EXISTING_SLUGS = ['new-jersey', ...KEEP_CITY_SLUGS];
 
 const MIN_WORDS: Record<1 | 2 | 3, number> = { 1: 1000, 2: 750, 3: 750 };
 const MIN_FAQS: Record<1 | 2 | 3, number> = { 1: 12, 2: 10, 3: 8 };
@@ -93,8 +88,10 @@ function main() {
     if (!allPages.some((c) => c.slug === slug)) fail(`Missing preserved slug: ${slug}`);
   }
 
-  if (municipalityPages.length !== rows.length) {
-    fail(`Page count ${municipalityPages.length} does not match manifest ${rows.length}`);
+  if (municipalityPages.length !== KEPT_MUNICIPALITIES.length) {
+    fail(
+      `Kept page count ${municipalityPages.length} does not match kept manifest ${KEPT_MUNICIPALITIES.length}`,
+    );
   }
 
   const titles = new Set<string>();
@@ -182,7 +179,7 @@ function main() {
   }
 
   console.log(
-    `OK: ${rows.length} municipalities, ${allPages.length} total city pages (incl. state)`,
+    `OK: ${rows.length} municipalities in manifest, ${KEPT_MUNICIPALITIES.length} kept indexable, ${allPages.length} total city pages (incl. state)`,
   );
 }
 

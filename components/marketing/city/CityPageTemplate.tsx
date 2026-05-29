@@ -4,10 +4,12 @@ import {
   breadcrumbSchema,
   faqPageSchema,
   jsonLdGraph,
+  localBusinessSchema,
   organizationSchema,
   serviceSchema,
   webPageSchema,
 } from '@/lib/seo/schema';
+import Link from 'next/link';
 import { AtAGlanceBox } from './AtAGlanceBox';
 import { CityNextSteps } from './CityNextSteps';
 import { AudienceCards } from './AudienceCards';
@@ -45,6 +47,20 @@ export function CityPageTemplate({ page }: { page: CityPageViewModel }) {
     ? 'New Jersey'
     : { city: page.localName, state: 'New Jersey', county: page.county };
 
+  const buildingSchemas =
+    page.buildingsSection?.buildings
+      .filter((b) => b.slug)
+      .slice(0, 5)
+      .map((b) =>
+        localBusinessSchema({
+          name: b.name,
+          path: `/building/${b.slug}`,
+          city: page.localName,
+          state: 'NJ',
+          county: page.county,
+        }),
+      ) ?? [];
+
   const graph = jsonLdGraph([
     organizationSchema(),
     webPageSchema({
@@ -64,6 +80,7 @@ export function CityPageTemplate({ page }: { page: CityPageViewModel }) {
       audience: 'Apartment residents, property managers, and mobile wash operators',
       areaServed,
     }),
+    ...buildingSchemas,
     faqPageSchema(path, page.faqs),
   ]);
 
@@ -96,6 +113,46 @@ export function CityPageTemplate({ page }: { page: CityPageViewModel }) {
         title={page.overview.title}
         paragraphs={page.overview.paragraphs}
       />
+      {page.neighborhoodsSection ? (
+        <SeoContentSection
+          title={page.neighborhoodsSection.title}
+          paragraphs={[page.neighborhoodsSection.paragraph]}
+          bullets={page.neighborhoodsSection.neighborhoods}
+        />
+      ) : null}
+      {page.buildingsSection ? (
+        <section className="mb-10">
+          <h2 className="font-display text-2xl text-ink-100">{page.buildingsSection.title}</h2>
+          <p className="mt-4 text-sm leading-relaxed text-ink-300">{page.buildingsSection.paragraph}</p>
+          <ul className="mt-4 space-y-2 text-sm text-ink-300">
+            {page.buildingsSection.buildings.map((b) => (
+              <li key={b.name}>
+                {b.slug ? (
+                  <Link href={`/building/${b.slug}`} className="text-gleam hover:underline">
+                    {b.name}
+                  </Link>
+                ) : (
+                  b.name
+                )}
+                <span className="text-ink-500"> ({b.status})</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+      {page.operatorsSection ? (
+        <SeoContentSection
+          title={page.operatorsSection.title}
+          paragraphs={[page.operatorsSection.paragraph]}
+          bullets={page.operatorsSection.bullets}
+        />
+      ) : null}
+      {page.schedulingSection ? (
+        <SeoContentSection
+          title={page.schedulingSection.title}
+          paragraphs={page.schedulingSection.paragraphs}
+        />
+      ) : null}
       <CityCtaBand
         label="See if Lavo is available at your building"
         href="#request-lavo"
