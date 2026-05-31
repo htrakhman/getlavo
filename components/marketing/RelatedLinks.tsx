@@ -80,14 +80,23 @@ export function RelatedLinks({
   const groups =
     groupsProp ?? (flatLinks.length >= 8 ? groupRelatedLinks(flatLinks) : null);
 
+  const groupCols =
+    groups && groups.length >= 4
+      ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'
+      : groups && groups.length === 3
+        ? 'grid-cols-1 sm:grid-cols-3'
+        : 'grid-cols-1 sm:grid-cols-2';
+
   return (
-    <nav className="mb-10 border-t border-white/10 pt-10" aria-label={title}>
+    <nav className="mb-10 border-t border-white/10 pt-10 text-center" aria-label={title}>
       <h2 className="text-xs font-medium uppercase tracking-widest text-ink-500">{title}</h2>
 
       {groups ? (
-        <div className="mt-6 grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+        <div
+          className={`mx-auto mt-6 grid w-fit max-w-full gap-x-16 gap-y-10 text-left ${groupCols}`}
+        >
           {groups.map((group) => (
-            <div key={group.title}>
+            <div key={group.title} className="min-w-[10rem]">
               <h3 className="mb-3 text-xs font-medium uppercase tracking-wider text-ink-400">
                 {group.title}
               </h3>
@@ -96,7 +105,7 @@ export function RelatedLinks({
           ))}
         </div>
       ) : (
-        <ul className="mt-4 grid gap-x-8 gap-y-2.5 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="mx-auto mt-4 grid w-fit max-w-full gap-x-8 gap-y-2.5 text-left sm:grid-cols-2 lg:grid-cols-3">
           {flatLinks.map((link) => (
             <li key={link.href}>
               <Link
