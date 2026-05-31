@@ -97,9 +97,6 @@ export default async function Home({
       {/* Hero */}
       <section className="relative pt-16 pb-24 text-center px-6">
         <div className="mx-auto max-w-4xl">
-          <div className="inline-flex items-center gap-2 rounded-full border border-gleam/30 bg-gleam/5 px-4 py-1.5 text-xs font-medium text-gleam mb-8">
-            Mobile car wash · For apartment residents
-          </div>
           <h1 className="font-display text-5xl font-semibold leading-[1.05] tracking-tight md:text-6xl lg:text-7xl">
             Wash your car without<br />
             <span className="gleam-text">thinking about it.</span>

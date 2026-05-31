@@ -4,12 +4,13 @@ import { homePathForSignupRole, normalizeSignupRole, pickLandingPortal, portalFo
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
+  const code = searchParams.get('code');
   const token_hash = searchParams.get('token_hash');
   const type = searchParams.get('type') as 'email' | 'recovery' | 'invite' | null;
   const role = normalizeSignupRole(searchParams.get('role'));
   const next = searchParams.get('next');
 
-  if (!token_hash || !type) {
+  if (!code && (!token_hash || !type)) {
     return NextResponse.redirect(`${origin}/login?error=missing_token`);
   }
 
@@ -28,21 +29,27 @@ export async function GET(request: NextRequest) {
     }
   );
 
-  const { error } = await supabase.auth.verifyOtp({ token_hash, type });
-
   function redirect(url: string) {
     const response = NextResponse.redirect(url);
     pendingCookies.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
     return response;
   }
 
-  if (error) {
-    return redirect(`${origin}/login?error=${encodeURIComponent(error.message)}`);
-  }
+  if (code) {
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    if (error) {
+      return redirect(`${origin}/login?error=${encodeURIComponent(error.message)}`);
+    }
+  } else {
+    const { error } = await supabase.auth.verifyOtp({ token_hash: token_hash!, type: type! });
+    if (error) {
+      return redirect(`${origin}/login?error=${encodeURIComponent(error.message)}`);
+    }
 
-  // Password reset — send to the reset page
-  if (type === 'recovery') {
-    return redirect(`${origin}/reset-password`);
+    // Password reset — send to the reset page
+    if (type === 'recovery') {
+      return redirect(`${origin}/reset-password`);
+    }
   }
 
   // If a next= param was passed, honour it (must be a known portal path)

@@ -176,6 +176,26 @@ function SignupForm() {
     window.location.assign(`/auth/continue?next=${encodeURIComponent(home)}`);
   }
 
+  async function resendConfirmation() {
+    if (!email || !role) return;
+    setBusy(true);
+    setErr(null);
+    const sb = supabaseBrowser();
+    const confirmUrl = new URL('/auth/confirm', window.location.origin);
+    confirmUrl.searchParams.set('role', role);
+    const { error } = await sb.auth.resend({
+      type: 'signup',
+      email,
+      options: { emailRedirectTo: confirmUrl.toString() },
+    });
+    setBusy(false);
+    if (error) {
+      setErr(error.message);
+      return;
+    }
+    setInfo('We sent another confirmation email. Check your inbox and spam folder.');
+  }
+
   async function signUpWithGoogle() {
     if (!role) {
       setErr('Choose the type of account you are creating first.');
@@ -282,7 +302,19 @@ function SignupForm() {
             />
           </div>
           <Turnstile onToken={setCaptcha} />
-          {info && <div className="text-sm text-emerald-400/90">{info}</div>}
+          {info && (
+            <div className="space-y-3">
+              <div className="text-sm text-emerald-400/90">{info}</div>
+              <button
+                type="button"
+                onClick={resendConfirmation}
+                disabled={busy || !email}
+                className="text-sm text-gleam underline underline-offset-2 disabled:opacity-50"
+              >
+                Resend confirmation email
+              </button>
+            </div>
+          )}
           {err && (
             <div className="text-sm text-red-400">
               {err}{' '}
