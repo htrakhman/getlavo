@@ -20,20 +20,38 @@ export const metadata = createPageMetadata({
     'Lavo connects apartment residents, property managers, and vetted mobile car wash operators so residents can book car washes without leaving home.',
 });
 
-const HOME_RELATED = [
-  { href: '/cities', label: 'Lavo cities' },
-  { href: '/buildings', label: 'For properties' },
-  { href: '/operators', label: 'For operators' },
-  { href: '/residents', label: 'For residents' },
-  { href: '/how-it-works', label: 'How it works' },
-  { href: '/about', label: 'About' },
-  { href: '/safety', label: 'Safety' },
-  { href: '/resources/apartment-car-wash-amenity', label: 'Apartment car wash amenity' },
-  { href: '/cities/new-jersey', label: 'New Jersey' },
-  ...FEATURED_CITY_SLUGS.map((slug) => {
-    const m = getMunicipalityBySlug(slug);
-    return { href: `/cities/${slug}`, label: m?.name ?? slug };
-  }),
+const HOME_RELATED_GROUPS = [
+  {
+    title: 'Platform',
+    links: [
+      { href: '/cities', label: 'Lavo cities' },
+      { href: '/buildings', label: 'For properties' },
+      { href: '/operators', label: 'For operators' },
+      { href: '/residents', label: 'For residents' },
+      { href: '/how-it-works', label: 'How it works' },
+    ],
+  },
+  {
+    title: 'Company',
+    links: [
+      { href: '/about', label: 'About' },
+      { href: '/safety', label: 'Safety' },
+      {
+        href: '/resources/apartment-car-wash-amenity',
+        label: 'Apartment car wash amenity',
+      },
+    ],
+  },
+  {
+    title: 'New Jersey',
+    links: [
+      { href: '/cities/new-jersey', label: 'All NJ cities' },
+      ...FEATURED_CITY_SLUGS.map((slug) => {
+        const m = getMunicipalityBySlug(slug);
+        return { href: `/cities/${slug}`, label: m?.name ?? slug };
+      }),
+    ],
+  },
 ];
 
 export default async function Home({
@@ -364,8 +382,8 @@ export default async function Home({
         </div>
       </section>
 
-      <section className="relative mx-auto max-w-3xl px-6 pb-8">
-        <RelatedLinks links={HOME_RELATED} title="Explore Lavo" />
+      <section className="relative mx-auto max-w-6xl px-6 pb-8">
+        <RelatedLinks groups={HOME_RELATED_GROUPS} title="Explore Lavo" />
       </section>
 
       <MarketingFooter />
