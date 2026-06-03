@@ -58,8 +58,7 @@ export default function BuildingsPage() {
             <span className="gleam-text">Completely free.</span>
           </h1>
           <p className="mx-auto mt-6 max-w-xl text-lg text-ink-300">
-            Give your residents a convenient car wash service — powered by a local operator —
-            without adding a line item to your budget.
+            Give residents on-site car care without adding cost, staff, or operational work.
           </p>
           <div className="mt-10">
             <Link href="/signup?role=building_manager" className="btn-primary px-8 py-3 text-base">
@@ -114,7 +113,10 @@ export default function BuildingsPage() {
         <ol className="space-y-6">
           {[
             ['Enter your building address', 'Takes 60 seconds. We auto-generate a branded landing page and QR code for your building.'],
-            ['Browse nearby car washes', 'See local operators within your building\'s radius. Review prices, ratings, and services.'],
+            [
+              'Browse nearby car washes or get matched by the Lavo team',
+              'See local operators within your building\'s radius, or let us pair you with a vetted crew.',
+            ],
             ['Request a partnership', 'Pick an operator and send a request. They accept, and the partnership goes live instantly.'],
             ['Share the QR code', 'Post it in your lobby, elevator, or parking area. Include the link in your resident newsletter.'],
             ['Residents book and pay', 'Residents sign up through your link and book washes directly. You\'re not involved.'],
