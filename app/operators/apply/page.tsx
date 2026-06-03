@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import { MarketingNav, MarketingFooter } from '@/components/MarketingNav';
+import { MarketingNav } from '@/components/MarketingNav';
 import { OperatorApplyFormLoader } from '@/components/OperatorApplyFormLoader';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { breadcrumbSchema } from '@/lib/seo/schema';
@@ -45,7 +45,6 @@ export default function OperatorApplyPage() {
         </Suspense>
       </section>
 
-      <MarketingFooter />
     </main>
   );
 }

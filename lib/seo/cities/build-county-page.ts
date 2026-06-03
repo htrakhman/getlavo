@@ -122,8 +122,12 @@ export function buildCountyPage(countySlug: string): CountyPageViewModel | undef
       },
     ],
     relatedLinks: [
-      { href: '/cities/new-jersey', label: 'Lavo in New Jersey' },
       { href: '/cities', label: 'All Lavo cities' },
+      { href: '/cities/new-jersey', label: 'Lavo in New Jersey' },
+      ...KEEP_COUNTY_SLUGS.filter((s) => s !== countySlug).map((s) => ({
+        href: `/cities/counties/${s}`,
+        label: `${s === 'hudson' ? 'Hudson' : s === 'bergen' ? 'Bergen' : 'Middlesex'} County`,
+      })),
       { href: '/buildings', label: 'For property managers' },
       { href: '/operators', label: 'For operators' },
       { href: '/residents', label: 'For residents' },

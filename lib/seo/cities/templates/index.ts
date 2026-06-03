@@ -131,8 +131,10 @@ export function buildCityPage(muni: NjMunicipality): CityPageViewModel {
     faqs: buildFaqs(ctx),
     nearbyCities: getNearbyCities(muni),
     relatedLinks: [
+      { href: '/cities', label: 'All Lavo cities' },
       { href: `/cities/counties/${countySlug}`, label: `Lavo in ${county} County` },
       { href: '/cities/new-jersey', label: 'Lavo in New Jersey' },
+      { href: '/resources/car-wash-amenity-for-property-managers', label: 'Car wash amenity for property managers' },
       { href: '/resources/mobile-car-wash-apartment-garage', label: 'Mobile car wash in apartment garages' },
       { href: '/resources/apartment-car-wash-amenity', label: 'Apartment car wash amenity' },
       { href: '/how-it-works', label: 'How Lavo works' },

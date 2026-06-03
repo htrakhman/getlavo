@@ -1,4 +1,4 @@
-import { MarketingNav, MarketingFooter } from '@/components/MarketingNav';
+import { MarketingNav } from '@/components/MarketingNav';
 
 type ContentPageShellProps = {
   children: React.ReactNode;
@@ -17,7 +17,6 @@ export function ContentPageShell({
       <div className={`absolute inset-x-0 top-0 ${fadeHeight} bg-gleam-fade`} />
       <MarketingNav />
       <div className={`relative mx-auto ${widthClass} px-6 pb-20 pt-10`}>{children}</div>
-      <MarketingFooter />
     </main>
   );
 }

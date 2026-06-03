@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Breadcrumbs } from '@/components/marketing/Breadcrumbs';
 import { CitiesIndexFilter } from '@/components/marketing/CitiesIndexFilter';
 import { ContentPageShell } from '@/components/marketing/ContentPageShell';
 import { JsonLd } from '@/components/seo/JsonLd';
@@ -53,6 +54,12 @@ export default function CitiesIndexPage() {
             audience: 'Apartment residents, property managers, and operators',
             areaServed: 'New Jersey',
           }),
+        ]}
+      />
+      <Breadcrumbs
+        items={[
+          { name: 'Home', path: '/' },
+          { name: 'Cities', path: '/cities' },
         ]}
       />
       <header className="mb-10">

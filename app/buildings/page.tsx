@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { MarketingNav, MarketingFooter } from '@/components/MarketingNav';
+import { MarketingNav } from '@/components/MarketingNav';
 import { RelatedLinks } from '@/components/marketing/RelatedLinks';
 import { EnterpriseLeadForm } from '@/components/EnterpriseLeadForm';
 import { JsonLd } from '@/components/seo/JsonLd';
@@ -160,7 +160,6 @@ export default function BuildingsPage() {
         <RelatedLinks links={BUILDINGS_RELATED} />
       </section>
 
-      <MarketingFooter />
     </main>
   );
 }

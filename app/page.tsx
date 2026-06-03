@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Suspense } from 'react';
-import { MarketingNav, MarketingFooter } from '@/components/MarketingNav';
+import { MarketingNav } from '@/components/MarketingNav';
+import { getHomepageResourceLinks } from '@/lib/seo/internal-links';
 import { RelatedLinks } from '@/components/marketing/RelatedLinks';
 import { FourStepGrid } from '@/components/marketing/how-it-works/FourStepGrid';
 import { CheckBuildingFlow } from '@/components/CheckBuildingFlow';
@@ -26,20 +27,20 @@ const HOME_RELATED_GROUPS = [
     links: [
       { href: '/cities', label: 'Lavo cities' },
       { href: '/buildings', label: 'For properties' },
-      { href: '/operators', label: 'For operators' },
       { href: '/residents', label: 'For residents' },
       { href: '/how-it-works', label: 'How it works' },
     ],
+  },
+  {
+    title: 'Guides',
+    links: getHomepageResourceLinks(),
   },
   {
     title: 'Company',
     links: [
       { href: '/about', label: 'About' },
       { href: '/safety', label: 'Safety' },
-      {
-        href: '/resources/apartment-car-wash-amenity',
-        label: 'Apartment car wash amenity',
-      },
+      { href: '/contact', label: 'Contact' },
     ],
   },
   {
@@ -386,7 +387,6 @@ export default async function Home({
         <RelatedLinks groups={HOME_RELATED_GROUPS} title="Explore Lavo" />
       </section>
 
-      <MarketingFooter />
     </main>
   );
 }

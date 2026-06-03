@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { MarketingNav, MarketingFooter } from '@/components/MarketingNav';
+import { MarketingNav } from '@/components/MarketingNav';
 import { RelatedLinks } from '@/components/marketing/RelatedLinks';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { breadcrumbSchema, serviceSchema } from '@/lib/seo/schema';
@@ -170,7 +170,6 @@ export default function OperatorsPage() {
         <RelatedLinks links={OPERATORS_RELATED} />
       </section>
 
-      <MarketingFooter />
     </main>
   );
 }

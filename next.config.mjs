@@ -3,6 +3,20 @@ const nextConfig = {
   experimental: { serverActions: { bodySizeLimit: '4mb' } },
   images: { remotePatterns: [{ protocol: 'https', hostname: '**' }] },
   skipTrailingSlashRedirect: true,
+  async redirects() {
+    return [
+      {
+        source: '/hoboken/waterfront/apartment-car-wash',
+        destination: '/cities/hoboken',
+        permanent: true,
+      },
+      {
+        source: '/jersey-city/downtown/apartment-car-wash',
+        destination: '/cities/jersey-city',
+        permanent: true,
+      },
+    ];
+  },
   async rewrites() {
     return [
       {

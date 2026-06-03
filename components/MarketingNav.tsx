@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import { FOOTER_COLUMNS } from '@/lib/seo/internal-links';
 import { Logo } from './Logo';
 import { useEffect, useRef, useState } from 'react';
 
@@ -82,25 +83,30 @@ function ChevronDown() {
 export function MarketingFooter() {
   return (
     <footer className="border-t border-white/5 px-6 py-10 text-sm text-ink-400">
-      <div className="mx-auto flex max-w-7xl flex-col gap-6 md:flex-row md:items-start md:justify-between">
+      <div className="mx-auto grid max-w-7xl gap-10 md:grid-cols-[minmax(0,12rem)_1fr] md:items-start">
         <Logo size="sm" />
-        <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs md:text-sm">
-          <Link href="/about" className="hover:text-ink-100">About</Link>
-          <Link href="/safety" className="hover:text-ink-100">Safety</Link>
-          <Link href="/how-it-works" className="hover:text-ink-100">How it works</Link>
-          <Link href="/help" className="hover:text-ink-100">Help</Link>
-          <Link href="/operators" className="hover:text-ink-100">Operators</Link>
-          <Link href="/residents" className="hover:text-ink-100">Residents</Link>
-          <Link href="/buildings" className="hover:text-ink-100">Properties</Link>
-          <Link href="/legal/terms" className="hover:text-ink-100">Terms</Link>
-          <Link href="/legal/privacy" className="hover:text-ink-100">Privacy</Link>
-          <Link href="/legal/damage-policy" className="hover:text-ink-100">Damage</Link>
-          <Link href="/contact" className="hover:text-ink-100">Contact</Link>
-          <Link href="/press" className="hover:text-ink-100">Press</Link>
-          <Link href="/careers" className="hover:text-ink-100">Careers</Link>
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+          {FOOTER_COLUMNS.map((column) => (
+            <div key={column.title}>
+              <h2 className="text-xs font-medium uppercase tracking-widest text-ink-500">
+                {column.title}
+              </h2>
+              <ul className="mt-3 space-y-2 text-xs md:text-sm">
+                {column.links.map((link) => (
+                  <li key={link.href}>
+                    <Link href={link.href} className="hover:text-ink-100">
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
       </div>
-      <div className="mx-auto mt-8 max-w-7xl text-center text-xs text-ink-500">© {new Date().getFullYear()} Lavo, Inc.</div>
+      <div className="mx-auto mt-8 max-w-7xl text-center text-xs text-ink-500">
+        © {new Date().getFullYear()} Lavo, Inc.
+      </div>
     </footer>
   );
 }

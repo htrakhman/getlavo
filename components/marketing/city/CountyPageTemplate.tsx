@@ -1,5 +1,7 @@
 import Link from 'next/link';
+import { Breadcrumbs } from '@/components/marketing/Breadcrumbs';
 import { JsonLd } from '@/components/seo/JsonLd';
+import { getCountyCrossLinks } from '@/lib/seo/internal-links';
 import type { CountyPageViewModel } from '@/lib/seo/cities/build-county-page';
 import {
   breadcrumbSchema,
@@ -37,10 +39,22 @@ export function CountyPageTemplate({ page }: { page: CountyPageViewModel }) {
     faqPageSchema(path, page.faqs),
   ]);
 
+  const otherCounties = getCountyCrossLinks(page.countySlug);
+
   return (
     <>
       <JsonLd data={graph} />
+      <Breadcrumbs items={breadcrumbs} />
       <header className="mb-10">
+        <p className="mb-3 text-sm text-ink-400">
+          <Link href="/cities" className="text-gleam hover:underline">
+            All Lavo cities
+          </Link>
+          {' · '}
+          <Link href="/cities/new-jersey" className="text-gleam hover:underline">
+            New Jersey overview
+          </Link>
+        </p>
         <h1 className="font-display text-3xl leading-tight text-ink-50 sm:text-4xl">{page.h1}</h1>
         <p className="mt-4 text-base leading-relaxed text-ink-200">{page.meta.description}</p>
       </header>
@@ -102,6 +116,20 @@ export function CountyPageTemplate({ page }: { page: CountyPageViewModel }) {
         citySlug={page.countySlug}
         countySlug={page.countySlug}
       />
+      {otherCounties.length > 0 ? (
+        <section className="mb-10">
+          <h2 className="font-display text-2xl text-ink-100">Other counties</h2>
+          <ul className="mt-4 flex flex-wrap gap-2">
+            {otherCounties.map((link) => (
+              <li key={link.href}>
+                <Link href={link.href} className="chip hover:border-gleam/40 hover:text-gleam">
+                  {link.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
       <section className="mb-10">
         <h2 className="font-display text-2xl text-ink-100">Related Lavo resources</h2>
         <ul className="mt-4 space-y-2 text-sm">

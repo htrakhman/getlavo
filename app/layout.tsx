@@ -1,6 +1,7 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
+import { MarketingFooter } from '@/components/MarketingNav';
 import { ClientProviders } from '@/components/ClientProviders';
 import { PostHogPageView } from '@/components/PostHogPageView';
 import { PostHogProvider } from '@/components/PostHogProvider';
@@ -34,7 +35,10 @@ gtag('config', '${GA_MEASUREMENT_ID}');`,
             <PostHogPageView />
           </Suspense>
           <ClientProviders>
-            <div className="relative z-10">{children}</div>
+            <div className="relative z-10 flex min-h-screen flex-col">
+              <div className="flex-1">{children}</div>
+              <MarketingFooter />
+            </div>
           </ClientProviders>
         </PostHogProvider>
       </body>

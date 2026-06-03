@@ -1,4 +1,4 @@
-import { MarketingNav, MarketingFooter } from '@/components/MarketingNav';
+import { MarketingNav } from '@/components/MarketingNav';
 import { ForBuildingsAndTeams } from '@/components/marketing/how-it-works/ForBuildingsAndTeams';
 import { FourStepGrid } from '@/components/marketing/how-it-works/FourStepGrid';
 import { ProcessReassurance } from '@/components/marketing/how-it-works/ProcessReassurance';
@@ -74,7 +74,6 @@ export default function HowItWorksPage() {
         <RelatedLinks links={HOW_IT_WORKS_RELATED} />
       </section>
 
-      <MarketingFooter />
     </main>
   );
 }

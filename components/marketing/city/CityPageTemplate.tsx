@@ -10,6 +10,7 @@ import {
   webPageSchema,
 } from '@/lib/seo/schema';
 import Link from 'next/link';
+import { Breadcrumbs } from '@/components/marketing/Breadcrumbs';
 import { AtAGlanceBox } from './AtAGlanceBox';
 import { CityNextSteps } from './CityNextSteps';
 import { AudienceCards } from './AudienceCards';
@@ -91,6 +92,7 @@ export function CityPageTemplate({ page }: { page: CityPageViewModel }) {
   return (
     <>
       <JsonLd data={graph} />
+      <Breadcrumbs items={breadcrumbs} />
       <CityHero
         h1={page.h1}
         subheadline={page.hero.subheadline}

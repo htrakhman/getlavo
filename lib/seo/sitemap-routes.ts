@@ -16,12 +16,10 @@ const STATIC_ROUTES: SitemapRoute[] = [
   { path: '/how-it-works', changefreq: 'monthly', priority: 0.8 },
   { path: '/help', changefreq: 'monthly', priority: 0.6 },
   { path: '/contact', changefreq: 'yearly', priority: 0.5 },
-  { path: '/press', changefreq: 'yearly', priority: 0.4 },
   { path: '/about', changefreq: 'yearly', priority: 0.5 },
   { path: '/safety', changefreq: 'yearly', priority: 0.5 },
   { path: '/resources', changefreq: 'weekly', priority: 0.7 },
   { path: '/cities', changefreq: 'weekly', priority: 0.9 },
-  { path: '/careers', changefreq: 'yearly', priority: 0.3 },
   { path: '/legal/terms', changefreq: 'yearly', priority: 0.2 },
   { path: '/legal/privacy', changefreq: 'yearly', priority: 0.2 },
   { path: '/legal/damage-policy', changefreq: 'yearly', priority: 0.3 },
@@ -46,25 +44,11 @@ const COUNTY_ROUTES: SitemapRoute[] = getCountySlugs().map((slug) => ({
   priority: 0.75,
 }));
 
-const NEIGHBORHOOD_ROUTES: SitemapRoute[] = [
-  {
-    path: '/jersey-city/downtown/apartment-car-wash',
-    changefreq: 'monthly',
-    priority: 0.7,
-  },
-  {
-    path: '/hoboken/waterfront/apartment-car-wash',
-    changefreq: 'monthly',
-    priority: 0.7,
-  },
-];
-
 export const SITEMAP_ROUTES: SitemapRoute[] = [
   ...STATIC_ROUTES,
   ...RESOURCE_ROUTES,
   ...CITY_ROUTES,
   ...COUNTY_ROUTES,
-  ...NEIGHBORHOOD_ROUTES,
 ];
 
 /** @deprecated Use SITEMAP_ROUTES */
