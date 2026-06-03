@@ -11,17 +11,17 @@ const ROLES = [
   {
     id: 'building_manager' as const,
     label: 'Property Manager',
-    sub: 'I manage a building or parking structure that offers Lavo',
+    sub: 'I want to offer Lavo to my residents',
   },
   {
     id: 'resident' as const,
     label: 'Resident',
-    sub: 'My building uses Lavo and I want to book washes',
+    sub: 'I want to book a car wash at my building',
   },
   {
     id: 'operator' as const,
     label: 'Car wash operator',
-    sub: 'I run a mobile crew and wash for Lavo buildings',
+    sub: 'I run a wash crew and want jobs',
   },
 ];
 
@@ -30,6 +30,7 @@ function SignupForm() {
   const pathname = usePathname();
   const params = useSearchParams();
   const [role, setRole] = useState<SignupRole | null>(() => normalizeSignupRole(params.get('role')));
+  const [hasExplicitlySelectedRole, setHasExplicitlySelectedRole] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -55,6 +56,7 @@ function SignupForm() {
     (r: SignupRole) => {
       if (inviteLocked) return;
       setRole(r);
+      setHasExplicitlySelectedRole(true);
       syncRoleInUrl(r);
     },
     [inviteLocked, syncRoleInUrl]
@@ -252,7 +254,7 @@ function SignupForm() {
           className="mt-6 flex w-full items-center justify-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <GoogleIcon />
-          {roleLabel ? `Continue with Google as ${roleLabel}` : 'Continue with Google'}
+          {roleLabel && hasExplicitlySelectedRole ? `Continue with Google as ${roleLabel}` : 'Continue with Google'}
         </button>
 
         <div className="relative my-6 flex items-center gap-3">
@@ -295,6 +297,10 @@ function SignupForm() {
             {busy ? 'Creating…' : 'Create account'}
           </button>
         </form>
+
+        <p className="mt-8 text-center text-xs text-ink-500">
+          Trusted by residents across buildings in New Jersey
+        </p>
 
         <div className="mt-6 text-center text-sm text-ink-400">
           Already have an account? <a href="/login" className="text-gleam">Sign in</a>
