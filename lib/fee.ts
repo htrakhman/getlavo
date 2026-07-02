@@ -1,6 +1,6 @@
-// Default take rate: 17.5% (midpoint of 15–20% range).
+// Platform take rate: 10% of every booking.
 // Change FEE_RATE to adjust platform fee across all bookings.
-const FEE_RATE = 0.175;
+const FEE_RATE = 0.1;
 
 export function calculateFee(
   grossCents: number,
