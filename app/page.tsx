@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { Suspense } from 'react';
 import { MarketingNav } from '@/components/MarketingNav';
 import { getHomepageResourceLinks } from '@/lib/seo/internal-links';
