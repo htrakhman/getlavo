@@ -49,8 +49,8 @@ export function UserTypeSignupCTA() {
 
   return (
     <>
-      <div className="mt-12 border-t border-white/10 pt-10">
-        <p className="text-xs uppercase tracking-[0.18em] text-ink-300 mb-6">Who are you?</p>
+      <div className="mt-12">
+        <p className="text-xs uppercase tracking-[0.18em] text-ink-400 mb-6">Get started — who are you?</p>
         <div className="mx-auto flex max-w-2xl flex-col gap-3 sm:flex-row sm:justify-center">
           {USER_TYPES.map((ut) => (
             <button
