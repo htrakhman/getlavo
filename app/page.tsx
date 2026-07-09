@@ -1,10 +1,8 @@
 import Link from 'next/link';
-import { Suspense } from 'react';
 import { MarketingNav } from '@/components/MarketingNav';
 import { getHomepageResourceLinks } from '@/lib/seo/internal-links';
 import { RelatedLinks } from '@/components/marketing/RelatedLinks';
 import { FourStepGrid } from '@/components/marketing/how-it-works/FourStepGrid';
-import { CheckBuildingFlow } from '@/components/CheckBuildingFlow';
 import { UserTypeSignupCTA } from '@/components/UserTypeSignupModal';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { organizationSchema, websiteSchema } from '@/lib/seo/schema';
@@ -106,12 +104,6 @@ export default async function Home({
           <p className="mx-auto mt-6 max-w-2xl text-lg text-ink-300">
             Book from your phone. Operators are vetted and insured. Buildings pay nothing.
           </p>
-          <div id="request-lavo" className="mt-10 mx-auto w-full max-w-xl scroll-mt-24 text-center">
-            <p className="mb-3 text-sm font-medium text-ink-200">See if your building is on Lavo.</p>
-            <Suspense fallback={<div className="text-sm text-ink-500">Loading address search…</div>}>
-              <CheckBuildingFlow />
-            </Suspense>
-          </div>
           <UserTypeSignupCTA />
         </div>
       </section>
@@ -122,7 +114,7 @@ export default async function Home({
             <div className="text-xs font-medium uppercase tracking-widest text-ink-500">Coverage</div>
             <p className="mt-4 font-display text-2xl text-gleam leading-tight">Nationwide</p>
             <p className="mt-4 text-sm leading-relaxed text-ink-400">
-              We onboard buildings across the U.S. Search your address above—if yours is not live yet, we use it to route demand to operators in your market.
+              We onboard buildings across the U.S. If your building is not live yet, signing up helps us route demand to operators in your market.
             </p>
           </div>
           <div className="card p-7 text-left ring-1 ring-inset ring-white/[0.04] transition-colors hover:border-white/10">
