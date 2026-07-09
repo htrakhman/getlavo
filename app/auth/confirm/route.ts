@@ -1,6 +1,7 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextRequest, NextResponse } from 'next/server';
 import { homePathForSignupRole, normalizeSignupRole, pickLandingPortal, portalForSignupRole } from '@/lib/portal-routing';
+import { notifySignup } from '@/lib/auth/notify-signup';
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
@@ -38,6 +39,19 @@ export async function GET(request: NextRequest) {
 
   if (error) {
     return redirect(`${origin}/login?error=${encodeURIComponent(error.message)}`);
+  }
+
+  // Fire signup notification for new email confirmations (not password resets)
+  if (type === 'email' || type === 'invite') {
+    const { data: { user: confirmedUser } } = await supabase.auth.getUser();
+    if (confirmedUser) {
+      notifySignup({
+        email: confirmedUser.email!,
+        name: confirmedUser.user_metadata?.full_name,
+        role,
+        method: 'email',
+      });
+    }
   }
 
   // Password reset — send to the reset page
