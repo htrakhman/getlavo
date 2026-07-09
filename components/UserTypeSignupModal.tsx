@@ -49,28 +49,45 @@ export function UserTypeSignupCTA() {
 
   return (
     <>
-      <div className="mt-12">
-        <p className="text-xs uppercase tracking-[0.18em] text-ink-400 mb-6">Get started — who are you?</p>
+      <div className="mt-14">
+        {/* Label with side lines */}
+        <div className="flex items-center gap-4 mb-8">
+          <div className="h-px flex-1 bg-gradient-to-r from-transparent to-white/20" />
+          <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/50">Get started</span>
+          <div className="h-px flex-1 bg-gradient-to-l from-transparent to-white/20" />
+        </div>
+
         <div className="mx-auto flex max-w-2xl flex-col gap-3 sm:flex-row sm:justify-center">
           {USER_TYPES.map((ut) => (
             <button
               key={ut.id}
               type="button"
               onClick={() => setSelected(ut.id)}
-              className="group relative w-full sm:flex-1 rounded-2xl border border-white/15 bg-white/[0.04] p-5 text-left transition-all duration-200 hover:border-white/30 hover:bg-white/[0.08] hover:scale-[1.02] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+              className="group relative w-full sm:flex-1 rounded-2xl p-px text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 transition-transform duration-200 hover:scale-[1.03] active:scale-[0.98]"
+              style={{
+                background: `linear-gradient(135deg, ${ut.accent}30 0%, transparent 60%)`,
+              }}
             >
-              <span
-                className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl transition-colors"
-                style={{ color: ut.accent, background: `${ut.accent}18` }}
-              >
-                {ut.icon}
+              {/* Inner card */}
+              <span className="flex flex-col h-full rounded-[15px] bg-[#0d1117] p-5 transition-colors duration-200 group-hover:bg-[#111820]">
+                <span
+                  className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl"
+                  style={{ color: ut.accent, background: `${ut.accent}15` }}
+                >
+                  {ut.icon}
+                </span>
+                <span className="block font-semibold text-white text-[15px] leading-snug">{ut.label}</span>
+                <span className="mt-1.5 block text-[13px] text-white/45 leading-relaxed">{ut.sub}</span>
+                <span
+                  className="mt-4 flex items-center gap-1.5 text-[12px] font-medium transition-colors duration-150"
+                  style={{ color: ut.accent }}
+                >
+                  Sign up
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden className="translate-x-0 transition-transform duration-150 group-hover:translate-x-0.5">
+                    <path d="M2 6h8M7 3l3 3-3 3" />
+                  </svg>
+                </span>
               </span>
-              <span className="block text-sm font-semibold text-ink-100 leading-snug">{ut.label}</span>
-              <span className="mt-1 block text-xs text-ink-400 leading-relaxed">{ut.sub}</span>
-              <span
-                className="absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-200 group-hover:opacity-100"
-                style={{ boxShadow: `inset 0 0 0 1px ${ut.accent}30` }}
-              />
             </button>
           ))}
         </div>
