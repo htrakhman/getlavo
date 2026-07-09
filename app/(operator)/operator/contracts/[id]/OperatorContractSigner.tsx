@@ -4,11 +4,11 @@ import { useRouter } from 'next/navigation';
 
 interface Props {
   contractId: string;
-  buildingName: string;
+  operatorName: string;
   alreadySigned?: boolean;
 }
 
-export function ContractDraftSigner({ contractId, buildingName, alreadySigned }: Props) {
+export function OperatorContractSigner({ contractId, operatorName, alreadySigned }: Props) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
@@ -19,7 +19,7 @@ export function ContractDraftSigner({ contractId, buildingName, alreadySigned }:
   if (alreadySigned) {
     return (
       <div className="mt-2 inline-flex items-center gap-2 text-gleam text-sm">
-        <span>✓</span> You've signed this agreement — awaiting operator signature
+        <span>✓</span> You've signed this agreement — awaiting building manager's signature
       </div>
     );
   }
@@ -67,7 +67,7 @@ export function ContractDraftSigner({ contractId, buildingName, alreadySigned }:
             checked={confirmed}
             onChange={(e) => setConfirmed(e.target.checked)}
           />
-          I confirm I am authorized to execute this service agreement on behalf of {buildingName} and agree to the terms above.
+          I confirm I am authorized to execute this service agreement on behalf of {operatorName} and agree to the terms above.
         </label>
         {err && <div className="text-sm text-red-400">{err}</div>}
         <div className="flex gap-2 pt-1">

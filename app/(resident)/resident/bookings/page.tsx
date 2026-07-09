@@ -3,6 +3,7 @@ import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
 import { dateShort, money } from '@/lib/format';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
+import { CancelBookingButton } from './CancelBookingButton';
 
 const STATUS_LABEL: Record<string, string> = {
   pending_payment: 'Pending payment',
@@ -79,6 +80,9 @@ export default async function ResidentBookings() {
                       {STATUS_LABEL[b.status] ?? b.status}
                     </div>
                     <div className="mt-0.5 text-xs text-ink-400">{money(b.gross_cents)}</div>
+                    <div className="mt-2">
+                      <CancelBookingButton bookingId={b.id} />
+                    </div>
                   </div>
                 </div>
               ))}
