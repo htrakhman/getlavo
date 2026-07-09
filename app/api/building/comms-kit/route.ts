@@ -151,7 +151,7 @@ export async function GET(req: Request) {
     }
 
     // CTA box
-    page.drawRectangle({ x: 40, y: 60, width: 200, height: 44, color: GLEAM, borderRadius: 22 });
+    page.drawRectangle({ x: 40, y: 60, width: 200, height: 44, color: GLEAM });
     page.drawText('Sign up at getlavo.io', { x: 68, y: 78, size: 12, font: helveticaBold, color: INK });
 
     page.drawText(`Questions? hello@getlavo.io`, { x: 40, y: 24, size: 8, font: helvetica, color: GRAY });
