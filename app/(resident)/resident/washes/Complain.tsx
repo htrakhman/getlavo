@@ -17,15 +17,18 @@ export function Complain({ washId }: { washId: string }) {
   const [details, setDetails] = useState('');
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
 
   async function submit() {
     setBusy(true);
-    await fetch(`/api/wash-records/${washId}/complain`, {
+    setErr(null);
+    const res = await fetch(`/api/wash-records/${washId}/complain`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ reason, details }),
     });
     setBusy(false);
+    if (!res.ok) { setErr('Could not submit. Please try again.'); return; }
     setDone(true);
     router.refresh();
   }
@@ -53,6 +56,7 @@ export function Complain({ washId }: { washId: string }) {
         value={details}
         onChange={(e) => setDetails(e.target.value)}
       />
+      {err && <p className="mt-2 text-xs text-red-400">{err}</p>}
       <div className="mt-2 flex gap-2">
         <button onClick={submit} disabled={busy} className="btn-primary text-xs">{busy ? '…' : 'Submit'}</button>
         <button onClick={() => setOpen(false)} className="btn-quiet text-xs">Cancel</button>

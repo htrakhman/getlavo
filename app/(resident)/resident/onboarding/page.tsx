@@ -67,7 +67,7 @@ export default function ResidentOnboarding() {
   }, [buildingId, buildings]);
 
   const canStep2 = !!buildingId;
-  const canFinish = canStep2 && unit && floor && make && model && year && color && accessMethod;
+  const canFinish = canStep2 && unit && floor !== '' && make && model && year && color && accessMethod;
 
   const totalSteps = 2;
 

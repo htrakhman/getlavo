@@ -19,7 +19,7 @@ export default async function OperatorBookings() {
 
   const sb = supabaseServer();
 
-  const { data: op } = await sb.from('operators').select('id, stripe_onboarding_complete').limit(1).maybeSingle();
+  const { data: op } = await sb.from('operators').select('id, stripe_onboarding_complete').eq('owner_id', session.user.id).maybeSingle();
   if (!op) redirect('/operator/onboarding');
 
   const today = new Date().toISOString().slice(0, 10);

@@ -114,9 +114,7 @@ export function AccountForm({ profile, residentId, subscription, prefs }: {
       <div className="card p-6 lg:col-span-2">
         <h3 className="font-display text-lg mb-2">Lavo membership</h3>
         <p className="text-sm text-ink-400 mb-4">
-          Optional add-on for residents who wash often. Configure Stripe price IDs{' '}
-          <code className="text-xs text-ink-500">STRIPE_PRICE_LAVO_LITE</code> and{' '}
-          <code className="text-xs text-ink-500">STRIPE_PRICE_LAVO_PLUS</code> in your environment.
+          Optional add-on for residents who wash often. Unlock priority booking and member pricing.
         </p>
         {subscription?.stripeSubscriptionId ? (
           <p className="text-sm text-ink-200">

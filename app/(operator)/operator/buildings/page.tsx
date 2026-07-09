@@ -1,11 +1,14 @@
 import { PageHeader } from '@/components/PortalShell';
 import { getAvailableBuildingsForOperator } from '@/lib/operator-available-buildings';
-import { supabaseServer } from '@/lib/supabase/server';
+import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
 import { AvailableBuildings } from './AvailableBuildings';
+import { redirect } from 'next/navigation';
 
 export default async function OperatorBuildings() {
+  const session = await getSessionUser();
+  if (!session) redirect('/login');
   const sb = supabaseServer();
-  const { data: op } = await sb.from('operators').select('id, name').limit(1).maybeSingle();
+  const { data: op } = await sb.from('operators').select('id, name').eq('owner_id', session.user.id).maybeSingle();
 
   const [{ data: partnerships }, availableData] = await Promise.all([
     sb

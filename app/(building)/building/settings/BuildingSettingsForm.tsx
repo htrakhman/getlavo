@@ -29,9 +29,9 @@ export function BuildingSettingsForm({ building }: { building: any }) {
     let nextLogoUrl = logoUrl;
     if (logoFile) {
       const path = `${building.id}/${Date.now()}-${logoFile.name}`;
-      const { error: ue } = await sb.storage.from('qr-codes').upload(path, logoFile, { upsert: true });
+      const { error: ue } = await sb.storage.from('building-assets').upload(path, logoFile, { upsert: true });
       if (!ue) {
-        const { data } = sb.storage.from('qr-codes').getPublicUrl(path);
+        const { data } = sb.storage.from('building-assets').getPublicUrl(path);
         nextLogoUrl = data.publicUrl;
       }
     }

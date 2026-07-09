@@ -30,7 +30,7 @@ export default async function ResidentBookings() {
     .from('residents')
     .select('id')
     .eq('profile_id', session.user.id)
-    .single();
+    .maybeSingle();
   if (!resident) redirect('/resident/onboarding');
 
   const today = new Date().toISOString().slice(0, 10);

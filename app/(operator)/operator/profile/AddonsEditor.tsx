@@ -3,7 +3,12 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabaseBrowser } from '@/lib/supabase/client';
 
-const TYPES = ['interior_detail', 'wax', 'tire_shine', 'pet_hair'];
+const TYPES: { value: string; label: string }[] = [
+  { value: 'interior_detail', label: 'Interior Detail' },
+  { value: 'wax', label: 'Wax' },
+  { value: 'tire_shine', label: 'Tire Shine' },
+  { value: 'pet_hair', label: 'Pet Hair Removal' },
+];
 
 export function AddonsEditor({ operatorId, initial }: { operatorId: string; initial: any[] }) {
   const router = useRouter();
@@ -43,7 +48,7 @@ export function AddonsEditor({ operatorId, initial }: { operatorId: string; init
               <div className="flex items-center justify-between">
                 <div>
                   <div className="text-sm">{a.label}</div>
-                  <div className="text-xs text-ink-500">{a.type}</div>
+                  <div className="text-xs text-ink-500">{TYPES.find((t) => t.value === a.type)?.label ?? a.type}</div>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="text-gleam text-sm">${(a.price_cents / 100).toFixed(2)}</span>
@@ -76,7 +81,7 @@ export function AddonsEditor({ operatorId, initial }: { operatorId: string; init
 
 function AddonForm({ operatorId, addon, onDone, onCancel }: { operatorId: string; addon: any; onDone: (a: any) => void; onCancel: () => void }) {
   const [label, setLabel] = useState(addon?.label ?? '');
-  const [type, setType] = useState(addon?.type ?? TYPES[0]);
+  const [type, setType] = useState(addon?.type ?? TYPES[0].value);
   const [price, setPrice] = useState(addon ? (addon.price_cents / 100).toFixed(2) : '');
   const [busy, setBusy] = useState(false);
 
@@ -105,7 +110,7 @@ function AddonForm({ operatorId, addon, onDone, onCancel }: { operatorId: string
     <div className="grid grid-cols-1 gap-2 md:grid-cols-12">
       <input className="field md:col-span-5" placeholder="Label" value={label} onChange={(e) => setLabel(e.target.value)} />
       <select className="field md:col-span-4" value={type} onChange={(e) => setType(e.target.value)}>
-        {TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+        {TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
       </select>
       <input className="field md:col-span-2" type="number" step="0.01" placeholder="Price" value={price} onChange={(e) => setPrice(e.target.value)} />
       <div className="md:col-span-12 flex gap-2">

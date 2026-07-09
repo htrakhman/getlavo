@@ -9,17 +9,21 @@ export default function FlyerPage() {
   const [url, setUrl] = useState('');
 
   useEffect(() => {
-    supabaseBrowser()
-      .from('buildings')
-      .select('name, city, region, slug')
-      .limit(1)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (!data) return;
-        setBuilding(data);
-        const appUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
-        setUrl(`${appUrl}/b/${data.slug}`);
-      });
+    const sb = supabaseBrowser();
+    sb.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return;
+      sb.from('buildings')
+        .select('name, city, region, slug')
+        .eq('manager_id', user.id)
+        .limit(1)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (!data) return;
+          setBuilding(data);
+          const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+          setUrl(`${appUrl}/b/${data.slug}`);
+        });
+    });
   }, []);
 
   useEffect(() => {
@@ -89,7 +93,7 @@ export default function FlyerPage() {
               <path d="M14 2 L15.8 10.2 L24 12 L15.8 13.8 L14 22 L12.2 13.8 L4 12 L12.2 10.2 Z" fill="#2dd4bf"/>
             </svg>
             <span style={{ fontSize: '22px', fontWeight: 700, letterSpacing: '-0.5px' }}>
-              Get<span style={{ color: '#2dd4bf' }}>Gleam</span>
+              La<span style={{ color: '#2dd4bf' }}>vo</span>
             </span>
           </div>
           <div style={{ fontSize: '11px', letterSpacing: '0.15em', textTransform: 'uppercase', color: '#6b7280', fontWeight: 500 }}>
