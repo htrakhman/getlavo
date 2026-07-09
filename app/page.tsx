@@ -1,10 +1,10 @@
-import Link from 'next/link';
 import { Suspense } from 'react';
 import { MarketingNav } from '@/components/MarketingNav';
 import { getHomepageResourceLinks } from '@/lib/seo/internal-links';
 import { RelatedLinks } from '@/components/marketing/RelatedLinks';
 import { FourStepGrid } from '@/components/marketing/how-it-works/FourStepGrid';
 import { CheckBuildingFlow } from '@/components/CheckBuildingFlow';
+import { UserTypeSignupCTA } from '@/components/UserTypeSignupModal';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { organizationSchema, websiteSchema } from '@/lib/seo/schema';
 import { FEATURED_CITY_SLUGS } from '@/lib/seo/keep-cities';
@@ -111,20 +111,7 @@ export default async function Home({
               <CheckBuildingFlow />
             </Suspense>
           </div>
-          <div className="mt-12 border-t border-white/10 pt-10">
-            <p className="text-xs uppercase tracking-[0.18em] text-ink-300 mb-5">Who are you?</p>
-            <div className="mx-auto flex max-w-2xl flex-col gap-3 sm:flex-row sm:justify-center">
-              <Link href="/signup?role=building_manager" className="w-full sm:flex-1 rounded-full border border-white/25 bg-white/5 px-5 py-3 text-center text-sm text-ink-100 transition-colors hover:border-white/40 hover:bg-white/10">
-                I manage a property
-              </Link>
-              <Link href="/signup?role=resident" className="w-full sm:flex-1 rounded-full border border-white/25 bg-white/5 px-5 py-3 text-center text-sm text-ink-100 transition-colors hover:border-white/40 hover:bg-white/10">
-                I&apos;m a resident
-              </Link>
-              <Link href="/signup?role=operator" className="w-full sm:flex-1 rounded-full border border-white/25 bg-white/5 px-5 py-3 text-center text-sm text-ink-100 transition-colors hover:border-white/40 hover:bg-white/10">
-                I run a wash crew
-              </Link>
-            </div>
-          </div>
+          <UserTypeSignupCTA />
         </div>
       </section>
 
