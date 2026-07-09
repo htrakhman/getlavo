@@ -1,5 +1,6 @@
 import { PageHeader } from '@/components/PortalShell';
-import { supabaseServer } from '@/lib/supabase/server';
+import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
+import { redirect } from 'next/navigation';
 import { OperatorProfileEditor } from './OperatorProfileEditor';
 import { PackagesEditor } from './PackagesEditor';
 import { AddonsEditor } from './AddonsEditor';
@@ -8,13 +9,15 @@ import { CrewEditor } from './CrewEditor';
 import { PortfolioEditor } from './PortfolioEditor';
 
 export default async function OperatorProfilePage() {
+  const session = await getSessionUser();
+  if (!session) redirect('/login');
   const sb = supabaseServer();
   const { data: op } = await sb
     .from('operators')
     .select('*, operator_addons(*)')
-    .limit(1)
+    .eq('owner_id', session.user.id)
     .maybeSingle();
-  if (!op) return null;
+  if (!op) redirect('/operator/onboarding');
 
   const [{ data: packages }, { data: crew }, { data: portfolio }] = await Promise.all([
     sb.from('service_packages').select('*').eq('operator_id', op.id).order('display_order'),

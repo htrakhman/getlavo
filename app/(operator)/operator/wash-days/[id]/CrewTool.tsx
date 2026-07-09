@@ -31,22 +31,31 @@ export function CrewTool({
   const [flagFor, setFlagFor] = useState<string | null>(null);
   const [photoFor, setPhotoFor] = useState<string | null>(null);
   const [wrappingUp, setWrappingUp] = useState(false);
+  const [crewErr, setCrewErr] = useState<string | null>(null);
 
   async function start(washId: string) {
     setBusyId(washId);
-    await fetch(`/api/wash-records/${washId}/start`, { method: 'POST' });
+    setCrewErr(null);
+    try {
+      const res = await fetch(`/api/wash-records/${washId}/start`, { method: 'POST' });
+      if (!res.ok) setCrewErr('Could not start wash. Try again.');
+      else router.refresh();
+    } catch { setCrewErr('Network error. Check connection.'); }
     setBusyId(null);
-    router.refresh();
   }
 
   async function done(washId: string, photoFile: File | null) {
     setBusyId(washId);
-    if (photoFile) {
-      const fd = new FormData();
-      fd.append('photo', photoFile);
-      await fetch(`/api/wash-records/${washId}/photo`, { method: 'POST', body: fd });
-    }
-    await fetch(`/api/wash-records/${washId}/complete`, { method: 'POST' });
+    setCrewErr(null);
+    try {
+      if (photoFile) {
+        const fd = new FormData();
+        fd.append('photo', photoFile);
+        await fetch(`/api/wash-records/${washId}/photo`, { method: 'POST', body: fd });
+      }
+      const res = await fetch(`/api/wash-records/${washId}/complete`, { method: 'POST' });
+      if (!res.ok) { setCrewErr('Could not mark complete. Try again.'); setBusyId(null); return; }
+    } catch { setCrewErr('Network error. Check connection.'); setBusyId(null); return; }
     setBusyId(null);
     setPhotoFor(null);
     router.refresh();
@@ -54,11 +63,15 @@ export function CrewTool({
 
   async function flag(washId: string, reason: string, notes: string) {
     setBusyId(washId);
-    await fetch(`/api/wash-records/${washId}/flag`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ reason, notes }),
-    });
+    setCrewErr(null);
+    try {
+      const res = await fetch(`/api/wash-records/${washId}/flag`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason, notes }),
+      });
+      if (!res.ok) { setCrewErr('Could not flag vehicle. Try again.'); setBusyId(null); return; }
+    } catch { setCrewErr('Network error. Check connection.'); setBusyId(null); return; }
     setBusyId(null);
     setFlagFor(null);
     router.refresh();
@@ -66,7 +79,11 @@ export function CrewTool({
 
   async function wrapUp() {
     setWrappingUp(true);
-    await fetch(`/api/wash-days/${washDayId}/complete`, { method: 'POST' });
+    setCrewErr(null);
+    try {
+      const res = await fetch(`/api/wash-days/${washDayId}/complete`, { method: 'POST' });
+      if (!res.ok) { setCrewErr('Could not wrap up. Try again.'); setWrappingUp(false); return; }
+    } catch { setCrewErr('Network error. Check connection.'); setWrappingUp(false); return; }
     setWrappingUp(false);
     router.refresh();
   }
@@ -109,10 +126,19 @@ export function CrewTool({
             ) : startedAt ? (
               <span className="chip">in progress</span>
             ) : (
-              <button onClick={() => fetch(`/api/wash-days/${washDayId}/start`, { method: 'POST' }).then(() => router.refresh())} className="btn-primary !py-1 !px-2 !text-xs">Start day</button>
+              <button
+                onClick={() => {
+                  setCrewErr(null);
+                  fetch(`/api/wash-days/${washDayId}/start`, { method: 'POST' })
+                    .then((r) => r.ok ? router.refresh() : setCrewErr('Could not start day.'))
+                    .catch(() => setCrewErr('Network error.'));
+                }}
+                className="btn-primary !py-1 !px-2 !text-xs"
+              >Start day</button>
             )}
           </div>
         </div>
+        {crewErr && <div className="mt-1 text-xs text-red-400">{crewErr}</div>}
         <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/5">
           <div className="h-full bg-gleam transition-all" style={{ width: `${total ? (completed / total) * 100 : 0}%` }} />
         </div>

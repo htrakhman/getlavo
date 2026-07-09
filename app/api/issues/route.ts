@@ -10,6 +10,13 @@ export async function POST(req: Request) {
   const { data: { user } } = await sb.auth.getUser();
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
 
+  // Verify the building belongs to this user (as manager or resident)
+  const [{ data: asManager }, { data: asResident }] = await Promise.all([
+    sb.from('buildings').select('id').eq('id', buildingId).eq('manager_id', user.id).maybeSingle(),
+    sb.from('residents').select('id').eq('building_id', buildingId).eq('profile_id', user.id).maybeSingle(),
+  ]);
+  if (!asManager && !asResident) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
+
   const { data: issue, error } = await sb.from('issues').insert({
     building_id: buildingId,
     reporter_id: user.id,

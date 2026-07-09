@@ -1,12 +1,19 @@
-import { supabaseServer } from '@/lib/supabase/server';
+import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
 import { CrewTool } from './CrewTool';
+import { redirect } from 'next/navigation';
 
 export default async function WashDayPage({ params }: { params: { id: string } }) {
+  const session = await getSessionUser();
+  if (!session) redirect('/login');
   const sb = supabaseServer();
+  const { data: op } = await sb.from('operators').select('id').eq('owner_id', session.user.id).maybeSingle();
+  if (!op) redirect('/operator/onboarding');
+
   const { data: wd } = await sb
     .from('wash_days')
     .select('*, building:buildings(name, garage_levels_json)')
     .eq('id', params.id)
+    .eq('operator_id', op.id)
     .maybeSingle();
   if (!wd) return <div className="p-6">Not found.</div>;
 

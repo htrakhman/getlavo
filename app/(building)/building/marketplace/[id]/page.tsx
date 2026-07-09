@@ -10,10 +10,11 @@ export default async function OperatorDetail({ params }: { params: { id: string 
 
   const sb = supabaseServer();
 
-  const [{ data: op }, { data: addons }, { data: building }] = await Promise.all([
+  const { getCurrentBuildingForSession } = await import('@/lib/building');
+  const [{ data: op }, { data: addons }, { current: building }] = await Promise.all([
     sb.from('operators').select('*').eq('id', params.id).single(),
     sb.from('operator_addons').select('*').eq('operator_id', params.id).eq('active', true),
-    sb.from('buildings').select('id').limit(1).maybeSingle(),
+    getCurrentBuildingForSession(session.user.id),
   ]);
   if (!op || !building) return <div>Not found.</div>;
 

@@ -15,7 +15,7 @@ export default async function ResidentBook() {
     .from('residents')
     .select('id, building_id, building:buildings(name, lat, lng)')
     .eq('profile_id', session.user.id)
-    .single();
+    .maybeSingle();
   if (!resident) redirect('/resident/onboarding');
 
   const building = resident.building as any;

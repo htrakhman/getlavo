@@ -9,6 +9,7 @@ export function RateWash({ washId, alreadyRated }: { washId: string; alreadyRate
   const [comment, setComment] = useState('');
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(!!alreadyRated);
+  const [err, setErr] = useState<string | null>(null);
 
   if (done && rating > 0) {
     return (
@@ -20,6 +21,7 @@ export function RateWash({ washId, alreadyRated }: { washId: string; alreadyRate
 
   async function submit() {
     setBusy(true);
+    setErr(null);
     const res = await fetch(`/api/wash-records/${washId}/rate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -29,6 +31,8 @@ export function RateWash({ washId, alreadyRated }: { washId: string; alreadyRate
     if (res.ok) {
       setDone(true);
       router.refresh();
+    } else {
+      setErr('Could not submit rating. Please try again.');
     }
   }
 
@@ -61,6 +65,7 @@ export function RateWash({ washId, alreadyRated }: { washId: string; alreadyRate
           </button>
         </div>
       )}
+      {err && <p className="mt-1 text-xs text-red-400">{err}</p>}
     </div>
   );
 }

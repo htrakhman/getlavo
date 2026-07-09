@@ -19,7 +19,7 @@ export function ProposeWashDay({ buildings }: { buildings: { id: string; name: s
       body: JSON.stringify({ buildingId, scheduledFor: date }),
     });
     setBusy(false);
-    if (!res.ok) { setErr('Could not propose'); return; }
+    if (!res.ok) { const d = await res.json().catch(() => ({})); setErr(d.error || 'Could not propose'); return; }
     setOpen(false);
     setDate('');
     router.refresh();
@@ -41,7 +41,13 @@ export function ProposeWashDay({ buildings }: { buildings: { id: string; name: s
           </div>
           <div>
             <label className="label">Date</label>
-            <input className="field" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+            <input
+              className="field"
+              type="date"
+              value={date}
+              min={new Date(Date.now() + 86400000).toISOString().slice(0, 10)}
+              onChange={(e) => setDate(e.target.value)}
+            />
           </div>
         </div>
         {err && <div className="mt-3 text-sm text-red-400">{err}</div>}
