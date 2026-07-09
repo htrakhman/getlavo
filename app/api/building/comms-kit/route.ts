@@ -105,7 +105,7 @@ export async function GET(req: Request) {
     // Wash day callout box
     if (washDay || op) {
       const boxY = height - 430;
-      page.drawRectangle({ x: 40, y: boxY - 10, width: width - 80, height: 80, color: rgb(0, 0.898, 0.784, 0.08), borderColor: GLEAM, borderWidth: 1, borderOpacity: 0.3 });
+      page.drawRectangle({ x: 40, y: boxY - 10, width: width - 80, height: 80, color: rgb(0, 0.898, 0.784), opacity: 0.08, borderColor: GLEAM, borderWidth: 1, borderOpacity: 0.3 });
       if (washDay) {
         page.drawText('Building wash day:', { x: 56, y: boxY + 44, size: 10, font: helvetica, color: GRAY });
         page.drawText(washDay, { x: 56, y: boxY + 26, size: 18, font: helveticaBold, color: WHITE });
