@@ -1,6 +1,7 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextRequest, NextResponse } from 'next/server';
 import { homePathForPortalKind, normalizeSignupRole, pickLandingPortal, portalForSignupRole } from '@/lib/portal-routing';
+import { notifySignup } from '@/lib/auth/notify-signup';
 
 export type OAuthCallbackOptions = {
   /** Optional segment from `/auth/callback/:signupRole` (legacy / extra allowlist entries). */
@@ -109,6 +110,13 @@ export async function handleOAuthCallback(request: NextRequest, options: OAuthCa
     if (portalErr) {
       return redirectWithSessionCookies(`${origin}/auth/pick-role?error=${encodeURIComponent(portalErr.message)}`);
     }
+
+    notifySignup({
+      email: user.email!,
+      name: fullName,
+      role,
+      method: 'google',
+    });
 
     dest = homePathForPortalKind(requestedPortal);
   } else {

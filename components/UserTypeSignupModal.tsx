@@ -49,41 +49,45 @@ export function UserTypeSignupCTA() {
 
   return (
     <>
-      <div className="mt-14">
+      <div className="mt-16">
         {/* Label with side lines */}
-        <div className="flex items-center gap-4 mb-8">
-          <div className="h-px flex-1 bg-gradient-to-r from-transparent to-white/20" />
-          <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/50">Get started</span>
-          <div className="h-px flex-1 bg-gradient-to-l from-transparent to-white/20" />
+        <div className="flex items-center gap-5 mb-10">
+          <div className="h-px flex-1 bg-gradient-to-r from-transparent to-white/15" />
+          <span className="text-[11px] font-semibold uppercase tracking-[0.25em] text-white/40">Get started</span>
+          <div className="h-px flex-1 bg-gradient-to-l from-transparent to-white/15" />
         </div>
 
-        <div className="mx-auto flex max-w-2xl flex-col gap-3 sm:flex-row sm:justify-center">
+        <div className="mx-auto flex max-w-3xl flex-col gap-4 sm:flex-row sm:justify-center">
           {USER_TYPES.map((ut) => (
             <button
               key={ut.id}
               type="button"
               onClick={() => setSelected(ut.id)}
-              className="group relative w-full sm:flex-1 rounded-2xl p-px text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 transition-transform duration-200 hover:scale-[1.03] active:scale-[0.98]"
+              className="group relative w-full sm:flex-1 rounded-3xl p-px text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 transition-transform duration-200 hover:scale-[1.03] active:scale-[0.98]"
               style={{
-                background: `linear-gradient(135deg, ${ut.accent}30 0%, transparent 60%)`,
+                background: `linear-gradient(145deg, ${ut.accent}40 0%, ${ut.accent}08 50%, transparent 100%)`,
               }}
             >
               {/* Inner card */}
-              <span className="flex flex-col h-full rounded-[15px] bg-[#0d1117] p-5 transition-colors duration-200 group-hover:bg-[#111820]">
+              <span className="flex flex-col h-full rounded-[23px] bg-[#0b0f16] p-7 transition-colors duration-200 group-hover:bg-[#0f1520]">
                 <span
-                  className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl"
-                  style={{ color: ut.accent, background: `${ut.accent}15` }}
+                  className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl"
+                  style={{ color: ut.accent, background: `${ut.accent}18` }}
                 >
-                  {ut.icon}
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    {ut.id === 'building_manager' && <><path d="M3 21h18M3 7l9-4 9 4M4 7v14M20 7v14M9 21V11h6v10" /></>}
+                    {ut.id === 'resident' && <><circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" /></>}
+                    {ut.id === 'operator' && <><path d="M3 17a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v5Z" /><path d="M16 10V7a4 4 0 0 0-8 0v3" /><circle cx="12" cy="15" r="1" /></>}
+                  </svg>
                 </span>
-                <span className="block font-semibold text-white text-[15px] leading-snug">{ut.label}</span>
-                <span className="mt-1.5 block text-[13px] text-white/45 leading-relaxed">{ut.sub}</span>
+                <span className="block font-bold text-white text-xl leading-snug">{ut.label}</span>
+                <span className="mt-2 block text-[14px] text-white/50 leading-relaxed">{ut.sub}</span>
                 <span
-                  className="mt-4 flex items-center gap-1.5 text-[12px] font-medium transition-colors duration-150"
+                  className="mt-6 flex items-center gap-2 text-[13px] font-semibold transition-all duration-150"
                   style={{ color: ut.accent }}
                 >
                   Sign up
-                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden className="translate-x-0 transition-transform duration-150 group-hover:translate-x-0.5">
+                  <svg width="14" height="14" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden className="transition-transform duration-150 group-hover:translate-x-1">
                     <path d="M2 6h8M7 3l3 3-3 3" />
                   </svg>
                 </span>
