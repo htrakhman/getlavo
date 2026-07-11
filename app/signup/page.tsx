@@ -254,7 +254,7 @@ function SignupForm() {
           className="mt-6 flex w-full items-center justify-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <GoogleIcon />
-          {roleLabel && hasExplicitlySelectedRole ? `Continue with Google as ${roleLabel}` : 'Continue with Google'}
+          {roleLabel ? `Continue with Google as ${roleLabel}` : 'Continue with Google'}
         </button>
 
         <div className="relative my-6 flex items-center gap-3">

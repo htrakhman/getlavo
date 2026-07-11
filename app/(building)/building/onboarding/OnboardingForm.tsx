@@ -139,16 +139,20 @@ export default function OnboardingForm() {
         {step === 1 && (
           <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="md:col-span-2">
+              <label className="label">Search building</label>
+              <PlacesAutocomplete onPick={handlePickFromPlaces} placeholder="Search by building name or address…" />
+            </div>
+            <div className="md:col-span-2">
               <label className="label">Building name</label>
-              {name ? (
-                <div className="flex items-center gap-2">
-                  <div className="field flex-1 text-ink-200">{name}</div>
-                  <button type="button" className="btn-quiet shrink-0 px-3 text-xs" onClick={() => { setName(''); setPlaceId(''); }}>
-                    Change
-                  </button>
-                </div>
-              ) : (
-                <PlacesAutocomplete onPick={handlePickFromPlaces} placeholder="The Beacon Residences" />
+              <input
+                className="field"
+                placeholder="The Beacon Residences"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
+              {!name && (
+                <p className="mt-1 text-xs text-ink-500">Search above to auto-fill, or type the name directly.</p>
               )}
             </div>
             <div className="md:col-span-2">
@@ -187,14 +191,21 @@ export default function OnboardingForm() {
                 onChange={(e) => setUnits(e.target.valueAsNumber || '')}
               />
             </div>
-            <div className="md:col-span-2 flex justify-end pt-2">
-              <button
-                className="btn-primary"
-                onClick={() => setStep(2)}
-                disabled={!name || !addr1 || !city}
-              >
-                Review →
-              </button>
+            <div className="md:col-span-2 pt-2">
+              {(!name || !addr1 || !city) && (
+                <p className="mb-2 text-xs text-amber-400/80">
+                  {!name ? 'Building name is required.' : !addr1 ? 'Street address is required.' : 'City is required.'}
+                </p>
+              )}
+              <div className="flex justify-end">
+                <button
+                  className="btn-primary"
+                  onClick={() => setStep(2)}
+                  disabled={!name || !addr1 || !city}
+                >
+                  Review →
+                </button>
+              </div>
             </div>
           </div>
         )}

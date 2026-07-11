@@ -4,7 +4,9 @@ import { dateShort, money } from '@/lib/format';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
-export default async function OperatorOverview() {
+export default async function OperatorOverview({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
+  const sp = await searchParams;
+  const stripeError = sp.stripe_error === '1';
   const session = await getSessionUser();
   if (!session) redirect('/login');
   const sb = supabaseServer();
@@ -53,12 +55,18 @@ export default async function OperatorOverview() {
             : op.stripe_onboarding_complete
             ? <span className="chip text-gleam">Active</span>
             : (
-              <a href="/api/stripe/connect/onboard" className="btn-primary text-sm">
-                Connect bank account →
-              </a>
+              <form action="/api/stripe/connect/onboard" method="get">
+                <button type="submit" className="btn-primary text-sm">Connect bank account →</button>
+              </form>
             )
         }
       />
+
+      {stripeError && (
+        <div className="mb-6 card border-red-400/30 bg-red-400/5 p-4 text-sm text-red-300">
+          Could not connect to Stripe — please try again or contact support if the problem persists.
+        </div>
+      )}
 
       {incomplete.length > 0 && (
         <div className="mb-6 card border-yellow-400/30 bg-yellow-400/5 p-5">
@@ -74,7 +82,13 @@ export default async function OperatorOverview() {
                   <span className={c.done ? 'text-ink-300' : 'text-ink-100'}>{c.label}</span>
                 </div>
                 {!c.done && c.href && (
-                  <a href={c.href} className="text-xs text-gleam hover:underline">Fix →</a>
+                  c.href.startsWith('/api/') ? (
+                    <form action={c.href} method="get">
+                      <button type="submit" className="text-xs text-gleam hover:underline">Fix →</button>
+                    </form>
+                  ) : (
+                    <a href={c.href} className="text-xs text-gleam hover:underline">Fix →</a>
+                  )
                 )}
               </li>
             ))}
