@@ -1,49 +1,33 @@
-'use client';
+import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
+import { redirect } from 'next/navigation';
+import { InsuranceUploader } from '../profile/InsuranceUploader';
 
-import { useState } from 'react';
+export default async function OperatorCompliancePage() {
+  const session = await getSessionUser();
+  if (!session) redirect('/login');
 
-export default function OperatorCompliancePage() {
-  const [insurer, setInsurer] = useState('');
-  const [policy, setPolicy] = useState('');
-  const [limits, setLimits] = useState('');
-  const [expires, setExpires] = useState('');
-  const [fileUrl, setFileUrl] = useState('');
-  const [ai, setAi] = useState(false);
-  const [msg, setMsg] = useState<string | null>(null);
+  const sb = supabaseServer();
+  const { data: op } = await sb
+    .from('operators')
+    .select('id, insurance_carrier, insurance_expires_at, insurance_doc_url, insurance_uploaded_at, insurance_review_status, insurance_review_note')
+    .eq('owner_id', session.user.id)
+    .maybeSingle();
 
-  async function save() {
-    const res = await fetch('/api/operator/coi', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        insurerName: insurer,
-        policyNumber: policy,
-        coverageLimits: limits,
-        expiresAt: expires,
-        fileUrl,
-        additionalInsuredOk: ai,
-      }),
-    });
-    setMsg(res.ok ? 'Saved. Admin reviews before you go live.' : 'Could not save');
-  }
+  if (!op) redirect('/operator/onboarding');
 
   return (
-    <main className="mx-auto max-w-lg px-6 py-10 space-y-4">
-      <h1 className="font-display text-3xl">COI on file</h1>
-      <p className="text-sm text-ink-400">General liability and commercial auto. Additional insured wording must name partnered buildings.</p>
-      <input className="field" placeholder="Insurer name" value={insurer} onChange={(e) => setInsurer(e.target.value)} />
-      <input className="field" placeholder="Policy number" value={policy} onChange={(e) => setPolicy(e.target.value)} />
-      <input className="field" placeholder="Coverage limits summary" value={limits} onChange={(e) => setLimits(e.target.value)} />
-      <input className="field" type="date" value={expires} onChange={(e) => setExpires(e.target.value)} />
-      <input className="field" placeholder="Certificate PDF URL (upload to storage first)" value={fileUrl} onChange={(e) => setFileUrl(e.target.value)} />
-      <label className="flex items-center gap-2 text-sm text-ink-300">
-        <input type="checkbox" checked={ai} onChange={(e) => setAi(e.target.checked)} />
-        Additional insured endorsement is on the COI
-      </label>
-      <button type="button" className="btn-primary" onClick={() => save()}>
-        Save COI
-      </button>
-      {msg && <p className="text-sm text-gleam">{msg}</p>}
+    <main className="mx-auto max-w-2xl px-6 py-10 space-y-6">
+      <div>
+        <h1 className="font-display text-3xl">Insurance &amp; compliance</h1>
+        <p className="mt-2 text-sm text-ink-400">
+          Upload your current certificate of insurance (COI). Your policy must carry active general
+          liability insurance — additional insured wording must name partnered buildings. Lavo admin
+          reviews certificates within 24 hours of upload.
+        </p>
+      </div>
+      <div className="card p-6">
+        <InsuranceUploader op={op} />
+      </div>
     </main>
   );
 }

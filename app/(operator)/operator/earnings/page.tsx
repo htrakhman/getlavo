@@ -9,12 +9,12 @@ export default async function Earnings() {
   const sb = supabaseServer();
   const { data: op } = await sb
     .from('operators')
-    .select('id, name, payout_reserve_percent')
+    .select('id, name')
     .eq('owner_id', session.user.id)
     .maybeSingle();
-  if (!op) return null;
+  if (!op) return <p className="p-10 text-ink-400">Operator profile not found.</p>;
 
-  const reservePct = Number(op.payout_reserve_percent ?? 5);
+  const reservePct = 5;
 
   const monthStart = new Date().toISOString().slice(0, 8) + '01';
   const last30 = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);

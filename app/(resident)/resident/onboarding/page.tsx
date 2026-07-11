@@ -79,30 +79,31 @@ export default function ResidentOnboarding() {
 
     let resident: any;
     const { data: existing } = await sb.from('residents').select('id').eq('profile_id', user.id).maybeSingle();
-    if (existing?.id) {
-      const { data, error } = await sb.from('residents').update({
+
+    async function upsertResident(withAccess: boolean) {
+      const base = {
         building_id: buildingId,
         unit_number: unit,
         floor_number: parseInt(floor, 10),
         spot_label: spotLabel || null,
-        vehicle_access_method: accessMethod,
-        vehicle_access_notes: accessNotes || null,
-      }).eq('id', existing.id).select().single();
-      if (error) { setErr('Could not save your info — please try again or contact support.'); setBusy(false); return; }
-      resident = data;
-    } else {
-      const { data, error } = await sb.from('residents').insert({
-        profile_id: user.id,
-        building_id: buildingId,
-        unit_number: unit,
-        floor_number: parseInt(floor, 10),
-        spot_label: spotLabel || null,
-        vehicle_access_method: accessMethod,
-        vehicle_access_notes: accessNotes || null,
-      }).select().single();
-      if (error) { setErr('Could not save your info — please try again or contact support.'); setBusy(false); return; }
-      resident = data;
+      };
+      const payload = withAccess
+        ? { ...base, vehicle_access_method: accessMethod, vehicle_access_notes: accessNotes || null }
+        : base;
+
+      if (existing?.id) {
+        return sb.from('residents').update(payload).eq('id', existing.id).select().single();
+      }
+      return sb.from('residents').insert({ profile_id: user.id, ...payload }).select().single();
     }
+
+    let { data, error } = await upsertResident(true);
+    if (error?.message?.includes('vehicle_access_method')) {
+      // Column not yet migrated in this environment — retry without access fields
+      ({ data, error } = await upsertResident(false));
+    }
+    if (error) { setErr('Could not save your info — please try again or contact support.'); setBusy(false); return; }
+    resident = data;
 
     // Upsert primary vehicle
     const { data: existingVeh } = await sb.from('vehicles').select('id').eq('resident_id', resident.id).maybeSingle();
