@@ -77,8 +77,9 @@ export default function ResidentOnboarding() {
     const { data: { user } } = await sb.auth.getUser();
     if (!user) { setErr('Not signed in'); setBusy(false); return; }
 
+    const userId = user.id;
     let resident: any;
-    const { data: existing } = await sb.from('residents').select('id').eq('profile_id', user.id).maybeSingle();
+    const { data: existing } = await sb.from('residents').select('id').eq('profile_id', userId).maybeSingle();
 
     async function upsertResident(withAccess: boolean) {
       const base = {
@@ -94,7 +95,7 @@ export default function ResidentOnboarding() {
       if (existing?.id) {
         return sb.from('residents').update(payload).eq('id', existing.id).select().single();
       }
-      return sb.from('residents').insert({ profile_id: user.id, ...payload }).select().single();
+      return sb.from('residents').insert({ profile_id: userId, ...payload }).select().single();
     }
 
     let { data, error } = await upsertResident(true);
