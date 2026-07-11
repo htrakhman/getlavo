@@ -88,7 +88,7 @@ export default function ResidentOnboarding() {
         vehicle_access_method: accessMethod,
         vehicle_access_notes: accessNotes || null,
       }).eq('id', existing.id).select().single();
-      if (error) { setErr(error.message); setBusy(false); return; }
+      if (error) { setErr('Could not save your info — please try again or contact support.'); setBusy(false); return; }
       resident = data;
     } else {
       const { data, error } = await sb.from('residents').insert({
@@ -100,7 +100,7 @@ export default function ResidentOnboarding() {
         vehicle_access_method: accessMethod,
         vehicle_access_notes: accessNotes || null,
       }).select().single();
-      if (error) { setErr(error.message); setBusy(false); return; }
+      if (error) { setErr('Could not save your info — please try again or contact support.'); setBusy(false); return; }
       resident = data;
     }
 

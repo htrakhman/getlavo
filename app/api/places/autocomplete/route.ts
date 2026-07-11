@@ -21,7 +21,7 @@ type Photon = {
 
 async function photonFallback(input: string): Promise<PlacePrediction[]> {
   try {
-    const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(input.slice(0, 200))}&limit=6&lang=en`;
+    const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(input.slice(0, 200))}&limit=6&lang=en&countrycode=us`;
     const res = await fetch(url, { headers: { 'User-Agent': 'getlavo/1.0' } });
     if (!res.ok) return [];
     const data = (await res.json()) as Photon;
