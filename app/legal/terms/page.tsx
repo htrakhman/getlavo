@@ -38,7 +38,7 @@ export default function LegalTermsPage() {
           Residents may cancel bookings according to the timing shown at checkout. Late cancellations may be charged per operator policy.
         </p>
         <h2 className="mt-6 font-display text-xl">Contact</h2>
-        <p className="text-sm text-ink-300">hello@getlavo.io</p>
+        <p className="text-sm text-ink-300">harold@getlavo.io</p>
       </div>
     </ContentPageShell>
   );

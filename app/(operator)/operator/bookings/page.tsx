@@ -1,8 +1,11 @@
 import { PageHeader } from '@/components/PortalShell';
 import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 import { dateShort, money } from '@/lib/format';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+
+export const dynamic = 'force-dynamic';
 import { PartnershipRequests } from './PartnershipRequests';
 
 const STATUS_LABEL: Record<string, string> = {
@@ -25,7 +28,7 @@ export default async function OperatorBookings() {
   const today = new Date().toISOString().slice(0, 10);
 
   const [{ data: pendingPartnerships }, { data: upcoming }, { data: past }] = await Promise.all([
-    sb.from('partnerships')
+    supabaseAdmin().from('partnerships')
       .select('id, created_at, requested_by, building:buildings(id, name, city, address_line1, manager_id)')
       .eq('operator_id', op.id)
       .eq('status', 'pending')
