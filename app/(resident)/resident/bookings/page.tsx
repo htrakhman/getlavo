@@ -1,5 +1,6 @@
 import { PageHeader } from '@/components/PortalShell';
 import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 import { dateShort, money } from '@/lib/format';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
@@ -27,7 +28,7 @@ export default async function ResidentBookings() {
 
   const sb = supabaseServer();
 
-  const { data: resident } = await sb
+  const { data: resident } = await supabaseAdmin()
     .from('residents')
     .select('id')
     .eq('profile_id', session.user.id)

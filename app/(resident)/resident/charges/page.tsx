@@ -1,5 +1,6 @@
 import { PageHeader } from '@/components/PortalShell';
 import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 import { redirect } from 'next/navigation';
 import { dateShort, money } from '@/lib/format';
 
@@ -8,7 +9,7 @@ export default async function ChargesPage() {
   if (!session) redirect('/login');
   const sb = supabaseServer();
 
-  const { data: resident } = await sb
+  const { data: resident } = await supabaseAdmin()
     .from('residents')
     .select('id')
     .eq('profile_id', session.user.id)

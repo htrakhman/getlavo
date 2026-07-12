@@ -11,7 +11,7 @@ export default async function ResidentBook() {
 
   const sb = supabaseServer();
 
-  const { data: resident } = await sb
+  const { data: resident } = await supabaseAdmin()
     .from('residents')
     .select('id, building_id, building:buildings(name, lat, lng)')
     .eq('profile_id', session.user.id)

@@ -1,5 +1,6 @@
 import { PageHeader } from '@/components/PortalShell';
 import { supabaseServer, getSessionUser } from '@/lib/supabase/server';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 import { redirect } from 'next/navigation';
 import { SpotEditor, VehiclesList } from './editors';
 import { AccessEditor } from './AccessEditor';
@@ -9,7 +10,8 @@ export default async function VehiclePage() {
   if (!session) redirect('/login');
   const sb = supabaseServer();
 
-  const { data: resident, error: residentErr } = await sb
+  const sbAdmin = supabaseAdmin();
+  const { data: resident, error: residentErr } = await sbAdmin
     .from('residents')
     .select('id, unit_number, floor_number, spot_label, vehicle_access_method, vehicle_access_notes')
     .eq('profile_id', session.user.id)
@@ -22,7 +24,7 @@ export default async function VehiclePage() {
   }
   if (!resident) redirect('/resident/onboarding');
 
-  const { data: vehicles } = await sb.from('vehicles').select('*').eq('resident_id', resident.id).order('is_primary', { ascending: false });
+  const { data: vehicles } = await sbAdmin.from('vehicles').select('*').eq('resident_id', resident.id).order('is_primary', { ascending: false });
 
   return (
     <>

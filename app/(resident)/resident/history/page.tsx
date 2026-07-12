@@ -1,5 +1,6 @@
 import { PageHeader } from '@/components/PortalShell';
 import { supabaseServer, getSessionUser } from '@/lib/supabase/server';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 import { dateShort } from '@/lib/format';
 import { redirect } from 'next/navigation';
 import { RateWash } from '../washes/RateWash';
@@ -9,7 +10,7 @@ export default async function HistoryPage() {
   if (!session) redirect('/login');
   const sb = supabaseServer();
 
-  const { data: resident } = await sb
+  const { data: resident } = await supabaseAdmin()
     .from('residents')
     .select('id')
     .eq('profile_id', session.user.id)
