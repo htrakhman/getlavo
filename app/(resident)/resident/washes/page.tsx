@@ -1,5 +1,5 @@
 import { PageHeader } from '@/components/PortalShell';
-import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
+import { getSessionUser, supabaseServer, supabaseAdmin } from '@/lib/supabase/server';
 import { dateShort, money } from '@/lib/format';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
@@ -12,12 +12,19 @@ export default async function ResidentWashes() {
   const session = await getSessionUser();
   if (!session) redirect('/login');
   const sb = supabaseServer();
+  const sbAdmin = supabaseAdmin();
 
-  const { data: resident } = await sb
+  // Use admin client to bypass RLS — supabaseServer() with complex joins (buildings + vehicles)
+  // silently returns null when auth.uid() is not set in the PostgREST context (same bug as #41).
+  // Identity is still scoped to the authenticated user via the explicit profile_id filter.
+  const { data: resident, error: residentErr } = await sbAdmin
     .from('residents')
     .select('id, building_id, spot_label, building:buildings(name, wash_day), vehicles(*)')
     .eq('profile_id', session.user.id)
     .maybeSingle();
+  if (residentErr) {
+    console.error('[washes] resident query error:', residentErr.message, residentErr.details);
+  }
   if (!resident) redirect('/resident/onboarding');
 
   const today = new Date().toISOString().slice(0, 10);

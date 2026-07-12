@@ -60,6 +60,7 @@ export async function POST(req: Request) {
       .select('id')
       .single();
     if (error) {
+      console.error('[onboard] resident UPDATE failed (will retry without access fields):', error.message, error.details);
       // Retry without access fields in case column doesn't exist yet
       const { vehicle_access_method: _m, vehicle_access_notes: _n, ...base } = residentPayload;
       const { data: d2, error: e2 } = await admin
@@ -68,7 +69,10 @@ export async function POST(req: Request) {
         .eq('id', existing.id)
         .select('id')
         .single();
-      if (e2) return NextResponse.json({ error: e2.message }, { status: 500 });
+      if (e2) {
+        console.error('[onboard] resident UPDATE fallback failed:', e2.message, e2.details);
+        return NextResponse.json({ error: e2.message }, { status: 500 });
+      }
       residentId = d2!.id;
     } else {
       residentId = data!.id;
@@ -80,13 +84,17 @@ export async function POST(req: Request) {
       .select('id')
       .single();
     if (error) {
+      console.error('[onboard] resident INSERT failed (will retry without access fields):', error.message, error.details);
       const { vehicle_access_method: _m, vehicle_access_notes: _n, ...base } = residentPayload;
       const { data: d2, error: e2 } = await admin
         .from('residents')
         .insert({ profile_id: profileId, ...base })
         .select('id')
         .single();
-      if (e2) return NextResponse.json({ error: e2.message }, { status: 500 });
+      if (e2) {
+        console.error('[onboard] resident INSERT fallback failed:', e2.message, e2.details);
+        return NextResponse.json({ error: e2.message }, { status: 500 });
+      }
       residentId = d2!.id;
     } else {
       residentId = data!.id;
@@ -112,9 +120,11 @@ export async function POST(req: Request) {
   };
 
   if (existingVeh?.id) {
-    await admin.from('vehicles').update(vehiclePayload).eq('id', existingVeh.id);
+    const { error: vehErr } = await admin.from('vehicles').update(vehiclePayload).eq('id', existingVeh.id);
+    if (vehErr) console.error('[onboard] vehicle UPDATE failed:', vehErr.message, vehErr.details);
   } else {
-    await admin.from('vehicles').insert(vehiclePayload);
+    const { error: vehErr } = await admin.from('vehicles').insert(vehiclePayload);
+    if (vehErr) console.error('[onboard] vehicle INSERT failed:', vehErr.message, vehErr.details);
   }
 
   return NextResponse.json({ ok: true });

@@ -102,7 +102,9 @@ export default function ResidentOnboarding() {
 
     if (typeof window !== 'undefined') localStorage.removeItem('lavo_building_slug');
     setBusy(false);
-    router.push('/resident/washes');
+    // Hard navigation so the browser makes a fresh full-page request with all cookies,
+    // rather than a client-side RSC fetch that can serve a cached redirect.
+    window.location.href = '/resident/washes';
   }
 
   return (
