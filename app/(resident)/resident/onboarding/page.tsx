@@ -95,7 +95,9 @@ export default function ResidentOnboarding() {
     });
 
     if (!res.ok) {
-      setErr('Could not save your info — please try again or contact support.');
+      let detail = '';
+      try { detail = (await res.json()).error ?? ''; } catch {}
+      setErr(`Could not save your info (${res.status}${detail ? ': ' + detail : ''}) — please try again or contact support.`);
       setBusy(false);
       return;
     }

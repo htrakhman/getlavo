@@ -34,6 +34,16 @@ export async function POST(req: Request) {
   const admin = supabaseAdmin();
   const profileId = session.user.id;
 
+  // Ensure the profiles row exists — the handle_new_user trigger fires on INSERT into
+  // auth.users, but in edge cases (trigger lag, Google OAuth timing) it can miss.
+  // Without this row the residents FK fails with a 23503 constraint error.
+  const { error: profileErr } = await admin
+    .from('profiles')
+    .upsert({ id: profileId, email: session.user.email ?? '' }, { onConflict: 'id', ignoreDuplicates: true });
+  if (profileErr) {
+    console.error('[onboard] profile upsert failed:', profileErr.message, profileErr.details);
+  }
+
   // Upsert resident row — admin client bypasses RLS so this always works
   const { data: existing } = await admin
     .from('residents')
