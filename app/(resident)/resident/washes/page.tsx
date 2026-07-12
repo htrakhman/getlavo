@@ -1,5 +1,6 @@
 import { PageHeader } from '@/components/PortalShell';
-import { getSessionUser, supabaseServer, supabaseAdmin } from '@/lib/supabase/server';
+import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 import { dateShort, money } from '@/lib/format';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
