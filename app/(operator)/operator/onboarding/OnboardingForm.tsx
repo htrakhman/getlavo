@@ -254,7 +254,7 @@ export function OnboardingForm() {
       open_slot_price_cents: Math.round(basePrice * 1.3),
       capacity_per_day: 20,
       hours_json: hours,
-      status: 'pending_review',
+      status: 'approved',
     }).select('id').single();
 
     if (opErr || !op) { setErr(opErr?.message ?? 'Failed to create profile'); setBusy(false); return; }
@@ -603,7 +603,7 @@ export function OnboardingForm() {
                   <div>✓ {packages.filter((p) => p.name && p.price).length} service {packages.filter((p) => p.name && p.price).length === 1 ? 'package' : 'packages'}</div>
                   {city && region && <div>✓ {city}, {region} · {radius} mi radius</div>}
                 </div>
-                <p className="text-xs text-ink-500 pt-1">We review every application within 48 hours. You'll connect your bank account after approval.</p>
+                <p className="text-xs text-ink-500 pt-1">You'll connect your bank account after finishing setup.</p>
               </div>
             </div>
           )}
