@@ -17,7 +17,8 @@ export default function BuildingBroadcastPage() {
       body: JSON.stringify({ subject, body, channels: ['email'] }),
     });
     const d = await res.json();
-    setMsg(res.ok ? `Sent to ${d.sent ?? 0} residents with email on file.` : (d.error || 'Could not send'));
+    const count = d.sent ?? 0;
+    setMsg(res.ok ? `Sent to ${count} ${count === 1 ? 'resident' : 'residents'} with email on file.` : (d.error || 'Could not send'));
   }
 
   return (

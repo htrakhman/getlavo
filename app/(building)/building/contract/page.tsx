@@ -7,6 +7,8 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
 import Link from 'next/link';
 import { money } from '@/lib/format';
 
+export const dynamic = 'force-dynamic';
+
 const BLANK = (label: string) => (
   <span className="inline-block min-w-[120px] border-b border-dashed border-ink-500 text-ink-500 italic px-1">
     {label}

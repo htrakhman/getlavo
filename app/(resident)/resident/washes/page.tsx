@@ -1,6 +1,8 @@
 import { PageHeader } from '@/components/PortalShell';
 import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
+
+export const dynamic = 'force-dynamic';
 import { dateShort, money } from '@/lib/format';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';

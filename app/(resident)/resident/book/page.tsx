@@ -1,9 +1,12 @@
 import { PageHeader } from '@/components/PortalShell';
-import { getSessionUser, supabaseServer, supabaseAdmin } from '@/lib/supabase/server';
+import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 import { haversineMiles } from '@/lib/geo';
 import { money } from '@/lib/format';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
+
+export const dynamic = 'force-dynamic';
 
 export default async function ResidentBook() {
   const session = await getSessionUser();
