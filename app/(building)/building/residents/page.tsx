@@ -13,7 +13,7 @@ export default async function Residents() {
 
   const [{ data: residents }, { data: invites }] = await Promise.all([
     sb.from('residents')
-      .select('id, unit_number, profile:profiles(full_name, email), vehicles(*)')
+      .select('id, unit_number, profile:profiles!profile_id(full_name, email), vehicles(*)')
       .eq('building_id', building.id)
       .eq('active', true),
     sb.from('building_invites')

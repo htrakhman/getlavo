@@ -1,4 +1,3 @@
-import { PageHeader } from '@/components/PortalShell';
 import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { ReportIssue } from './ReportIssue';
@@ -22,11 +21,13 @@ export default async function IssuesPage() {
 
   return (
     <>
-      <PageHeader
-        eyebrow={building.name}
-        title="Issues"
-        action={<ReportIssue buildingId={building.id} />}
-      />
+      <div className="mb-8 flex items-end justify-between gap-6">
+        <div>
+          <div className="text-xs uppercase tracking-[0.18em] text-gleam">{building.name}</div>
+          <h1 className="mt-1 font-display text-4xl tracking-tight">Issues</h1>
+        </div>
+        <ReportIssue buildingId={building.id} />
+      </div>
 
       {open.length === 0 && resolved.length === 0 && (
         <div className="card p-10 text-center text-ink-400">
