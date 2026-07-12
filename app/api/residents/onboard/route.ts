@@ -1,0 +1,121 @@
+import { NextResponse } from 'next/server';
+import { getSessionUser } from '@/lib/supabase/server';
+import { supabaseAdmin } from '@/lib/supabase/admin';
+import { z } from 'zod';
+
+const Body = z.object({
+  buildingId: z.string().uuid(),
+  unitNumber: z.string().min(1),
+  floorNumber: z.number().int(),
+  spotLabel: z.string().nullable().optional(),
+  vehicleAccessMethod: z.string().nullable().optional(),
+  vehicleAccessNotes: z.string().nullable().optional(),
+  make: z.string().min(1),
+  model: z.string().min(1),
+  year: z.number().int(),
+  color: z.string().min(1),
+  plate: z.string().nullable().optional(),
+  photoUrl: z.string().nullable().optional(),
+});
+
+export async function POST(req: Request) {
+  const session = await getSessionUser();
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const parsed = Body.safeParse(await req.json());
+  if (!parsed.success) return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+
+  const {
+    buildingId, unitNumber, floorNumber, spotLabel,
+    vehicleAccessMethod, vehicleAccessNotes,
+    make, model, year, color, plate, photoUrl,
+  } = parsed.data;
+
+  const admin = supabaseAdmin();
+  const profileId = session.user.id;
+
+  // Upsert resident row — admin client bypasses RLS so this always works
+  const { data: existing } = await admin
+    .from('residents')
+    .select('id')
+    .eq('profile_id', profileId)
+    .maybeSingle();
+
+  const residentPayload: Record<string, unknown> = {
+    building_id: buildingId,
+    unit_number: unitNumber,
+    floor_number: floorNumber,
+    spot_label: spotLabel ?? null,
+    vehicle_access_method: vehicleAccessMethod ?? null,
+    vehicle_access_notes: vehicleAccessNotes ?? null,
+  };
+
+  let residentId: string;
+
+  if (existing?.id) {
+    const { data, error } = await admin
+      .from('residents')
+      .update(residentPayload)
+      .eq('id', existing.id)
+      .select('id')
+      .single();
+    if (error) {
+      // Retry without access fields in case column doesn't exist yet
+      const { vehicle_access_method: _m, vehicle_access_notes: _n, ...base } = residentPayload;
+      const { data: d2, error: e2 } = await admin
+        .from('residents')
+        .update(base)
+        .eq('id', existing.id)
+        .select('id')
+        .single();
+      if (e2) return NextResponse.json({ error: e2.message }, { status: 500 });
+      residentId = d2!.id;
+    } else {
+      residentId = data!.id;
+    }
+  } else {
+    const { data, error } = await admin
+      .from('residents')
+      .insert({ profile_id: profileId, ...residentPayload })
+      .select('id')
+      .single();
+    if (error) {
+      const { vehicle_access_method: _m, vehicle_access_notes: _n, ...base } = residentPayload;
+      const { data: d2, error: e2 } = await admin
+        .from('residents')
+        .insert({ profile_id: profileId, ...base })
+        .select('id')
+        .single();
+      if (e2) return NextResponse.json({ error: e2.message }, { status: 500 });
+      residentId = d2!.id;
+    } else {
+      residentId = data!.id;
+    }
+  }
+
+  // Upsert primary vehicle
+  const { data: existingVeh } = await admin
+    .from('vehicles')
+    .select('id')
+    .eq('resident_id', residentId)
+    .maybeSingle();
+
+  const vehiclePayload: Record<string, unknown> = {
+    resident_id: residentId,
+    license_plate: plate || 'UNKNOWN',
+    make,
+    model,
+    year,
+    color,
+    is_primary: true,
+    photo_url: photoUrl ?? null,
+  };
+
+  if (existingVeh?.id) {
+    await admin.from('vehicles').update(vehiclePayload).eq('id', existingVeh.id);
+  } else {
+    await admin.from('vehicles').insert(vehiclePayload);
+  }
+
+  return NextResponse.json({ ok: true });
+}
