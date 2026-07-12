@@ -74,54 +74,30 @@ export default function ResidentOnboarding() {
   async function finish() {
     setBusy(true);
     setErr(null);
-    const { data: { user } } = await sb.auth.getUser();
-    if (!user) { setErr('Not signed in'); setBusy(false); return; }
 
-    const userId = user.id;
-    let resident: any;
-    const { data: existing } = await sb.from('residents').select('id').eq('profile_id', userId).maybeSingle();
+    const res = await fetch('/api/residents/onboard', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        buildingId,
+        unitNumber: unit,
+        floorNumber: parseInt(floor, 10),
+        spotLabel: spotLabel || null,
+        vehicleAccessMethod: accessMethod || null,
+        vehicleAccessNotes: accessNotes || null,
+        make,
+        model,
+        year: parseInt(year, 10),
+        color,
+        plate: plate || null,
+        photoUrl: vehiclePhotoUrl.trim() || null,
+      }),
+    });
 
-    async function upsertResident(withAccess: boolean) {
-      const base = {
-        building_id: buildingId,
-        unit_number: unit,
-        floor_number: parseInt(floor, 10),
-        spot_label: spotLabel || null,
-      };
-      const payload = withAccess
-        ? { ...base, vehicle_access_method: accessMethod, vehicle_access_notes: accessNotes || null }
-        : base;
-
-      if (existing?.id) {
-        return sb.from('residents').update(payload).eq('id', existing.id).select().single();
-      }
-      return sb.from('residents').insert({ profile_id: userId, ...payload }).select().single();
-    }
-
-    let { data, error } = await upsertResident(true);
-    if (error?.message?.includes('vehicle_access_method')) {
-      // Column not yet migrated in this environment — retry without access fields
-      ({ data, error } = await upsertResident(false));
-    }
-    if (error) { setErr('Could not save your info — please try again or contact support.'); setBusy(false); return; }
-    resident = data;
-
-    // Upsert primary vehicle
-    const { data: existingVeh } = await sb.from('vehicles').select('id').eq('resident_id', resident.id).maybeSingle();
-    const vehiclePayload: any = {
-      resident_id: resident.id,
-      license_plate: plate || 'UNKNOWN',
-      make,
-      model,
-      year: parseInt(year, 10),
-      color,
-      is_primary: true,
-      photo_url: vehiclePhotoUrl.trim() || null,
-    };
-    if (existingVeh?.id) {
-      await sb.from('vehicles').update(vehiclePayload).eq('id', existingVeh.id);
-    } else {
-      await sb.from('vehicles').insert(vehiclePayload);
+    if (!res.ok) {
+      setErr('Could not save your info — please try again or contact support.');
+      setBusy(false);
+      return;
     }
 
     if (typeof window !== 'undefined') localStorage.removeItem('lavo_building_slug');
