@@ -28,8 +28,8 @@ export default async function ContractPage() {
     .eq('id', building.id)
     .maybeSingle();
 
-  // Active/pilot/pending partnership → auto-fill operator
-  const { data: partnership } = await sb
+  // Active/pilot/pending partnership → auto-fill operator (use admin to ensure fresh, RLS-independent read)
+  const { data: partnership } = await admin
     .from('partnerships')
     .select('id, operator:operators(id, name, address_line1, city, region, contact_email, contact_phone, base_price_cents, insurance_expires_at, owner_id)')
     .eq('building_id', building.id)

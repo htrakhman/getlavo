@@ -907,3 +907,16 @@ end $$;
 alter table building_waitlist
   add column if not exists building_label text,
   add column if not exists formatted_address text;
+
+-- ============================================================
+-- 0025 — resident can read their building's active partnerships
+-- ============================================================
+drop policy if exists partnerships_resident_read on partnerships;
+create policy partnerships_resident_read on partnerships
+  for select using (
+    exists (
+      select 1 from residents r
+      where r.building_id = partnerships.building_id
+        and r.profile_id = auth.uid()
+    )
+  );
