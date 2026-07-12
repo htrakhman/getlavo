@@ -26,12 +26,13 @@ export default async function ResidentBook() {
   // Active partnership operator — use admin client to bypass RLS (no resident read policy on partnerships)
   const { data: partnership } = await supabaseAdmin()
     .from('partnerships')
-    .select('id, operator:operators(id, name, slug, rating_avg, rating_count, base_price_cents, open_slot_price_cents, description, lat, lng, service_radius_miles, capacity_per_day)')
+    .select('id, operator:operators(id, name, slug, rating_avg, rating_count, base_price_cents, open_slot_price_cents, description, lat, lng, service_radius_miles, capacity_per_day, status, stripe_onboarding_complete)')
     .eq('building_id', resident.building_id)
     .eq('status', 'active')
     .maybeSingle();
 
-  const partnerOperator = (partnership?.operator as any) ?? null;
+  const rawPartnerOp = (partnership?.operator as any) ?? null;
+  const partnerOperator = rawPartnerOp?.status === 'approved' && rawPartnerOp?.stripe_onboarding_complete ? rawPartnerOp : null;
 
   // Additional nearby operators with open slots
   let nearbyOperators: any[] = [];

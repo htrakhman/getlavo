@@ -25,7 +25,7 @@ export default async function AdminOperatorDetail({ params }: { params: { id: st
             <div>Stripe: {op.stripe_onboarding_complete ? 'Connected' : 'Not connected'}</div>
           </div>
           <div className="mt-6">
-            <OperatorStatusEditor operatorId={op.id} status={op.status} />
+            <OperatorStatusEditor operatorId={op.id} status={op.status} stripeOnboardingComplete={!!op.stripe_onboarding_complete} />
           </div>
         </div>
         <div className="card p-6">
