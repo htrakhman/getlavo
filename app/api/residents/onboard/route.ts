@@ -127,5 +127,6 @@ export async function POST(req: Request) {
     if (vehErr) console.error('[onboard] vehicle INSERT failed:', vehErr.message, vehErr.details);
   }
 
+  console.log('[onboard] SUCCESS residentId:', residentId, 'profileId:', profileId);
   return NextResponse.json({ ok: true });
 }

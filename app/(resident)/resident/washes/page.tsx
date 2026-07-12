@@ -25,6 +25,7 @@ export default async function ResidentWashes() {
   if (residentErr) {
     console.error('[washes] resident query error:', residentErr.message, residentErr.details);
   }
+  console.log('[washes] profileId:', session.user.id, 'resident:', resident?.id ?? 'null');
   if (!resident) redirect('/resident/onboarding');
 
   const today = new Date().toISOString().slice(0, 10);
