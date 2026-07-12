@@ -131,10 +131,20 @@ export async function POST(req: Request) {
 
   if (existingVeh?.id) {
     const { error: vehErr } = await admin.from('vehicles').update(vehiclePayload).eq('id', existingVeh.id);
-    if (vehErr) console.error('[onboard] vehicle UPDATE failed:', vehErr.message, vehErr.details);
+    if (vehErr) {
+      console.error('[onboard] vehicle UPDATE failed (will retry without photo_url):', vehErr.message, vehErr.details);
+      const { photo_url: _p, ...vehBase } = vehiclePayload;
+      const { error: vehErr2 } = await admin.from('vehicles').update(vehBase).eq('id', existingVeh.id);
+      if (vehErr2) console.error('[onboard] vehicle UPDATE fallback failed:', vehErr2.message, vehErr2.details);
+    }
   } else {
     const { error: vehErr } = await admin.from('vehicles').insert(vehiclePayload);
-    if (vehErr) console.error('[onboard] vehicle INSERT failed:', vehErr.message, vehErr.details);
+    if (vehErr) {
+      console.error('[onboard] vehicle INSERT failed (will retry without photo_url):', vehErr.message, vehErr.details);
+      const { photo_url: _p, ...vehBase } = vehiclePayload;
+      const { error: vehErr2 } = await admin.from('vehicles').insert(vehBase);
+      if (vehErr2) console.error('[onboard] vehicle INSERT fallback failed:', vehErr2.message, vehErr2.details);
+    }
   }
 
   console.log('[onboard] SUCCESS residentId:', residentId, 'profileId:', profileId);

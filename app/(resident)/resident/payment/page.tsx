@@ -1,5 +1,6 @@
 import { PageHeader } from '@/components/PortalShell';
 import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 import { redirect } from 'next/navigation';
 import Stripe from 'stripe';
 import { PaymentMethodPanel } from './PaymentMethodPanel';
@@ -9,7 +10,7 @@ export default async function PaymentPage() {
   if (!session) redirect('/login');
 
   const sb = supabaseServer();
-  const { data: resident } = await sb
+  const { data: resident } = await supabaseAdmin()
     .from('residents')
     .select('id, stripe_customer_id, stripe_payment_method_id')
     .eq('profile_id', session.user.id)
