@@ -1,5 +1,5 @@
 import { PageHeader } from '@/components/PortalShell';
-import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
+import { getSessionUser, supabaseServer, supabaseAdmin } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { getCurrentBuildingForSession } from '@/lib/building';
 import { dateShort } from '@/lib/format';
@@ -12,12 +12,24 @@ export default async function BuildingWashDaysPage() {
   if (!building) redirect('/building/onboarding');
 
   const sb = supabaseServer();
-  const { data: days } = await sb
-    .from('wash_days')
-    .select('id, scheduled_for, started_at, completed_at, operator:operators(name)')
-    .eq('building_id', building.id)
-    .order('scheduled_for', { ascending: false })
-    .limit(50);
+  const admin = supabaseAdmin();
+
+  const [{ data: days }, { data: activePartnership }] = await Promise.all([
+    sb
+      .from('wash_days')
+      .select('id, scheduled_for, started_at, completed_at, operator:operators(name)')
+      .eq('building_id', building.id)
+      .order('scheduled_for', { ascending: false })
+      .limit(50),
+    admin
+      .from('partnerships')
+      .select('id, operator:operators(name)')
+      .eq('building_id', building.id)
+      .eq('status', 'active')
+      .maybeSingle(),
+  ]);
+
+  const hasOperator = !!activePartnership;
 
   const today = new Date().toISOString().slice(0, 10);
   const upcoming = (days ?? []).filter((d: any) => !d.completed_at && d.scheduled_for >= today);
@@ -73,7 +85,9 @@ export default async function BuildingWashDaysPage() {
 
       {!days?.length && (
         <div className="card p-10 text-center text-ink-400">
-          No wash days scheduled yet. They'll appear here once your operator is assigned.
+          {hasOperator
+            ? <>No wash days scheduled yet. Your operator ({(activePartnership!.operator as any)?.name}) will schedule upcoming days soon.</>
+            : 'No wash days scheduled yet. They\'ll appear here once your operator is assigned.'}
         </div>
       )}
     </>

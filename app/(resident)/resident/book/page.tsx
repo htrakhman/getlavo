@@ -1,5 +1,5 @@
 import { PageHeader } from '@/components/PortalShell';
-import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
+import { getSessionUser, supabaseServer, supabaseAdmin } from '@/lib/supabase/server';
 import { haversineMiles } from '@/lib/geo';
 import { money } from '@/lib/format';
 import { redirect } from 'next/navigation';
@@ -20,8 +20,8 @@ export default async function ResidentBook() {
 
   const building = resident.building as any;
 
-  // Active partnership operator (cheaper building-day rate)
-  const { data: partnership } = await sb
+  // Active partnership operator — use admin client to bypass RLS (no resident read policy on partnerships)
+  const { data: partnership } = await supabaseAdmin()
     .from('partnerships')
     .select('id, operator:operators(id, name, slug, rating_avg, rating_count, base_price_cents, open_slot_price_cents, description, lat, lng, service_radius_miles, capacity_per_day)')
     .eq('building_id', resident.building_id)

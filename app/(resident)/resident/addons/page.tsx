@@ -1,5 +1,5 @@
 import { PageHeader } from '@/components/PortalShell';
-import { supabaseServer, getSessionUser } from '@/lib/supabase/server';
+import { supabaseServer, getSessionUser, supabaseAdmin } from '@/lib/supabase/server';
 import { money } from '@/lib/format';
 import { redirect } from 'next/navigation';
 import { AddonRow, RecurringAddons } from './AddonControls';
@@ -16,7 +16,8 @@ export default async function AddonsPage() {
     .maybeSingle();
   if (!r) redirect('/resident/onboarding');
 
-  const { data: partnership } = await sb
+  // Use admin client to bypass RLS (no resident read policy on partnerships)
+  const { data: partnership } = await supabaseAdmin()
     .from('partnerships')
     .select('operator:operators(id, name, operator_addons(*))')
     .eq('building_id', r.building_id)
