@@ -1,4 +1,3 @@
-import { PageHeader } from '@/components/PortalShell';
 import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { getCurrentBuildingForSession } from '@/lib/building';
@@ -24,11 +23,13 @@ export default async function AnnouncementsPage() {
 
   return (
     <>
-      <PageHeader
-        eyebrow={building.name}
-        title="Announcements"
-        action={<ComposeAnnouncement buildingId={building.id} buildingName={building.name} residentCount={residentCount ?? 0} />}
-      />
+      <div className="mb-8 flex items-end justify-between gap-6">
+        <div>
+          <div className="text-xs uppercase tracking-[0.18em] text-gleam">{building.name}</div>
+          <h1 className="mt-1 font-display text-4xl tracking-tight">Announcements</h1>
+        </div>
+        <ComposeAnnouncement buildingId={building.id} buildingName={building.name} residentCount={residentCount ?? 0} />
+      </div>
 
       {!announcements?.length ? (
         <div className="card p-10 text-center text-ink-400">

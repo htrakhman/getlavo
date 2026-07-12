@@ -51,8 +51,10 @@ export async function GET() {
     });
 
     return NextResponse.redirect(accountLink.url);
-  } catch (err) {
-    console.error('stripe connect onboard error', err);
-    return NextResponse.redirect(`${appUrl}/operator?stripe_error=1`);
+  } catch (err: any) {
+    const msg = err?.message ?? 'unknown error';
+    console.error('stripe connect onboard error:', msg, err);
+    const encoded = encodeURIComponent(msg.slice(0, 200));
+    return NextResponse.redirect(`${appUrl}/operator?stripe_error=1&stripe_msg=${encoded}`);
   }
 }

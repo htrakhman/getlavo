@@ -5,8 +5,9 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { StripeConnectButton } from '@/components/StripeConnectButton';
 
-export default async function OperatorOverview({ searchParams }: { searchParams: { stripe_error?: string } }) {
+export default async function OperatorOverview({ searchParams }: { searchParams: { stripe_error?: string; stripe_msg?: string } }) {
   const stripeError = searchParams.stripe_error === '1';
+  const stripeMsg = searchParams.stripe_msg ? decodeURIComponent(searchParams.stripe_msg) : null;
   const session = await getSessionUser();
   if (!session) redirect('/login');
   const sb = supabaseServer();
@@ -62,7 +63,8 @@ export default async function OperatorOverview({ searchParams }: { searchParams:
 
       {stripeError && (
         <div className="mb-6 card border-red-400/30 bg-red-400/5 p-4 text-sm text-red-300">
-          Could not connect to Stripe — please try again or contact support if the problem persists.
+          <div>Could not connect to Stripe — please try again or contact support if the problem persists.</div>
+          {stripeMsg && <div className="mt-1 font-mono text-xs opacity-70">{stripeMsg}</div>}
         </div>
       )}
 
