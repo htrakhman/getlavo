@@ -5,26 +5,24 @@ import { redirect } from 'next/navigation';
 import { SpotEditor, VehiclesList } from './editors';
 import { AccessEditor } from './AccessEditor';
 
+export const dynamic = 'force-dynamic';
+
 export default async function VehiclePage() {
   const session = await getSessionUser();
   if (!session) redirect('/login');
   const sb = supabaseServer();
 
-  const sbAdmin = supabaseAdmin();
-  const { data: resident, error: residentErr } = await sbAdmin
+  const { data: resident, error: residentErr } = await supabaseAdmin()
     .from('residents')
     .select('id, unit_number, floor_number, spot_label, vehicle_access_method, vehicle_access_notes')
     .eq('profile_id', session.user.id)
     .maybeSingle();
   if (residentErr) {
     console.error('vehicle page resident query error:', residentErr.message);
-    if (residentErr.code === 'PGRST204' || residentErr.message?.includes('does not exist')) {
-      return <div className="p-10 text-center text-ink-400">Vehicle settings unavailable — please contact support.</div>;
-    }
   }
   if (!resident) redirect('/resident/onboarding');
 
-  const { data: vehicles } = await sbAdmin.from('vehicles').select('*').eq('resident_id', resident.id).order('is_primary', { ascending: false });
+  const { data: vehicles } = await supabaseAdmin().from('vehicles').select('*').eq('resident_id', resident.id).order('is_primary', { ascending: false });
 
   return (
     <>

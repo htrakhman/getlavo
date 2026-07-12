@@ -1,15 +1,18 @@
 import { PageHeader } from '@/components/PortalShell';
-import { supabaseServer, getSessionUser, supabaseAdmin } from '@/lib/supabase/server';
+import { supabaseServer, getSessionUser } from '@/lib/supabase/server';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 import { money } from '@/lib/format';
 import { redirect } from 'next/navigation';
 import { AddonRow, RecurringAddons } from './AddonControls';
+
+export const dynamic = 'force-dynamic';
 
 export default async function AddonsPage() {
   const session = await getSessionUser();
   if (!session) redirect('/login');
   const sb = supabaseServer();
 
-  const { data: r } = await sb
+  const { data: r } = await supabaseAdmin()
     .from('residents')
     .select('id, building_id')
     .eq('profile_id', session.user.id)
