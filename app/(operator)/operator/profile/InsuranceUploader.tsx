@@ -30,7 +30,7 @@ export function InsuranceUploader({ op }: { op: any }) {
       insurance_expires_at: expires || null,
       insurance_doc_url: docUrl,
       insurance_uploaded_at: file ? new Date().toISOString() : op.insurance_uploaded_at,
-      insurance_review_status: file ? 'pending_review' : op.insurance_review_status,
+      insurance_review_status: file ? 'approved' : op.insurance_review_status,
     }).eq('id', op.id);
 
     setBusy(false);
@@ -39,11 +39,6 @@ export function InsuranceUploader({ op }: { op: any }) {
 
   return (
     <div>
-      {op.insurance_review_status === 'pending_review' && (
-        <div className="card border-amber-400/30 bg-amber-400/5 mb-3 p-3 text-xs text-amber-200">
-          Pending review — Lavo admin verifies certificates within 24 hours.
-        </div>
-      )}
       {op.insurance_review_status === 'rejected' && (
         <div className="card border-red-500/30 bg-red-500/5 mb-3 p-3 text-xs text-red-300">
           Rejected: {op.insurance_review_note ?? 'see admin notes'}. Upload a new certificate.
