@@ -70,18 +70,18 @@ export default function OperatorsPage() {
       <section className="mx-auto max-w-5xl px-6 py-20">
         <div className="text-center mb-12">
           <h2 className="font-display text-4xl">The math works</h2>
-          <p className="mt-3 text-ink-300">Lavo takes 15–20% of each booking. You keep the rest — transferred automatically.</p>
+          <p className="mt-3 text-ink-300">Lavo takes 10% of each booking. You keep the rest — transferred automatically.</p>
         </div>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           <div className="card p-6 text-center">
             <div className="font-display text-4xl text-gleam">$35</div>
             <div className="mt-2 text-sm text-ink-400">resident pays (building day)</div>
-            <div className="mt-3 text-xs text-ink-500">Your payout: ~$29</div>
+            <div className="mt-3 text-xs text-ink-500">Your payout: ~$31.50</div>
           </div>
           <div className="card p-6 text-center">
             <div className="font-display text-4xl">$45</div>
             <div className="mt-2 text-sm text-ink-400">resident pays (on-demand)</div>
-            <div className="mt-3 text-xs text-ink-500">Your payout: ~$37</div>
+            <div className="mt-3 text-xs text-ink-500">Your payout: ~$40.50</div>
           </div>
           <div className="card p-6 text-center">
             <div className="font-display text-4xl">$12k+</div>
@@ -90,7 +90,7 @@ export default function OperatorsPage() {
           </div>
         </div>
         <p className="mt-6 text-center text-xs text-ink-500">
-          Example pricing. You set your own rates. Lavo take rate is 15–20% per booking.
+          Example pricing. You set your own rates. Lavo take rate is 10% per booking.
         </p>
       </section>
 

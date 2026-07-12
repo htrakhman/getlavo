@@ -14,8 +14,6 @@ export default async function Earnings() {
     .maybeSingle();
   if (!op) return <p className="p-10 text-ink-400">Operator profile not found.</p>;
 
-  const reservePct = 5;
-
   const monthStart = new Date().toISOString().slice(0, 8) + '01';
   const last30 = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
 
@@ -38,10 +36,6 @@ export default async function Earnings() {
   return (
     <>
       <PageHeader eyebrow={op.name} title="Earnings & payouts" />
-      <p className="text-sm text-ink-500 mb-6">
-        A rolling {reservePct}% reserve may be held for dispute coverage. Shown here for transparency with your operator agreement.
-      </p>
-
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4 mb-8">
         <Stat label="Lifetime net" value={money(lifetimeNet)} />
         <Stat label="Pending payout" value={money(pending)} />
