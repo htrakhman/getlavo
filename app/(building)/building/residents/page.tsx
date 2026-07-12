@@ -1,5 +1,5 @@
 import { PageHeader } from '@/components/PortalShell';
-import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
+import { getSessionUser, supabaseServer, supabaseAdmin } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { InviteResidents } from './InviteResidents';
 
@@ -7,12 +7,13 @@ export default async function Residents() {
   const session = await getSessionUser();
   if (!session) redirect('/login');
   const sb = supabaseServer();
+  const sbAdmin = supabaseAdmin();
   const { getCurrentBuildingForSession } = await import('@/lib/building');
   const { current: building } = await getCurrentBuildingForSession(session.user.id);
   if (!building) redirect('/building/onboarding');
 
   const [{ data: residents }, { data: invites }] = await Promise.all([
-    sb.from('residents')
+    sbAdmin.from('residents')
       .select('id, unit_number, profile:profiles!profile_id(full_name, email), vehicles(*)')
       .eq('building_id', building.id)
       .eq('active', true),
