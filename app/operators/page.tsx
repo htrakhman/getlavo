@@ -101,7 +101,7 @@ export default function OperatorsPage() {
         </div>
         <ol className="space-y-6">
           {[
-            ['Apply', 'Submit your company details, service area, hours, pricing, and capacity. We review within 48 hours.'],
+            ['Apply', 'Submit your company details, service area, hours, pricing, and capacity. You\'ll get access immediately after signup.'],
             ['Connect your bank account', 'Set up Stripe Connect so we can transfer your earnings after each booking. Takes 2 minutes.'],
             ['Get discovered', 'Approved operators appear in building marketplaces within your service radius. Buildings send you partnership requests.'],
             ['Accept partnerships', 'Review requests from nearby buildings and accept the ones you want. Each active partnership brings you a steady pipeline of local demand.'],
@@ -160,7 +160,7 @@ export default function OperatorsPage() {
       {/* CTA */}
       <section className="mx-auto max-w-2xl px-6 py-20 text-center">
         <h2 className="font-display text-4xl mb-4">Ready to grow your book?</h2>
-        <p className="text-ink-300 mb-8">Apply takes 5 minutes. We review within 48 hours.</p>
+        <p className="text-ink-300 mb-8">Apply takes 5 minutes. Get started right away.</p>
         <Link href="/operators/apply" className="btn-primary px-10 py-4 text-base">
           Apply as an operator →
         </Link>

@@ -61,11 +61,11 @@ export function OperatorApplicationForm({
       <div className="card p-8 text-center max-w-xl mx-auto">
         <h2 className="font-display text-2xl text-ink-100">Application received</h2>
         <p className="mt-3 text-sm leading-relaxed text-ink-300">
-          Thanks, <strong className="text-ink-100">{name}</strong>. We&apos;ll review your application and reach out
-          at <strong className="text-ink-100">{email}</strong> within two business days.
+          Thanks, <strong className="text-ink-100">{name}</strong>. We&apos;ve received your application.
+          Create your account to get started right away.
         </p>
         <p className="mt-4 text-sm text-ink-400">
-          Want to get ahead? Create your operator account while we review.
+          Create your operator account to connect Stripe and upload your insurance certificate.
         </p>
         <Link href="/signup?role=operator" className="btn-primary mt-6 inline-block px-8 py-3">
           Continue to signup →
@@ -79,7 +79,7 @@ export function OperatorApplicationForm({
       <div>
         <h2 className="font-display text-2xl text-ink-100">Operator application</h2>
         <p className="mt-2 text-sm text-ink-400">
-          Tell us about your mobile car wash or detailing business. We review every application within 48 hours.
+          Tell us about your mobile car wash or detailing business.
         </p>
       </div>
 

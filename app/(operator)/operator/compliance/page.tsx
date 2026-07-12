@@ -21,8 +21,7 @@ export default async function OperatorCompliancePage() {
         <h1 className="font-display text-3xl">Insurance &amp; compliance</h1>
         <p className="mt-2 text-sm text-ink-400">
           Upload your current certificate of insurance (COI). Your policy must carry active general
-          liability insurance — additional insured wording must name partnered buildings. Lavo admin
-          reviews certificates within 24 hours of upload.
+          liability insurance — additional insured wording must name partnered buildings.
         </p>
       </div>
       <div className="card p-6">

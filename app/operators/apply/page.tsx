@@ -36,8 +36,7 @@ export default function OperatorApplyPage() {
             Apply to serve <span className="gleam-text">Lavo buildings</span>
           </h1>
           <p className="mx-auto mt-4 max-w-lg text-ink-300">
-            Grow with approved apartment communities in your service area. Submit your application and our team will
-            follow up within 48 hours.
+            Grow with approved apartment communities in your service area. Submit your details and get started right away.
           </p>
         </div>
         <Suspense fallback={<div className="card p-8 max-w-xl mx-auto text-sm text-ink-400">Loading form…</div>}>
