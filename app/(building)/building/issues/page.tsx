@@ -1,6 +1,6 @@
 import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
-import { ReportIssue } from './ReportIssue';
+import { IssuesView } from './IssuesView';
 
 export default async function IssuesPage() {
   const session = await getSessionUser();
@@ -16,60 +16,11 @@ export default async function IssuesPage() {
     .eq('building_id', building.id)
     .order('created_at', { ascending: false });
 
-  const open = (issues ?? []).filter((i: any) => i.status !== 'resolved');
-  const resolved = (issues ?? []).filter((i: any) => i.status === 'resolved');
-
   return (
-    <>
-      <div className="mb-8 flex items-end justify-between gap-6">
-        <div>
-          <div className="text-xs uppercase tracking-[0.18em] text-gleam">{building.name}</div>
-          <h1 className="mt-1 font-display text-4xl tracking-tight">Issues</h1>
-        </div>
-        <ReportIssue buildingId={building.id} />
-      </div>
-
-      {open.length === 0 && resolved.length === 0 && (
-        <div className="card p-10 text-center text-ink-400">
-          No issues reported. If something comes up, report it here and Lavo will follow up within 24 hours.
-        </div>
-      )}
-
-      {open.length > 0 && (
-        <div className="mb-8">
-          <h2 className="text-xs uppercase tracking-widest text-ink-400 mb-3">Open</h2>
-          <div className="space-y-3">
-            {open.map((i: any) => (
-              <IssueCard key={i.id} issue={i} />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {resolved.length > 0 && (
-        <div>
-          <h2 className="text-xs uppercase tracking-widest text-ink-400 mb-3">Resolved</h2>
-          <div className="space-y-3">
-            {resolved.map((i: any) => (
-              <IssueCard key={i.id} issue={i} />
-            ))}
-          </div>
-        </div>
-      )}
-    </>
-  );
-}
-
-function IssueCard({ issue }: { issue: any }) {
-  return (
-    <div className="card p-5">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <div className="text-xs text-ink-400">{new Date(issue.created_at).toLocaleDateString()} · {issue.type}</div>
-          <p className="mt-1 text-sm text-ink-200">{issue.description}</p>
-        </div>
-        <span className={`chip ${issue.status === 'resolved' ? 'text-gleam' : ''}`}>{issue.status.replace('_', ' ')}</span>
-      </div>
-    </div>
+    <IssuesView
+      buildingId={building.id}
+      buildingName={building.name}
+      initialIssues={(issues ?? []) as any}
+    />
   );
 }
