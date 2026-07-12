@@ -1,7 +1,7 @@
 import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { getCurrentBuildingForSession } from '@/lib/building';
-import { ComposeAnnouncement } from './ComposeAnnouncement';
+import { AnnouncementsView } from './AnnouncementsView';
 
 export default async function AnnouncementsPage() {
   const session = await getSessionUser();
@@ -22,36 +22,11 @@ export default async function AnnouncementsPage() {
   ]);
 
   return (
-    <>
-      <div className="mb-8 flex items-end justify-between gap-6">
-        <div>
-          <div className="text-xs uppercase tracking-[0.18em] text-gleam">{building.name}</div>
-          <h1 className="mt-1 font-display text-4xl tracking-tight">Announcements</h1>
-        </div>
-        <ComposeAnnouncement buildingId={building.id} buildingName={building.name} residentCount={residentCount ?? 0} />
-      </div>
-
-      {!announcements?.length ? (
-        <div className="card p-10 text-center text-ink-400">
-          No announcements yet. Send your first one to let residents know wash days are coming.
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {announcements.map((a: any) => (
-            <div key={a.id} className="card p-5">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <div className="font-display text-lg">{a.subject}</div>
-                  <div className="mt-1 text-xs text-ink-400">
-                    {new Date(a.created_at).toLocaleString()} · sent to {a.sent_count} resident{a.sent_count === 1 ? '' : 's'} · by {a.author?.full_name ?? '—'}
-                  </div>
-                </div>
-              </div>
-              <p className="mt-3 whitespace-pre-wrap text-sm text-ink-200">{a.body}</p>
-            </div>
-          ))}
-        </div>
-      )}
-    </>
+    <AnnouncementsView
+      buildingId={building.id}
+      buildingName={building.name}
+      residentCount={residentCount ?? 0}
+      initialAnnouncements={(announcements ?? []) as any}
+    />
   );
 }
