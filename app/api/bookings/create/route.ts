@@ -34,14 +34,14 @@ export async function POST(req: Request) {
   const sb = supabaseServer();
   const admin = supabaseAdmin();
 
-  const { data: resident } = await sb
+  const { data: resident } = await admin
     .from('residents')
     .select('id, building_id, profile_id, building:buildings(name, lat, lng)')
     .eq('profile_id', session.user.id)
     .single();
   if (!resident) return NextResponse.json({ error: 'Resident record not found' }, { status: 404 });
 
-  const { data: vehicle } = await sb
+  const { data: vehicle } = await admin
     .from('vehicles')
     .select('id, make, model, color, license_plate')
     .eq('id', vehicleId)
