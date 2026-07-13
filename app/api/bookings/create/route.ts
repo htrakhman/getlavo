@@ -49,16 +49,16 @@ export async function POST(req: Request) {
     .single();
   if (!vehicle) return NextResponse.json({ error: 'Vehicle not found' }, { status: 404 });
 
-  const { data: operator } = await admin
+  const { data: operator, error: operatorError } = await admin
     .from('operators')
     .select(
-      'id, name, base_price_cents, open_slot_price_cents, stripe_account_id, stripe_onboarding_complete, capacity_per_day, owner_id, live_ok, profiles:profiles!operators_owner_id_fkey(email, full_name)',
+      'id, name, base_price_cents, open_slot_price_cents, stripe_account_id, stripe_onboarding_complete, capacity_per_day, owner_id, live_ok',
     )
     .eq('id', operatorId)
     .eq('status', 'approved')
     .eq('stripe_onboarding_complete', true)
     .single();
-  if (!operator) return NextResponse.json({ error: 'Operator not available' }, { status: 404 });
+  if (operatorError || !operator) return NextResponse.json({ error: 'Operator not available' }, { status: 404 });
   if (operator.live_ok === false) {
     return NextResponse.json({ error: 'This operator is not accepting new bookings yet' }, { status: 403 });
   }
