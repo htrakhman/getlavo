@@ -1,5 +1,5 @@
 import { PageHeader } from '@/components/PortalShell';
-import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
+import { getSessionUser, supabaseServer, supabaseAdmin } from '@/lib/supabase/server';
 import { money } from '@/lib/format';
 import { redirect } from 'next/navigation';
 import { BookingForm } from './BookingForm';
@@ -15,13 +15,14 @@ export default async function BookOperator({
   if (!session) redirect('/login');
 
   const sb = supabaseServer();
+  const admin = supabaseAdmin();
 
   const [{ data: resident }, { data: operator }] = await Promise.all([
     sb.from('residents')
       .select('id, building_id, building:buildings(name)')
       .eq('profile_id', session.user.id)
       .single(),
-    sb.from('operators')
+    admin.from('operators')
       .select('id, name, rating_avg, rating_count, base_price_cents, open_slot_price_cents, description, capacity_per_day, hours_json')
       .eq('id', params.operatorId)
       .eq('status', 'approved')
