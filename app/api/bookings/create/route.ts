@@ -1,13 +1,11 @@
 import { NextResponse } from 'next/server';
-import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
+import { getSessionUser } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { calculateFee } from '@/lib/fee';
 import { applyPromoToBooking, recordPromoRedemption } from '@/lib/promo';
 import { confirmPaidBookingAndNotify } from '@/lib/booking-confirm';
 import Stripe from 'stripe';
 import { z } from 'zod';
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? '', { apiVersion: '2024-06-20' });
 
 const Body = z.object({
   operatorId: z.string().uuid(),
@@ -31,7 +29,6 @@ export async function POST(req: Request) {
   const { operatorId, vehicleId, scheduledFor, timeSlot, bookingType, partnershipId, recurringCadence, promoCode } =
     body.data;
 
-  const sb = supabaseServer();
   const admin = supabaseAdmin();
 
   const { data: resident } = await admin
@@ -122,6 +119,8 @@ export async function POST(req: Request) {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
   const building = resident.building as any;
   const vehicleDesc = `${vehicle.color} ${vehicle.make} ${vehicle.model}`;
+
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2024-06-20' });
 
   if (grossCents <= 0) {
     await confirmPaidBookingAndNotify(admin, booking.id, null);
