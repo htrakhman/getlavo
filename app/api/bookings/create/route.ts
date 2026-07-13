@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getSessionUser } from '@/lib/supabase/server';
+import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { calculateFee } from '@/lib/fee';
 import { applyPromoToBooking, recordPromoRedemption } from '@/lib/promo';
@@ -30,6 +30,7 @@ export async function POST(req: Request) {
     body.data;
 
   const admin = supabaseAdmin();
+  const sb = supabaseServer();
 
   const { data: resident } = await admin
     .from('residents')
