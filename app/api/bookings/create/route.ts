@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getSessionUser } from '@/lib/supabase/server';
+import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { calculateFee } from '@/lib/fee';
 import { applyPromoToBooking, recordPromoRedemption } from '@/lib/promo';
@@ -30,6 +30,7 @@ export async function POST(req: Request) {
     body.data;
 
   const admin = supabaseAdmin();
+  const sb = supabaseServer();
 
   const { data: resident } = await admin
     .from('residents')
@@ -46,7 +47,7 @@ export async function POST(req: Request) {
     .single();
   if (!vehicle) return NextResponse.json({ error: 'Vehicle not found' }, { status: 404 });
 
-  const { data: operator, error: operatorError } = await admin
+  const { data: operator, error: operatorError } = await sb
     .from('operators')
     .select(
       'id, name, base_price_cents, open_slot_price_cents, stripe_account_id, stripe_onboarding_complete, capacity_per_day, owner_id, live_ok',
@@ -55,7 +56,10 @@ export async function POST(req: Request) {
     .eq('status', 'approved')
     .eq('stripe_onboarding_complete', true)
     .single();
-  if (operatorError || !operator) return NextResponse.json({ error: 'Operator not available' }, { status: 404 });
+  if (operatorError || !operator) {
+    console.error('[bookings/create] operator lookup failed', { operatorId, operatorError });
+    return NextResponse.json({ error: 'Operator not available' }, { status: 404 });
+  }
   if (operator.live_ok === false) {
     return NextResponse.json({ error: 'This operator is not accepting new bookings yet' }, { status: 403 });
   }
