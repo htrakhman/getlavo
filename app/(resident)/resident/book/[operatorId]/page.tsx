@@ -18,7 +18,7 @@ export default async function BookOperator({
   const admin = supabaseAdmin();
 
   const [{ data: resident }, { data: operator }] = await Promise.all([
-    sb.from('residents')
+    admin.from('residents')
       .select('id, building_id, building:buildings(name)')
       .eq('profile_id', session.user.id)
       .single(),

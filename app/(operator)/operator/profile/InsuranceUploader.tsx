@@ -25,15 +25,17 @@ export function InsuranceUploader({ op }: { op: any }) {
       docUrl = publicUrl;
     }
 
-    // Auto-approve when any proof is provided: either a newly uploaded file, or carrier + expiry text fields filled in
-    const hasProof = !!file || (!!carrier && !!expires);
-    await sb.from('operators').update({
-      insurance_carrier: carrier || null,
-      insurance_expires_at: expires || null,
-      insurance_doc_url: docUrl,
-      insurance_uploaded_at: file ? new Date().toISOString() : op.insurance_uploaded_at,
-      insurance_review_status: hasProof ? 'approved' : op.insurance_review_status,
-    }).eq('id', op.id);
+    const res = await fetch('/api/operator/insurance', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ carrier, expiresAt: expires, docUrl, fileUploaded: !!file }),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      setErr(body.error ?? 'Failed to save insurance info');
+      setBusy(false);
+      return;
+    }
 
     setBusy(false);
     router.refresh();
