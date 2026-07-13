@@ -49,7 +49,7 @@ export async function POST(req: Request) {
   const { data: operator } = await admin
     .from('operators')
     .select(
-      'id, name, base_price_cents, open_slot_price_cents, stripe_account_id, stripe_onboarding_complete, capacity_per_day, owner_id, live_ok, profiles:profiles!operators_owner_id_fkey(email, full_name)',
+      'id, name, base_price_cents, open_slot_price_cents, stripe_account_id, stripe_onboarding_complete, capacity_per_day, owner_id, live_ok',
     )
     .eq('id', operatorId)
     .eq('status', 'approved')
