@@ -73,7 +73,7 @@ export function PackagesEditor({ operatorId, initial }: { operatorId: string; in
                   )}
                 </div>
                 <div className="flex gap-3 text-sm shrink-0">
-                  <button onClick={() => setEditing(pkg.id)} className="text-gleam hover:text-gleam/70">Edit</button>
+                  <button onClick={() => { setAdding(false); setEditing(pkg.id); }} className="text-gleam hover:text-gleam/70">Edit</button>
                   <button onClick={() => remove(pkg.id)} className="text-ink-500 hover:text-red-400">Remove</button>
                 </div>
               </div>

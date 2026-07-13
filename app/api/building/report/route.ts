@@ -27,14 +27,18 @@ export async function GET(req: Request) {
     .from('washes')
     .select(`
       id, status, completed_at, flag_reason,
-      wash_day:wash_days(scheduled_for, operator:operators(name)),
+      wash_day:wash_days!inner(scheduled_for, building_id, operator:operators(name)),
       resident:residents(unit_number, profile:profiles(full_name)),
       vehicle:vehicles(make, model, license_plate)
     `)
+    .eq('wash_days.building_id', buildingId)
     .gte('completed_at', start)
     .lt('completed_at', end);
 
-  const filtered = (washes ?? []).filter((w: any) => (w.wash_day as any)?.scheduled_for >= start && (w.wash_day as any)?.scheduled_for < end);
+  const filtered = (washes ?? []).filter((w: any) => {
+    const wd = w.wash_day as any;
+    return wd?.building_id === buildingId && wd?.scheduled_for >= start && wd?.scheduled_for < end;
+  });
 
   const header = ['Date', 'Resident', 'Unit', 'Vehicle', 'Plate', 'Operator', 'Status', 'Flag reason'];
   const rows = filtered.map((w: any) => [

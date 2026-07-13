@@ -3,6 +3,11 @@ import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
 import { getCurrentBuildingForSession } from '@/lib/building';
 
+// pdf-lib StandardFonts only support WinAnsi (Latin-1) — strip anything outside that range
+function safe(str: string): string {
+  return str.replace(/[‘’]/g, "'").replace(/[“”]/g, '"').replace(/–|—/g, '-').replace(/[^\x00-\xff]/g, '');
+}
+
 // Brand colors in RGB 0-1 scale
 const GLEAM = rgb(0, 0.898, 0.784); // #00e5c8
 const INK = rgb(0.063, 0.063, 0.063); // #101010
@@ -10,6 +15,7 @@ const WHITE = rgb(1, 1, 1);
 const GRAY = rgb(0.6, 0.6, 0.6);
 
 export async function GET(req: Request) {
+  try {
   const session = await getSessionUser();
   if (!session) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
 
@@ -74,12 +80,12 @@ export async function GET(req: Request) {
       x: 48, y: height - 168,
       size: 11, font: helvetica, color: GRAY,
     });
-    page.drawText(b.name, {
+    page.drawText(safe(b.name), {
       x: 48, y: height - 192,
       size: 28, font: helveticaBold, color: WHITE,
     });
     if (b.address_line1) {
-      page.drawText(`${b.address_line1}, ${b.city}, ${b.region}`, {
+      page.drawText(safe(`${b.address_line1}, ${b.city}, ${b.region}`), {
         x: 48, y: height - 218,
         size: 11, font: helvetica, color: GRAY,
       });
@@ -89,7 +95,7 @@ export async function GET(req: Request) {
     const steps = [
       '1  Download the Lavo app or visit getlavo.io',
       '2  Sign up with your building invite code',
-      '3  Book a wash for your car — no waiting, no hassle',
+      '3  Book a wash for your car - no waiting, no hassle',
     ];
     page.drawText('How it works', {
       x: 48, y: height - 280,
@@ -108,11 +114,11 @@ export async function GET(req: Request) {
       page.drawRectangle({ x: 40, y: boxY - 10, width: width - 80, height: 80, color: rgb(0, 0.898, 0.784), opacity: 0.08, borderColor: GLEAM, borderWidth: 1, borderOpacity: 0.3 });
       if (washDay) {
         page.drawText('Building wash day:', { x: 56, y: boxY + 44, size: 10, font: helvetica, color: GRAY });
-        page.drawText(washDay, { x: 56, y: boxY + 26, size: 18, font: helveticaBold, color: WHITE });
+        page.drawText(safe(washDay), { x: 56, y: boxY + 26, size: 18, font: helveticaBold, color: WHITE });
       }
       if (op?.name) {
-        const priceText = op.base_price_cents ? ` · from $${(op.base_price_cents / 100).toFixed(0)}` : '';
-        page.drawText(`Service by ${op.name}${priceText}`, { x: 56, y: boxY + 8, size: 10, font: helvetica, color: GRAY });
+        const priceText = op.base_price_cents ? ` - from $${(op.base_price_cents / 100).toFixed(0)}` : '';
+        page.drawText(safe(`Service by ${op.name}${priceText}`), { x: 56, y: boxY + 8, size: 10, font: helvetica, color: GRAY });
       }
     }
 
@@ -142,11 +148,11 @@ export async function GET(req: Request) {
 
     page.drawText(`Hi neighbor,`, { x: 40, y: height - 124, size: 11, font: helveticaBold, color: WHITE });
     page.drawText(
-      `${b.name} has partnered with Lavo to bring professional car washes right to our building.`,
+      safe(`${b.name} has partnered with Lavo to bring professional car washes right to our building.`),
       { x: 40, y: height - 144, size: 10, font: helvetica, color: GRAY, maxWidth: width - 80 }
     );
     if (washDay) {
-      page.drawText(`Our scheduled wash day is ${washDay}. Book any time from your phone.`,
+      page.drawText(safe(`Our scheduled wash day is ${washDay}. Book any time from your phone.`),
         { x: 40, y: height - 168, size: 10, font: helvetica, color: GRAY, maxWidth: width - 80 });
     }
 
@@ -159,10 +165,14 @@ export async function GET(req: Request) {
 
   const bytes = await pdf.save();
 
-  return new NextResponse(Buffer.from(bytes), {
+  return new NextResponse(bytes, {
     headers: {
       'Content-Type': 'application/pdf',
       'Content-Disposition': `attachment; filename="lavo-comms-${kind}.pdf"`,
     },
   });
+  } catch (err: any) {
+    console.error('comms-kit error:', err?.message ?? err);
+    return NextResponse.json({ error: 'Failed to generate PDF', detail: err?.message ?? 'unknown' }, { status: 500 });
+  }
 }

@@ -1,5 +1,5 @@
 import { PageHeader } from '@/components/PortalShell';
-import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
+import { getSessionUser, supabaseServer, supabaseAdmin } from '@/lib/supabase/server';
 import { dateShort, money } from '@/lib/format';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
@@ -16,8 +16,9 @@ export default async function OperatorOverview({ searchParams }: { searchParams:
 
   const today = new Date().toISOString().slice(0, 10);
 
+  const admin = supabaseAdmin();
   const [{ data: buildings }, { data: upcoming }, { data: payouts }, { count: pendingRequests }] = await Promise.all([
-    sb.from('partnerships')
+    admin.from('partnerships')
       .select('id, building:buildings(name, city)')
       .eq('operator_id', op.id)
       .eq('status', 'active'),

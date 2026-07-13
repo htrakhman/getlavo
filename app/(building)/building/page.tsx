@@ -1,5 +1,5 @@
 import { PageHeader } from '@/components/PortalShell';
-import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
+import { getSessionUser, supabaseServer, supabaseAdmin } from '@/lib/supabase/server';
 import { dateShort } from '@/lib/format';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
@@ -16,18 +16,19 @@ export default async function BuildingDashboard() {
   const today = new Date().toISOString().slice(0, 10);
   const thisMonthStart = today.slice(0, 8) + '01';
 
+  const admin = supabaseAdmin();
   const [
     { data: partnership },
     { count: residentCount },
     { count: monthWashCount },
     { data: upcoming },
   ] = await Promise.all([
-    sb.from('partnerships')
+    admin.from('partnerships')
       .select('id, operator:operators(id, name, slug, rating_avg, rating_count)')
       .eq('building_id', building.id)
       .eq('status', 'active')
       .maybeSingle(),
-    sb.from('residents')
+    admin.from('residents')
       .select('*', { count: 'exact', head: true })
       .eq('building_id', building.id)
       .eq('active', true),
