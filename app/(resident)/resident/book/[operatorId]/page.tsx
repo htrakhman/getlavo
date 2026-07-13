@@ -32,7 +32,7 @@ export default async function BookOperator({
 
   if (!resident || !operator) redirect('/resident/book');
 
-  const { data: vehicles } = await sb
+  const { data: vehicles } = await admin
     .from('vehicles')
     .select('id, make, model, color, license_plate, is_primary')
     .eq('resident_id', resident.id)
