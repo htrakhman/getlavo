@@ -33,13 +33,15 @@ export default async function OperatorBookings() {
       .eq('operator_id', op.id)
       .eq('status', 'pending')
       .order('created_at'),
-    sb.from('bookings')
+    // Admin client, scoped to this owner's operator — RLS-scoped bookings
+    // reads can fail on missing table grants (see migration 0033).
+    supabaseAdmin().from('bookings')
       .select('id, scheduled_for, time_slot, status, gross_cents, net_cents, booking_type, resident:residents(profile:profiles(full_name)), vehicle:vehicles(make, model, color, license_plate), building:buildings(name)')
       .eq('operator_id', op.id)
       .gte('scheduled_for', today)
       .in('status', ['confirmed', 'in_progress', 'pending_payment'])
       .order('scheduled_for'),
-    sb.from('bookings')
+    supabaseAdmin().from('bookings')
       .select('id, scheduled_for, time_slot, status, gross_cents, net_cents, booking_type, resident:residents(profile:profiles(full_name)), vehicle:vehicles(make, model, color, license_plate), building:buildings(name)')
       .eq('operator_id', op.id)
       .or(`scheduled_for.lt.${today},status.in.(completed,cancelled)`)

@@ -1,13 +1,15 @@
 import { PageHeader } from '@/components/PortalShell';
-import { supabaseServer, getSessionUser } from '@/lib/supabase/server';
+import { supabaseAdmin, getSessionUser } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { dateShort, money } from '@/lib/format';
 
 export default async function Earnings() {
   const session = await getSessionUser();
   if (!session) redirect('/login');
-  const sb = supabaseServer();
-  const { data: op } = await sb
+  // Admin client, scoped to the operator owned by the signed-in user —
+  // RLS-scoped bookings reads can fail on missing table grants (see 0033).
+  const admin = supabaseAdmin();
+  const { data: op } = await admin
     .from('operators')
     .select('id, name')
     .eq('owner_id', session.user.id)
@@ -17,16 +19,19 @@ export default async function Earnings() {
   const monthStart = new Date().toISOString().slice(0, 8) + '01';
   const last30 = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
 
-  const [{ data: payouts }, { data: bookings }, { count: completedThisMonth }] = await Promise.all([
-    sb.from('payouts').select('*').eq('operator_id', op.id).order('period_end', { ascending: false }),
-    sb.from('bookings')
+  const [{ data: payouts }, { data: bookings, error: bookingsError }, { count: completedThisMonth }] = await Promise.all([
+    admin.from('payouts').select('*').eq('operator_id', op.id).order('period_end', { ascending: false }),
+    admin.from('bookings')
       .select('id, scheduled_for, gross_cents, fee_cents, net_cents, status, building:buildings(name), resident:residents(profile:profiles(full_name))')
       .eq('operator_id', op.id)
       .gte('scheduled_for', last30)
       .order('scheduled_for', { ascending: false })
       .limit(30),
-    sb.from('bookings').select('*', { count: 'exact', head: true }).eq('operator_id', op.id).gte('completed_at', monthStart),
+    admin.from('bookings').select('*', { count: 'exact', head: true }).eq('operator_id', op.id).gte('completed_at', monthStart),
   ]);
+  if (bookingsError) {
+    console.error('[operator/earnings] bookings query failed', { message: bookingsError.message });
+  }
 
   const lifetimeNet = (payouts ?? []).reduce((s, p) => s + (p.net_cents ?? 0), 0);
   const pending = (payouts ?? []).filter((p) => p.status === 'pending').reduce((s, p) => s + (p.net_cents ?? 0), 0);
