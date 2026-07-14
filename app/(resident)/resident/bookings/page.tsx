@@ -1,5 +1,5 @@
 import { PageHeader } from '@/components/PortalShell';
-import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
+import { getSessionUser } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { verifyAndConfirmBookingPayment } from '@/lib/booking-verify';
 import { dateShort, money } from '@/lib/format';
@@ -31,9 +31,13 @@ export default async function ResidentBookings({
   const session = await getSessionUser();
   if (!session) redirect('/login');
 
-  const sb = supabaseServer();
+  // Admin client throughout: table grants for the authenticated role are
+  // unreliable on tables created after 0002_grants (see migration 0033), so
+  // RLS-scoped reads can silently return nothing. All queries stay scoped to
+  // this user's own resident row.
+  const admin = supabaseAdmin();
 
-  const { data: resident } = await supabaseAdmin()
+  const { data: resident } = await admin
     .from('residents')
     .select('id')
     .eq('profile_id', session.user.id)
@@ -44,7 +48,7 @@ export default async function ResidentBookings({
   // payment directly with Stripe and confirm the booking before rendering.
   let paymentBanner: 'confirmed' | 'processing' | null = null;
   if (searchParams.booking && searchParams.success === '1') {
-    const result = await verifyAndConfirmBookingPayment(supabaseAdmin(), searchParams.booking).catch(
+    const result = await verifyAndConfirmBookingPayment(admin, searchParams.booking).catch(
       () => null,
     );
     paymentBanner = result?.confirmed ? 'confirmed' : 'processing';
@@ -52,20 +56,23 @@ export default async function ResidentBookings({
 
   const today = new Date().toISOString().slice(0, 10);
 
-  const [{ data: upcoming }, { data: past }] = await Promise.all([
-    sb.from('bookings')
+  const [{ data: upcoming, error: upcomingError }, { data: past }] = await Promise.all([
+    admin.from('bookings')
       .select('id, scheduled_for, time_slot, status, gross_cents, booking_type, operator:operators(name)')
       .eq('resident_id', resident.id)
       .gte('scheduled_for', today)
       .in('status', ['confirmed', 'in_progress', 'pending_payment'])
       .order('scheduled_for'),
-    sb.from('bookings')
+    admin.from('bookings')
       .select('id, scheduled_for, time_slot, status, gross_cents, booking_type, operator:operators(name)')
       .eq('resident_id', resident.id)
       .or(`scheduled_for.lt.${today},status.in.(completed,cancelled)`)
       .order('scheduled_for', { ascending: false })
       .limit(10),
   ]);
+  if (upcomingError) {
+    console.error('[resident/bookings] upcoming query failed', { message: upcomingError.message });
+  }
 
   return (
     <>
