@@ -1,6 +1,7 @@
 import { PageHeader } from '@/components/PortalShell';
 import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
+import { verifyAndConfirmBookingPayment } from '@/lib/booking-verify';
 import { dateShort, money } from '@/lib/format';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
@@ -22,7 +23,11 @@ const STATUS_COLOR: Record<string, string> = {
   cancelled: 'text-red-400',
 };
 
-export default async function ResidentBookings() {
+export default async function ResidentBookings({
+  searchParams,
+}: {
+  searchParams: { booking?: string; success?: string };
+}) {
   const session = await getSessionUser();
   if (!session) redirect('/login');
 
@@ -34,6 +39,16 @@ export default async function ResidentBookings() {
     .eq('profile_id', session.user.id)
     .maybeSingle();
   if (!resident) redirect('/resident/onboarding');
+
+  // Fallback for missed webhooks: on the Stripe success redirect, verify the
+  // payment directly with Stripe and confirm the booking before rendering.
+  let paymentBanner: 'confirmed' | 'processing' | null = null;
+  if (searchParams.booking && searchParams.success === '1') {
+    const result = await verifyAndConfirmBookingPayment(supabaseAdmin(), searchParams.booking).catch(
+      () => null,
+    );
+    paymentBanner = result?.confirmed ? 'confirmed' : 'processing';
+  }
 
   const today = new Date().toISOString().slice(0, 10);
 
@@ -59,6 +74,18 @@ export default async function ResidentBookings() {
         title="My bookings"
         action={<Link href="/resident/book" className="btn-primary">Book a wash</Link>}
       />
+
+      {paymentBanner === 'confirmed' && (
+        <div className="mb-6 card border-gleam/30 bg-gleam/5 p-4 text-sm text-gleam">
+          Payment received — your booking is confirmed.
+        </div>
+      )}
+      {paymentBanner === 'processing' && (
+        <div className="mb-6 card border-yellow-400/30 bg-yellow-400/5 p-4 text-sm text-yellow-200">
+          Your payment is still processing. This page will show the booking as confirmed once
+          Stripe finishes — refresh in a moment.
+        </div>
+      )}
 
       <div className="space-y-8">
         <div>

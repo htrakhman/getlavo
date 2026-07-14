@@ -173,11 +173,23 @@ export async function POST(req: Request) {
     cancel_url: `${appUrl}/resident/book`,
   });
 
-  if (checkoutSession.payment_intent) {
-    await admin
-      .from('bookings')
-      .update({ stripe_payment_intent_id: checkoutSession.payment_intent as string })
-      .eq('id', booking.id);
+  // Checkout on this API version doesn't create a PaymentIntent until the
+  // customer confirms, so the session id is the only reliable link back to
+  // the payment (used by the redirect-time verification fallback).
+  const { error: linkError } = await admin
+    .from('bookings')
+    .update({
+      stripe_checkout_session_id: checkoutSession.id,
+      ...(checkoutSession.payment_intent
+        ? { stripe_payment_intent_id: checkoutSession.payment_intent as string }
+        : {}),
+    })
+    .eq('id', booking.id);
+  if (linkError) {
+    console.error('[bookings/create] failed to store checkout session id', {
+      bookingId: booking.id,
+      message: linkError.message,
+    });
   }
 
   return NextResponse.json({ checkoutUrl: checkoutSession.url });
