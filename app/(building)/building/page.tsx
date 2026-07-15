@@ -129,7 +129,7 @@ export default async function BuildingDashboard() {
               <p className="mt-1 text-xs text-ink-500">Share this stat with building leadership to show the amenity is being used.</p>
             </div>
             <a
-              href={`/api/building/report?buildingId=${building.id}&month=${today.slice(0, 7)}`}
+              href={`/api/exports/report?buildingId=${building.id}&month=${today.slice(0, 7)}`}
               className="btn-quiet shrink-0 text-sm"
               download
             >
