@@ -1,7 +1,9 @@
 import { PageHeader } from '@/components/PortalShell';
-import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
+import { getSessionUser, supabaseServer, supabaseAdmin } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { getCurrentBuildingForSession } from '@/lib/building';
+
+export const dynamic = 'force-dynamic';
 import { PreferredWashDayForm } from './PreferredWashDayForm';
 import { IncomingOperatorRequests } from './IncomingOperatorRequests';
 import Link from 'next/link';
@@ -12,25 +14,42 @@ export default async function MyOperator() {
   if (!session) redirect('/login');
 
   const sb = supabaseServer();
+  const admin = supabaseAdmin();
 
   const { current: bSel } = await getCurrentBuildingForSession(session.user.id);
   const { data: building } = bSel
-    ? await sb.from('buildings').select('id, name, wash_day, preferred_wash_day, lat, lng').eq('id', bSel.id).maybeSingle()
+    ? await admin.from('buildings').select('id, name, wash_day, preferred_wash_day, lat, lng').eq('id', bSel.id).maybeSingle()
     : { data: null };
 
-  const { data: partnership } = building
-    ? await sb
+  // Admin client: RLS-scoped partnership reads can silently return nothing for
+  // managers, leaving this page stuck on "We're finding your crew" after a match.
+  const { data: partnershipRows, error: partnershipError } = building
+    ? await admin
         .from('partnerships')
-        .select('id, status, operator:operators(id, name, slug, description, rating_avg, rating_count, insurance_expires_at, contact_email, contact_phone)')
+        .select('id, status, operator_id')
         .eq('building_id', building.id)
         .eq('status', 'active')
-        .maybeSingle()
-    : { data: null };
+        .order('created_at', { ascending: false })
+        .limit(1)
+    : { data: null, error: null };
+  if (partnershipError) console.error('marketplace: partnership query failed:', partnershipError.message);
+  const partnership = partnershipRows?.[0] ?? null;
 
-  const operator = (partnership?.operator as any) ?? null;
+  // Flat select('*') so a column missing from the live schema can never
+  // invalidate the whole query.
+  let operator: any = null;
+  if (partnership?.operator_id) {
+    const { data: opRow, error: opError } = await admin
+      .from('operators')
+      .select('*')
+      .eq('id', partnership.operator_id)
+      .maybeSingle();
+    if (opError) console.error('marketplace: operator query failed:', opError.message);
+    operator = opRow ?? null;
+  }
 
   const { data: incomingOperatorRequests } = building && !operator
-    ? await sb
+    ? await admin
         .from('partnerships')
         .select(
           'id, created_at, requested_by, operator:operators(name, description, rating_avg, rating_count, owner_id)',
