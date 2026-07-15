@@ -30,7 +30,7 @@ export default async function WashDays() {
       .from('partnerships')
       .select('building:buildings(id, name)')
       .eq('operator_id', op.id)
-      .in('status', ['active', 'pilot']),
+      .eq('status', 'active'),
   ]);
   const buildings = (partnerships ?? []).map((p: any) => p.building).filter(Boolean);
 

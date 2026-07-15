@@ -38,7 +38,7 @@ export async function GET(req: Request) {
     .from('partnerships')
     .select('operator:operators(name, base_price_cents)')
     .eq('building_id', building.id)
-    .in('status', ['active', 'pilot'])
+    .eq('status', 'active')
     .limit(1)
     .maybeSingle();
   const op = (partnership?.operator as any) ?? null;

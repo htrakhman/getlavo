@@ -6,7 +6,7 @@ export async function isBuildingBookable(sb: SupabaseClient, buildingId: string)
     .from('partnerships')
     .select('id, status, operator:operators(id)')
     .eq('building_id', buildingId)
-    .in('status', ['active', 'pilot'])
+    .eq('status', 'active')
     .maybeSingle();
 
   if (!partnership) return false;

@@ -22,7 +22,7 @@ export async function POST(req: Request) {
     .select('id, building:buildings(name, manager_id)')
     .eq('operator_id', op.id)
     .eq('building_id', buildingId)
-    .in('status', ['active', 'pilot'])
+    .eq('status', 'active')
     .maybeSingle();
   if (!partnership) return NextResponse.json({ error: 'no partnership' }, { status: 403 });
 

@@ -47,7 +47,7 @@ export async function fetchCityLiveData(muni: NjMunicipality): Promise<CityLiveD
         .from('partnerships')
         .select('operator:operators(id, name, slug, status, live_ok)')
         .in('building_id', buildingIds)
-        .in('status', ['active', 'pilot']);
+        .eq('status', 'active');
 
       const seen = new Set<string>();
       for (const row of partnerships ?? []) {

@@ -30,34 +30,40 @@ export default async function ContractPage() {
     .eq('id', building.id)
     .maybeSingle();
 
-  // Active/pilot/pending partnership → auto-fill operator. Deliberately flat
-  // queries with select('*'): an embed that references any column missing from
-  // the live schema makes PostgREST reject the whole query, and this page then
-  // silently renders "not matched" (the original bug). select('*') only returns
-  // columns that exist, so it can never fail that way. Errors are logged so a
-  // regression shows up in the function logs instead of a blank page.
+  // Active/pending partnership → auto-fill operator. The query is deliberately
+  // minimal: select('*') (a named column missing from the live schema voids the
+  // whole query) and NO status filter in SQL — filtering `.in('status', [...])`
+  // with a literal that isn't in the partnership_status enum (e.g. 'pilot',
+  // which this page shipped with) makes Postgres reject the ENTIRE query, and
+  // the page silently rendered "not matched". Statuses are filtered in JS.
   const { data: partnershipRows, error: partnershipError } = await admin
     .from('partnerships')
-    .select('id, status, operator_id, created_at')
-    .eq('building_id', building.id)
-    .in('status', ['active', 'pilot', 'pending'])
-    .order('created_at', { ascending: false });
+    .select('*')
+    .eq('building_id', building.id);
   if (partnershipError) console.error('contract: partnership query failed:', partnershipError.message);
 
   // Prefer the confirmed relationship over any stray pending request rows.
   const statusRank: Record<string, number> = { active: 0, pilot: 1, pending: 2 };
   const partnership = (partnershipRows ?? [])
-    .slice()
-    .sort((a, b) => (statusRank[a.status] ?? 9) - (statusRank[b.status] ?? 9))[0] ?? null;
+    .filter((p: any) => p.status in statusRank)
+    .sort(
+      (a: any, b: any) =>
+        (statusRank[a.status] ?? 9) - (statusRank[b.status] ?? 9) ||
+        String(b.created_at ?? '').localeCompare(String(a.created_at ?? '')),
+    )[0] ?? null;
 
   let op: any = null;
+  let operatorError: string | null = null;
   if (partnership?.operator_id) {
     const { data: opRow, error: opError } = await admin
       .from('operators')
       .select('*')
       .eq('id', partnership.operator_id)
       .maybeSingle();
-    if (opError) console.error('contract: operator query failed:', opError.message);
+    if (opError) {
+      operatorError = opError.message;
+      console.error('contract: operator query failed:', opError.message);
+    }
     op = opRow ?? null;
   }
 
@@ -150,6 +156,33 @@ export default async function ContractPage() {
             Browse the marketplace →
           </Link>
         </div>
+      )}
+
+      {/* If the operator ever fails to resolve again, the page explains itself
+          instead of needing another round of log spelunking. */}
+      {!op && (
+        <details className="mb-6 rounded-xl border border-white/10 bg-white/5 px-5 py-3 text-xs text-ink-500">
+          <summary className="cursor-pointer">Diagnostics (for support)</summary>
+          <pre className="mt-2 overflow-x-auto whitespace-pre-wrap">
+            {JSON.stringify(
+              {
+                build: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? 'local',
+                buildingId: building.id,
+                buildingName: building.name,
+                partnershipRowsForBuilding: (partnershipRows ?? []).map((p: any) => ({
+                  id: p.id,
+                  status: p.status,
+                  operator_id: p.operator_id,
+                })),
+                partnershipQueryError: partnershipError?.message ?? null,
+                operatorQueryError: operatorError,
+                pickedPartnershipId: partnership?.id ?? null,
+              },
+              null,
+              2,
+            )}
+          </pre>
+        </details>
       )}
 
       <div className="mx-auto max-w-3xl">

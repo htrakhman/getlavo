@@ -34,7 +34,7 @@ export default async function BuildingCanonicalPage({ params }: { params: { slug
     .from('partnerships')
     .select('id, status, operator:operators(id, name, description)')
     .eq('building_id', building.id)
-    .in('status', ['active', 'pilot'])
+    .eq('status', 'active')
     .maybeSingle();
 
   const operator = (partnership?.operator as any) ?? null;

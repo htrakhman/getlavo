@@ -24,7 +24,7 @@ export default async function AddonsPage() {
     .from('partnerships')
     .select('operator:operators(id, name, operator_addons(*))')
     .eq('building_id', r.building_id)
-    .in('status', ['active', 'pilot'])
+    .eq('status', 'active')
     .maybeSingle();
 
   const operator = (partnership?.operator as any) ?? null;
