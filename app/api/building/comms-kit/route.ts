@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
-import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
+import { getSessionUser, supabaseAdmin } from '@/lib/supabase/server';
 import { getCurrentBuildingForSession } from '@/lib/building';
+
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 // pdf-lib StandardFonts only support WinAnsi (Latin-1) — strip anything outside that range
 function safe(str: string): string {
@@ -19,19 +22,19 @@ export async function GET(req: Request) {
   const session = await getSessionUser();
   if (!session) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
 
-  const sb = supabaseServer();
+  const admin = supabaseAdmin();
   const { current: building } = await getCurrentBuildingForSession(session.user.id);
   if (!building) return NextResponse.json({ error: 'no building' }, { status: 404 });
 
-  const { data: b } = await sb
+  const { data: b } = await admin
     .from('buildings')
     .select('id, name, address_line1, city, region, slug, wash_day, preferred_wash_day')
     .eq('id', building.id)
     .maybeSingle();
   if (!b) return NextResponse.json({ error: 'no building' }, { status: 404 });
 
-  // Also fetch the partner operator for wash day info
-  const { data: partnership } = await sb
+  // Also fetch the partner operator for wash day info (admin: RLS-independent read)
+  const { data: partnership } = await admin
     .from('partnerships')
     .select('operator:operators(name, base_price_cents)')
     .eq('building_id', building.id)
@@ -169,9 +172,12 @@ export async function GET(req: Request) {
     headers: {
       'Content-Type': 'application/pdf',
       'Content-Disposition': `attachment; filename="lavo-comms-${kind}.pdf"`,
+      'Cache-Control': 'no-store',
     },
   });
   } catch (err: any) {
+    // Re-throw Next's static-render bailout so the route stays dynamic.
+    if (err?.digest === 'DYNAMIC_SERVER_USAGE') throw err;
     console.error('comms-kit error:', err?.message ?? err);
     return NextResponse.json({ error: 'Failed to generate PDF', detail: err?.message ?? 'unknown' }, { status: 500 });
   }

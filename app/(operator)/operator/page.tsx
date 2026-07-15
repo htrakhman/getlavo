@@ -17,7 +17,7 @@ export default async function OperatorOverview({ searchParams }: { searchParams:
   const today = new Date().toISOString().slice(0, 10);
 
   const admin = supabaseAdmin();
-  const [{ data: buildings }, { data: upcoming }, { data: payouts }, { count: pendingRequests }] = await Promise.all([
+  const [{ data: buildings }, { data: upcoming }, { data: payouts }, { data: pendingRows }] = await Promise.all([
     admin.from('partnerships')
       .select('id, building:buildings(name, city)')
       .eq('operator_id', op.id)
@@ -33,11 +33,18 @@ export default async function OperatorOverview({ searchParams }: { searchParams:
       .eq('operator_id', op.id)
       .order('period_end', { ascending: false })
       .limit(1),
-    sb.from('partnerships')
-      .select('id', { count: 'exact', head: true })
+    // Admin client: RLS-scoped partnership reads can silently return 0 for
+    // operators, hiding incoming manager-initiated requests from the dashboard.
+    admin.from('partnerships')
+      .select('id, requested_by, building:buildings(manager_id)')
       .eq('operator_id', op.id)
       .eq('status', 'pending'),
   ]);
+
+  // Only manager-initiated requests are actionable by the operator.
+  const pendingRequests = (pendingRows ?? []).filter(
+    (p: any) => p.requested_by === (p.building as any)?.manager_id,
+  ).length;
 
   const checklist = [
     { label: 'Application approved', done: op.status === 'approved' },
@@ -122,7 +129,7 @@ export default async function OperatorOverview({ searchParams }: { searchParams:
           <span className="text-sm text-yellow-200">
             {pendingRequests} pending partnership {pendingRequests === 1 ? 'request' : 'requests'}
           </span>
-          <Link href="/operator/bookings" className="text-sm text-gleam">Review →</Link>
+          <Link href="/operator/buildings" className="text-sm text-gleam">Review →</Link>
         </div>
       )}
 

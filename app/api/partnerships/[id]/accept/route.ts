@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
+import { getSessionUser } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { sendPartnershipAccepted, sendPartnershipAcceptedByManager } from '@/lib/email/resend';
 import { maybeNotifyBuildingLive } from '@/lib/building-activation';
@@ -8,10 +8,11 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
   const session = await getSessionUser();
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const sb = supabaseServer();
   const admin = supabaseAdmin();
 
-  const { data: partnership } = await sb
+  // Admin read: RLS-scoped partnership reads can fail for the responding party;
+  // authorization is enforced explicitly below via requested_by/owner checks.
+  const { data: partnership } = await admin
     .from('partnerships')
     .select(
       'id, status, building_id, operator_id, requested_by, building:buildings(name, manager_id), operator:operators(name, owner_id)',

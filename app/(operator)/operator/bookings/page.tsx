@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
-import { PartnershipRequests } from './PartnershipRequests';
+import { PartnershipRequests } from '../PartnershipRequests';
 
 const STATUS_LABEL: Record<string, string> = {
   pending_payment: 'Awaiting payment',

@@ -18,9 +18,12 @@ export default async function OperatorContractPage({ params }: { params: { id: s
   const sb = supabaseServer();
   const admin = supabaseAdmin();
 
+  // NB: operators has no address_line1/city/region columns — selecting them makes
+  // PostgREST reject the whole query, op comes back null, and the operator gets
+  // bounced to onboarding instead of seeing the contract.
   const { data: op } = await sb
     .from('operators')
-    .select('id, name, address_line1, city, region, contact_email, contact_phone, base_price_cents, insurance_expires_at')
+    .select('id, name, contact_email, contact_phone, base_price_cents, insurance_expires_at')
     .eq('owner_id', session.user.id)
     .maybeSingle();
   if (!op) redirect('/operator/onboarding');
@@ -118,9 +121,6 @@ export default async function OperatorContractPage({ params }: { params: { id: s
                 <div className="rounded-xl bg-white/5 p-4">
                   <div className="mb-2 text-xs uppercase tracking-widest text-ink-400">Service Provider</div>
                   <div className="font-medium text-white">{op.name}</div>
-                  {op.address_line1 && (
-                    <div className="mt-1 text-ink-300">{op.address_line1}, {op.city}, {op.region}</div>
-                  )}
                   {op.contact_email && <div className="mt-0.5 text-xs text-ink-400">{op.contact_email}</div>}
                   {op.contact_phone && <div className="mt-0.5 text-xs text-ink-400">{op.contact_phone}</div>}
                 </div>

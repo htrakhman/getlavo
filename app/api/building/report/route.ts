@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
-import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
+import { getSessionUser, supabaseAdmin } from '@/lib/supabase/server';
+
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 export async function GET(req: Request) {
+  try {
   const session = await getSessionUser();
   if (!session) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
 
@@ -10,8 +14,11 @@ export async function GET(req: Request) {
   const month = url.searchParams.get('month'); // YYYY-MM
   if (!buildingId || !month) return NextResponse.json({ error: 'missing args' }, { status: 400 });
 
-  const sb = supabaseServer();
-  const { data: building } = await sb
+  // Admin client: RLS-scoped reads on washes/residents/vehicles can silently
+  // come back empty for managers (missing table grants) — ownership is
+  // enforced by the manager_id check below instead.
+  const admin = supabaseAdmin();
+  const { data: building } = await admin
     .from('buildings')
     .select('id, name, manager_id')
     .eq('id', buildingId)
@@ -23,7 +30,7 @@ export async function GET(req: Request) {
   const start = `${month}-01`;
   const end = nextMonthStart(month);
 
-  const { data: washes } = await sb
+  const { data: washes, error: washesError } = await admin
     .from('washes')
     .select(`
       id, status, completed_at, flag_reason,
@@ -34,6 +41,11 @@ export async function GET(req: Request) {
     .eq('wash_days.building_id', buildingId)
     .gte('completed_at', start)
     .lt('completed_at', end);
+
+  if (washesError) {
+    console.error('report route washes query failed:', washesError.message);
+    return NextResponse.json({ error: 'report query failed', detail: washesError.message }, { status: 500 });
+  }
 
   const filtered = (washes ?? []).filter((w: any) => {
     const wd = w.wash_day as any;
@@ -57,8 +69,15 @@ export async function GET(req: Request) {
     headers: {
       'Content-Type': 'text/csv; charset=utf-8',
       'Content-Disposition': `attachment; filename="${building.name.replace(/[^a-z0-9]/gi, '_')}-${month}.csv"`,
+      'Cache-Control': 'no-store',
     },
   });
+  } catch (err: any) {
+    // Re-throw Next's static-render bailout so the route stays dynamic.
+    if (err?.digest === 'DYNAMIC_SERVER_USAGE') throw err;
+    console.error('report route error:', err?.message ?? err);
+    return NextResponse.json({ error: 'Failed to generate report', detail: err?.message ?? 'unknown' }, { status: 500 });
+  }
 }
 
 function csvEscape(v: any) {

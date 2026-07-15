@@ -35,7 +35,9 @@ export function PackagesEditor({ operatorId, initial }: { operatorId: string; in
           <h3 className="font-display text-xl">Service packages</h3>
           <p className="text-xs text-ink-500 mt-0.5">Residents choose from these when booking — think Fiverr gig tiers</p>
         </div>
-        <button onClick={() => setAdding(true)} className="btn-quiet text-sm">+ Add package</button>
+        {/* Add and Edit panels are mutually exclusive — opening one closes the
+            other, so a blank Add form can never sit under an open Edit form. */}
+        <button onClick={() => { setEditing(null); setAdding(true); }} className="btn-quiet text-sm">+ Add package</button>
       </div>
 
       {active.length === 0 && !adding && (
@@ -113,9 +115,11 @@ function PackageForm({
   const [price, setPrice] = useState(pkg ? (pkg.price_cents / 100).toFixed(2) : '');
   const [minutes, setMinutes] = useState(pkg?.est_minutes ? String(pkg.est_minutes) : '');
   const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
 
   async function save() {
     setBusy(true);
+    setErr(null);
     const sb = supabaseBrowser();
     const payload = {
       operator_id: operatorId,
@@ -125,15 +129,15 @@ function PackageForm({
       est_minutes: minutes ? parseInt(minutes, 10) : null,
       active: true,
     };
-    if (pkg?.id) {
-      const { data } = await sb.from('service_packages').update(payload).eq('id', pkg.id).select().single();
-      setBusy(false);
-      onDone(data as Pkg);
-    } else {
-      const { data } = await sb.from('service_packages').insert(payload).select().single();
-      setBusy(false);
-      onDone(data as Pkg);
+    const { data, error } = pkg?.id
+      ? await sb.from('service_packages').update(payload).eq('id', pkg.id).select().single()
+      : await sb.from('service_packages').insert(payload).select().single();
+    setBusy(false);
+    if (error || !data) {
+      setErr(error?.message ?? 'Could not save the package — please try again.');
+      return;
     }
+    onDone(data as Pkg);
   }
 
   return (
@@ -181,6 +185,7 @@ function PackageForm({
           onChange={(e) => setMinutes(e.target.value)}
         />
       </div>
+      {err && <div className="text-sm text-red-400">{err}</div>}
       <div className="flex gap-2 pt-1">
         <button onClick={save} disabled={busy || !name || !price} className="btn-primary text-sm">
           {busy ? 'Saving…' : pkg ? 'Save changes' : 'Add package'}
