@@ -30,25 +30,42 @@ export default async function ContractPage() {
     .eq('id', building.id)
     .maybeSingle();
 
-  // Active/pilot/pending partnership → auto-fill operator (use admin to ensure fresh, RLS-independent read)
-  // NB: operators has no address_line1/city/region columns — selecting them makes
-  // PostgREST reject the whole query and the page silently renders "not matched".
-  const { data: partnership } = await admin
+  // Active/pilot/pending partnership → auto-fill operator. Deliberately flat
+  // queries with select('*'): an embed that references any column missing from
+  // the live schema makes PostgREST reject the whole query, and this page then
+  // silently renders "not matched" (the original bug). select('*') only returns
+  // columns that exist, so it can never fail that way. Errors are logged so a
+  // regression shows up in the function logs instead of a blank page.
+  const { data: partnershipRows, error: partnershipError } = await admin
     .from('partnerships')
-    .select('id, operator:operators(id, name, contact_email, contact_phone, base_price_cents, insurance_expires_at, owner_id)')
+    .select('id, status, operator_id, created_at')
     .eq('building_id', building.id)
     .in('status', ['active', 'pilot', 'pending'])
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .order('created_at', { ascending: false });
+  if (partnershipError) console.error('contract: partnership query failed:', partnershipError.message);
 
-  const op = (partnership?.operator as any) ?? null;
+  // Prefer the confirmed relationship over any stray pending request rows.
+  const statusRank: Record<string, number> = { active: 0, pilot: 1, pending: 2 };
+  const partnership = (partnershipRows ?? [])
+    .slice()
+    .sort((a, b) => (statusRank[a.status] ?? 9) - (statusRank[b.status] ?? 9))[0] ?? null;
+
+  let op: any = null;
+  if (partnership?.operator_id) {
+    const { data: opRow, error: opError } = await admin
+      .from('operators')
+      .select('*')
+      .eq('id', partnership.operator_id)
+      .maybeSingle();
+    if (opError) console.error('contract: operator query failed:', opError.message);
+    op = opRow ?? null;
+  }
 
   // Fetch operator packages and addons for auto-fill
   const [{ data: packages }, { data: addons }] = op
     ? await Promise.all([
-        sb.from('service_packages').select('name, description, price_cents').eq('operator_id', op.id).eq('active', true).order('display_order'),
-        sb.from('operator_addons').select('label, price_cents').eq('operator_id', op.id).eq('active', true),
+        admin.from('service_packages').select('name, description, price_cents').eq('operator_id', op.id).eq('active', true).order('display_order'),
+        admin.from('operator_addons').select('label, price_cents').eq('operator_id', op.id).eq('active', true),
       ])
     : [{ data: null }, { data: null }];
 
@@ -64,7 +81,7 @@ export default async function ContractPage() {
   // Auto-create a draft contract when both parties are present and no contract exists yet
   if (!contract && op) {
     const washDay = bFull?.wash_day || bFull?.preferred_wash_day || null;
-    const { data: newContract } = await admin.from('contracts').insert({
+    const { data: newContract, error: insertError } = await admin.from('contracts').insert({
       building_id: building.id,
       operator_id: op.id,
       status: 'pending_signatures',
@@ -73,6 +90,18 @@ export default async function ContractPage() {
       price_per_wash_cents: op.base_price_cents,
     }).select().single();
     contract = newContract;
+    if (insertError) {
+      // A column or enum value missing from the live schema fails the full
+      // insert; retry with the minimal shape so signing isn't silently blocked.
+      console.error('contract: draft insert failed:', insertError.message);
+      const { data: minimalContract, error: retryError } = await admin.from('contracts').insert({
+        building_id: building.id,
+        operator_id: op.id,
+        price_per_wash_cents: op.base_price_cents,
+      }).select().single();
+      if (retryError) console.error('contract: minimal draft insert failed:', retryError.message);
+      contract = minimalContract;
+    }
   }
 
   const managerName = session.profile.full_name || session.profile.email;

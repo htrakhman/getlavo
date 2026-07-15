@@ -18,14 +18,15 @@ export default async function OperatorContractPage({ params }: { params: { id: s
   const sb = supabaseServer();
   const admin = supabaseAdmin();
 
-  // NB: operators has no address_line1/city/region columns — selecting them makes
-  // PostgREST reject the whole query, op comes back null, and the operator gets
-  // bounced to onboarding instead of seeing the contract.
-  const { data: op } = await sb
+  // select('*'): naming columns here once bounced operators to onboarding when
+  // a named column was missing from the live schema (PostgREST rejects the
+  // whole query). '*' only returns columns that exist, so it cannot fail that way.
+  const { data: op, error: opError } = await sb
     .from('operators')
-    .select('id, name, contact_email, contact_phone, base_price_cents, insurance_expires_at')
+    .select('*')
     .eq('owner_id', session.user.id)
     .maybeSingle();
+  if (opError) console.error('operator contract: operator query failed:', opError.message);
   if (!op) redirect('/operator/onboarding');
 
   const { data: contract } = await admin
