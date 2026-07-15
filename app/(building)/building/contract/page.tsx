@@ -31,9 +31,11 @@ export default async function ContractPage() {
     .maybeSingle();
 
   // Active/pilot/pending partnership → auto-fill operator (use admin to ensure fresh, RLS-independent read)
+  // NB: operators has no address_line1/city/region columns — selecting them makes
+  // PostgREST reject the whole query and the page silently renders "not matched".
   const { data: partnership } = await admin
     .from('partnerships')
-    .select('id, operator:operators(id, name, address_line1, city, region, contact_email, contact_phone, base_price_cents, insurance_expires_at, owner_id)')
+    .select('id, operator:operators(id, name, contact_email, contact_phone, base_price_cents, insurance_expires_at, owner_id)')
     .eq('building_id', building.id)
     .in('status', ['active', 'pilot', 'pending'])
     .order('created_at', { ascending: false })
@@ -153,9 +155,6 @@ export default async function ContractPage() {
                   {op ? (
                     <>
                       <div className="font-medium text-white">{op.name}</div>
-                      {op.address_line1 && (
-                        <div className="mt-1 text-ink-300">{op.address_line1}, {op.city}, {op.region}</div>
-                      )}
                       {op.contact_email && <div className="mt-0.5 text-xs text-ink-400">{op.contact_email}</div>}
                       {op.contact_phone && <div className="mt-0.5 text-xs text-ink-400">{op.contact_phone}</div>}
                     </>

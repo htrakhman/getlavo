@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 type Request = {
   id: string;
@@ -8,9 +9,11 @@ type Request = {
 };
 
 export function PartnershipRequests({ requests }: { requests: Request[] }) {
+  const router = useRouter();
   const [local, setLocal] = useState(requests);
   const [busy, setBusy] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [accepted, setAccepted] = useState<string | null>(null);
 
   async function respond(id: string, action: 'accept' | 'decline') {
     setBusy(id); setErr(null);
@@ -21,14 +24,26 @@ export function PartnershipRequests({ requests }: { requests: Request[] }) {
       setBusy(null);
       return;
     }
+    if (action === 'accept') {
+      const name = local.find((r) => r.id === id)?.building?.name ?? 'Building';
+      setAccepted(name);
+    }
     setLocal((prev) => prev.filter((r) => r.id !== id));
     setBusy(null);
+    router.refresh();
   }
 
-  if (!local.length) return null;
+  if (!local.length && !accepted) return null;
 
   return (
     <div className="mb-8">
+      {accepted && (
+        <div className="mb-3 rounded-xl border border-gleam/30 bg-gleam/10 px-5 py-3 text-sm text-gleam">
+          ✓ Partnership with {accepted} is now active.
+        </div>
+      )}
+      {local.length > 0 && (
+      <>
       <div className="mb-3 text-xs uppercase tracking-widest text-yellow-400">Partnership requests</div>
       <div className="space-y-3">
         {local.map((r) => (
@@ -59,6 +74,8 @@ export function PartnershipRequests({ requests }: { requests: Request[] }) {
         ))}
       </div>
       {err && <div className="mt-2 text-sm text-red-400">{err}</div>}
+      </>
+      )}
     </div>
   );
 }

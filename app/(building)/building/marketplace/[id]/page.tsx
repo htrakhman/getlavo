@@ -18,12 +18,17 @@ export default async function OperatorDetail({ params }: { params: { id: string 
   ]);
   if (!op || !building) return <div>Not found.</div>;
 
-  // Check existing partnership status
-  const { data: existingPartnership } = await sb
+  // Check existing partnership status (admin: RLS-independent, and take the
+  // latest row — a declined request followed by a new pending one is two rows,
+  // which used to make maybeSingle() error out and report 'none').
+  const { supabaseAdmin } = await import('@/lib/supabase/admin');
+  const { data: existingPartnership } = await supabaseAdmin()
     .from('partnerships')
     .select('status')
     .eq('building_id', building.id)
     .eq('operator_id', op.id)
+    .order('created_at', { ascending: false })
+    .limit(1)
     .maybeSingle();
 
   const existingStatus = (existingPartnership?.status as 'pending' | 'active' | 'declined') ?? 'none';

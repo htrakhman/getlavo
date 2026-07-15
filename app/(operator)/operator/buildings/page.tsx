@@ -1,30 +1,54 @@
 import { PageHeader } from '@/components/PortalShell';
 import { getAvailableBuildingsForOperator } from '@/lib/operator-available-buildings';
-import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
+import { getSessionUser, supabaseServer, supabaseAdmin } from '@/lib/supabase/server';
 import { AvailableBuildings } from './AvailableBuildings';
+import { PartnershipRequests } from '../PartnershipRequests';
 import { redirect } from 'next/navigation';
+
+export const dynamic = 'force-dynamic';
 
 export default async function OperatorBuildings() {
   const session = await getSessionUser();
   if (!session) redirect('/login');
   const sb = supabaseServer();
+  const admin = supabaseAdmin();
   const { data: op } = await sb.from('operators').select('id, name').eq('owner_id', session.user.id).maybeSingle();
 
-  const [{ data: partnerships }, availableData] = await Promise.all([
-    sb
+  const [{ data: partnerships }, { data: pendingPartnerships }, availableData] = await Promise.all([
+    admin
       .from('partnerships')
       .select('id, status, connected_at, building:buildings(name, address_line1, city, region, total_units)')
       .eq('operator_id', op?.id ?? '')
       .eq('status', 'active')
       .order('connected_at', { ascending: false }),
+    // Manager-initiated requests waiting on this operator (admin: RLS-independent read)
+    admin
+      .from('partnerships')
+      .select('id, created_at, requested_by, building:buildings(id, name, city, address_line1, manager_id)')
+      .eq('operator_id', op?.id ?? '')
+      .eq('status', 'pending')
+      .order('created_at'),
     op?.id ? getAvailableBuildingsForOperator(op.id) : Promise.resolve({ available: [], pendingByBuildingId: new Map() }),
   ]);
 
   const pendingRecord = Object.fromEntries(availableData.pendingByBuildingId);
+  const incomingRequests = (pendingPartnerships ?? []).filter(
+    (p: any) => p.requested_by === p.building?.manager_id,
+  );
 
   return (
     <>
       <PageHeader eyebrow={op?.name} title="Buildings" />
+
+      {incomingRequests.length > 0 && (
+        <section className="mb-10">
+          <h2 className="mb-1 font-display text-xl">Buildings that want to partner with you</h2>
+          <p className="mb-4 text-sm text-ink-400">
+            These property managers requested you directly. Accept to activate the partnership.
+          </p>
+          <PartnershipRequests requests={incomingRequests as any} />
+        </section>
+      )}
 
       <section className="mb-10">
         <h2 className="mb-4 font-display text-xl">Your buildings</h2>
