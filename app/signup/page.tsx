@@ -173,6 +173,7 @@ function SignupForm() {
     }
 
     await sb.auth.getSession();
+    fetch('/api/auth/notify-signup', { method: 'POST', keepalive: true }).catch(() => {});
     setBusy(false);
     const home = homePathForSignupRole(role);
     window.location.assign(`/auth/continue?next=${encodeURIComponent(home)}`);

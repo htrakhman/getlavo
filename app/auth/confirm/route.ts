@@ -44,13 +44,14 @@ export async function GET(request: NextRequest) {
   // Fire signup notification for new email confirmations (not password resets)
   if (type === 'email' || type === 'invite') {
     const { data: { user: confirmedUser } } = await supabase.auth.getUser();
-    if (confirmedUser) {
-      notifySignup({
+    if (confirmedUser && !confirmedUser.user_metadata?.signup_notified) {
+      await notifySignup({
         email: confirmedUser.email!,
         name: confirmedUser.user_metadata?.full_name,
         role,
         method: 'email',
       });
+      await supabase.auth.updateUser({ data: { signup_notified: true } }).catch(() => {});
     }
   }
 
