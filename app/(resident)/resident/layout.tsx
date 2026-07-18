@@ -9,7 +9,6 @@ const NAV = [
   { href: '/resident/vehicle', label: 'Vehicle' },
   { href: '/resident/addons', label: 'Add-ons' },
   { href: '/resident/referrals', label: 'Referrals' },
-  { href: '/resident/gift', label: 'Gift a wash' },
   { href: '/resident/claim', label: 'Claims' },
   { href: '/resident/announcements', label: 'Announcements' },
   { href: '/resident/payment', label: 'Payment' },
