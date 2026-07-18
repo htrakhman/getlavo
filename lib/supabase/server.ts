@@ -73,9 +73,13 @@ export async function getSessionUser() {
   const { data: { user } } = await sb.auth.getUser();
   if (!user) return null;
 
+  // Service-role reads: the user is already authenticated above, and RLS-scoped
+  // profile/portal reads have failed in production (missing grants), which made
+  // every portal fall back to bare auth metadata and lose portal membership.
+  const admin = supabaseAdmin();
   const [{ data: profile }, { data: portalRows }] = await Promise.all([
-    sb.from('profiles').select('*').eq('id', user.id).maybeSingle(),
-    sb.from('profile_portals').select('portal').eq('profile_id', user.id),
+    admin.from('profiles').select('*').eq('id', user.id).maybeSingle(),
+    admin.from('profile_portals').select('portal').eq('profile_id', user.id),
   ]);
 
   const resolvedProfile: SessionProfile | (typeof profile) | null =

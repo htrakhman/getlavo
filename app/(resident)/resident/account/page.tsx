@@ -1,20 +1,23 @@
 import { PageHeader } from '@/components/PortalShell';
-import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
+import { getSessionUser } from '@/lib/supabase/server';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 import { redirect } from 'next/navigation';
 import { AccountForm } from './AccountForm';
 
 export default async function AccountPage() {
   const session = await getSessionUser();
   if (!session) redirect('/login');
-  const sb = supabaseServer();
+  // Admin client (auth already checked above): RLS-scoped reads of these rows
+  // fail in production, which rendered stale metadata instead of saved edits.
+  const admin = supabaseAdmin();
 
-  const { data: profile } = await sb
+  const { data: profile } = await admin
     .from('profiles')
     .select('id, full_name, email, phone')
     .eq('id', session.user.id)
     .maybeSingle();
 
-  const { data: resident } = await sb
+  const { data: resident } = await admin
     .from('residents')
     .select('id, notification_preferences, stripe_subscription_id, subscription_tier, subscription_state')
     .eq('profile_id', session.user.id)

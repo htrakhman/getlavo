@@ -1,9 +1,21 @@
 'use client';
 import { useState } from 'react';
-import { supabaseBrowser } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 
 const COLORS = ['White', 'Black', 'Silver', 'Gray', 'Red', 'Blue', 'Green', 'Other'];
+
+// All writes on this page go through server routes: direct browser writes are
+// RLS-scoped and were silently failing in production.
+async function apiCall(path: string, method: string, body: unknown): Promise<string | null> {
+  const res = await fetch(path, {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  }).catch(() => null);
+  if (res?.ok) return null;
+  const j = await res?.json().catch(() => null);
+  return typeof j?.error === 'string' ? j.error : 'Could not save — please try again';
+}
 
 export function SpotEditor({ residentId, unit, floor, spotLabel }: { residentId: string; unit: string; floor: number | null; spotLabel: string }) {
   const router = useRouter();
@@ -12,16 +24,18 @@ export function SpotEditor({ residentId, unit, floor, spotLabel }: { residentId:
   const [f, setF] = useState(floor != null ? String(floor) : '');
   const [s, setS] = useState(spotLabel);
   const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
 
   async function save() {
     setBusy(true);
-    const sb = supabaseBrowser();
-    await sb.from('residents').update({
-      unit_number: u,
-      floor_number: f ? parseInt(f, 10) : null,
-      spot_label: s,
-    }).eq('id', residentId);
+    setErr(null);
+    const error = await apiCall('/api/residents/update', 'POST', {
+      unitNumber: u,
+      floorNumber: f ? parseInt(f, 10) : null,
+      spotLabel: s,
+    });
     setBusy(false);
+    if (error) { setErr(error); return; }
     setEditing(false);
     router.refresh();
   }
@@ -59,6 +73,7 @@ export function SpotEditor({ residentId, unit, floor, spotLabel }: { residentId:
             <button onClick={save} disabled={busy} className="btn-primary text-sm">{busy ? 'Saving…' : 'Save'}</button>
             <button onClick={() => setEditing(false)} className="btn-quiet text-sm">Cancel</button>
           </div>
+          {err && <p className="text-sm text-red-400">{err}</p>}
         </div>
       )}
     </div>
@@ -69,18 +84,20 @@ export function VehiclesList({ residentId, vehicles }: { residentId: string; veh
   const router = useRouter();
   const [adding, setAdding] = useState(vehicles.length === 0);
   const [editing, setEditing] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
 
   async function setPrimary(id: string) {
-    const sb = supabaseBrowser();
-    await sb.from('vehicles').update({ is_primary: false }).eq('resident_id', residentId);
-    await sb.from('vehicles').update({ is_primary: true }).eq('id', id);
+    setErr(null);
+    const error = await apiCall('/api/residents/vehicles', 'PATCH', { id, makePrimary: true });
+    if (error) { setErr(error); return; }
     router.refresh();
   }
 
   async function remove(id: string) {
     if (!confirm('Remove this vehicle? Past washes for it stay on record.')) return;
-    const sb = supabaseBrowser();
-    await sb.from('vehicles').delete().eq('id', id);
+    setErr(null);
+    const error = await apiCall('/api/residents/vehicles', 'DELETE', { id });
+    if (error) { setErr(error); return; }
     router.refresh();
   }
 
@@ -96,6 +113,8 @@ export function VehiclesList({ residentId, vehicles }: { residentId: string; veh
       {vehicles.length === 0 && !adding && (
         <p className="text-sm text-ink-400">No vehicle on file.</p>
       )}
+
+      {err && <p className="mb-3 text-sm text-red-400">{err}</p>}
 
       <div className="space-y-3">
         {vehicles.map((v) => (
@@ -160,26 +179,24 @@ function VehicleForm({ residentId, vehicle, onDone, onCancel, isFirst }: {
   const [plate, setPlate] = useState(vehicle?.license_plate ?? '');
   const [photoUrl, setPhotoUrl] = useState(vehicle?.photo_url ?? '');
   const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
 
   async function save() {
     setBusy(true);
-    const sb = supabaseBrowser();
-    const payload: any = {
-      resident_id: residentId,
+    setErr(null);
+    const payload = {
       make,
       model,
       year: year ? parseInt(year, 10) : null,
       color,
-      license_plate: plate || 'UNKNOWN',
-      photo_url: photoUrl.trim() || null,
+      plate: plate || null,
+      photoUrl: photoUrl.trim() || null,
     };
-    if (vehicle?.id) {
-      await sb.from('vehicles').update(payload).eq('id', vehicle.id);
-    } else {
-      payload.is_primary = !!isFirst;
-      await sb.from('vehicles').insert(payload);
-    }
+    const error = vehicle?.id
+      ? await apiCall('/api/residents/vehicles', 'PATCH', { id: vehicle.id, ...payload })
+      : await apiCall('/api/residents/vehicles', 'POST', { ...payload, isPrimary: !!isFirst });
     setBusy(false);
+    if (error) { setErr(error); return; }
     onDone();
   }
 
@@ -217,6 +234,7 @@ function VehicleForm({ residentId, vehicle, onDone, onCancel, isFirst }: {
         <button onClick={save} disabled={busy || !make || !model} className="btn-primary text-sm">{busy ? 'Saving…' : 'Save'}</button>
         <button onClick={onCancel} className="btn-quiet text-sm">Cancel</button>
       </div>
+      {err && <p className="col-span-2 text-sm text-red-400">{err}</p>}
     </div>
   );
 }

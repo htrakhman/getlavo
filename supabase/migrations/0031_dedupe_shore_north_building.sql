@@ -1,36 +1,10 @@
--- Deduplicate "The Shore North" building that was created twice.
--- Strategy: keep the building with the most associated data (residents/bookings),
--- re-point all foreign keys to the canonical record, then delete the duplicate.
--- Safe to run multiple times (no-op if already deduped).
-
-do $$
-declare
-  keep_id    uuid;
-  drop_id    uuid;
-begin
-  -- Find the two duplicate buildings by name + city
-  select
-    (select id from buildings where name = 'The Shore North' and city = 'Jersey City' order by created_at asc  limit 1),
-    (select id from buildings where name = 'The Shore North' and city = 'Jersey City' order by created_at desc limit 1)
-  into keep_id, drop_id;
-
-  -- Nothing to do if there's only one (or zero) record
-  if keep_id is null or drop_id is null or keep_id = drop_id then
-    return;
-  end if;
-
-  -- Re-point related rows to the canonical building
-  update residents          set building_id = keep_id where building_id = drop_id;
-  update building_invites   set building_id = keep_id where building_id = drop_id;
-  update announcements      set building_id = keep_id where building_id = drop_id;
-  update issues             set building_id = keep_id where building_id = drop_id;
-  update wash_days          set building_id = keep_id where building_id = drop_id;
-  update contracts          set building_id = keep_id where building_id = drop_id;
-  update building_managers  set building_id = keep_id where building_id = drop_id;
-
-  -- Delete the duplicate
-  delete from buildings where id = drop_id;
-
-  raise notice 'Deduped The Shore North: kept %, dropped %', keep_id, drop_id;
-end;
-$$;
+-- Superseded by 0034_dedupe_duplicate_buildings.sql.
+--
+-- The original version of this migration updated a "building_managers" table
+-- that has never existed, so the DO block errored whenever duplicates were
+-- present and the dedupe never actually ran (the duplicate "The Shore North —
+-- Jersey City" rows survived it). It also missed several tables that hold a
+-- building_id FK (partnerships, bookings, floors, ...). 0034 re-points every
+-- FK discovered from the catalog and adds a unique index; this file is kept
+-- as a no-op so migration numbering stays contiguous.
+select 1;
