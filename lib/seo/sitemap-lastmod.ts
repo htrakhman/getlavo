@@ -2,7 +2,8 @@ import type { SitemapRoute } from './sitemap-routes';
 
 /** Content last-updated dates (ISO). Update when page copy materially changes. */
 const STATIC_LASTMOD: Record<string, string> = {
-  '/': '2026-05-01',
+  '/': '2026-07-18',
+  '/learn-more': '2026-07-18',
   '/buildings': '2026-04-15',
   '/operators': '2026-04-15',
   '/residents': '2026-04-15',

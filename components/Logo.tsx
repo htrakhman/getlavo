@@ -58,7 +58,7 @@ export function Logo({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
         </svg>
       </span>
 
-      <span className="text-white">LAVO</span>
+      <span className="text-ink-100">LAVO</span>
     </Link>
   );
 }

@@ -1,13 +1,8 @@
 import Link from 'next/link';
 import { MarketingNav } from '@/components/MarketingNav';
-import { getHomepageResourceLinks } from '@/lib/seo/internal-links';
-import { RelatedLinks } from '@/components/marketing/RelatedLinks';
 import { FourStepGrid } from '@/components/marketing/how-it-works/FourStepGrid';
-import { UserTypeSignupCTA } from '@/components/UserTypeSignupModal';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { organizationSchema, websiteSchema } from '@/lib/seo/schema';
-import { FEATURED_CITY_SLUGS } from '@/lib/seo/keep-cities';
-import { getMunicipalityBySlug } from '@/lib/seo/cities';
 import { createPageMetadata } from '@/lib/seo/site';
 import { getSessionUser } from '@/lib/supabase/server';
 import { pickLandingPortal } from '@/lib/portal-routing';
@@ -20,39 +15,41 @@ export const metadata = createPageMetadata({
     'Lavo connects apartment residents, property managers, and vetted mobile car wash operators so residents can book car washes without leaving home.',
 });
 
-const HOME_RELATED_GROUPS = [
+const AUDIENCES = [
   {
-    title: 'Platform',
-    links: [
-      { href: '/cities', label: 'Lavo cities' },
-      { href: '/buildings', label: 'For properties' },
-      { href: '/residents', label: 'For residents' },
-      { href: '/how-it-works', label: 'How it works' },
+    id: 'residents',
+    title: 'Residents',
+    description: 'Book a car wash at your building, right from your phone.',
+    points: [
+      'Vetted, insured operators your building already trusts',
+      'Pay in-app with prices shown before you confirm',
+      'Get a photo when your wash is done',
     ],
+    signupHref: '/signup?role=resident',
   },
   {
-    title: 'Guides',
-    links: getHomepageResourceLinks(),
-  },
-  {
-    title: 'Company',
-    links: [
-      { href: '/about', label: 'About' },
-      { href: '/safety', label: 'Safety' },
-      { href: '/contact', label: 'Contact' },
+    id: 'property-managers',
+    title: 'Property managers',
+    description: 'A resident amenity that costs the building nothing to run.',
+    points: [
+      'Free to add — Lavo never charges the building',
+      'Residents book and pay through your building link',
+      'We handle operators, scheduling, and payments',
     ],
+    signupHref: '/signup?role=building_manager',
   },
   {
-    title: 'New Jersey',
-    links: [
-      { href: '/cities/new-jersey', label: 'All NJ cities' },
-      ...FEATURED_CITY_SLUGS.map((slug) => {
-        const m = getMunicipalityBySlug(slug);
-        return { href: `/cities/${slug}`, label: m?.name ?? slug };
-      }),
+    id: 'operators',
+    title: 'Operators',
+    description: 'Partner with buildings and get a steady base of customers.',
+    points: [
+      'Buildings bring the residents — you show up and wash',
+      'Set your own rates for wash days and open slots',
+      'Stripe payouts directly to your account',
     ],
+    signupHref: '/signup?role=operator',
   },
-];
+] as const;
 
 export default async function Home({
   searchParams,
@@ -95,31 +92,53 @@ export default async function Home({
       <MarketingNav />
 
       {/* Hero */}
-      <section className="relative pt-16 pb-24 text-center px-6">
+      <section className="relative pt-16 pb-20 text-center px-6">
         <div className="mx-auto max-w-4xl">
-          <h1 className="font-display text-5xl font-semibold leading-[1.05] tracking-tight md:text-6xl lg:text-7xl">
+          <h1 className="font-display text-5xl font-bold leading-[1.05] tracking-tight md:text-6xl lg:text-7xl">
             Wash your car without<br />
             <span className="gleam-text">thinking about it.</span>
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-ink-300">
             Book from your phone. Operators are vetted and insured. Buildings pay nothing.
           </p>
-          <UserTypeSignupCTA />
+
+          {/* Get started */}
+          <div id="get-started" className="mt-14 scroll-mt-24">
+            <div className="flex items-center gap-5 mb-8">
+              <div className="h-px flex-1 bg-gradient-to-r from-transparent to-ink-600" />
+              <span className="text-xs font-semibold uppercase tracking-[0.25em] text-ink-400">Get started</span>
+              <div className="h-px flex-1 bg-gradient-to-l from-transparent to-ink-600" />
+            </div>
+            <div className="flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
+              <Link href="/signup" className="btn-primary w-full px-8 py-3 text-base sm:w-auto">
+                Sign up
+              </Link>
+              <Link href="/learn-more" className="btn-ghost w-full px-8 py-3 text-base sm:w-auto">
+                Learn more
+              </Link>
+            </div>
+            <p className="mt-4 text-sm text-ink-400">
+              Residents, property managers, and wash operators each get their own account.
+            </p>
+          </div>
         </div>
       </section>
 
       <section className="relative mx-auto max-w-6xl px-6 py-12">
         <div className="grid gap-5 md:grid-cols-2 md:gap-6">
-          <div className="card p-7 text-left ring-1 ring-inset ring-white/[0.04] transition-colors hover:border-white/10">
-            <div className="text-xs font-medium uppercase tracking-widest text-ink-500">Coverage</div>
-            <p className="mt-4 font-display text-2xl text-gleam leading-tight">Nationwide</p>
-            <p className="mt-4 text-sm leading-relaxed text-ink-400">
-              We onboard buildings across the U.S. If your building is not live yet, signing up helps us route demand to operators in your market.
+          <div className="card p-7 text-left transition-colors hover:border-gleam/30">
+            <div className="text-xs font-semibold uppercase tracking-widest text-gleam">Coverage</div>
+            <p className="mt-4 font-display text-2xl font-semibold leading-tight">
+              Live in New Jersey, expanding to new cities
+            </p>
+            <p className="mt-4 text-sm leading-relaxed text-ink-300">
+              We serve buildings across New Jersey today and are onboarding new markets. If your building is not
+              live yet, signing up helps us bring an operator to your area.
             </p>
           </div>
-          <div className="card p-7 text-left ring-1 ring-inset ring-white/[0.04] transition-colors hover:border-white/10">
-            <div className="text-xs font-medium uppercase tracking-widest text-ink-500">Trust</div>
-            <ul className="mt-4 space-y-3 text-sm text-ink-300">
+          <div className="card p-7 text-left transition-colors hover:border-gleam/30">
+            <div className="text-xs font-semibold uppercase tracking-widest text-gleam">Trust</div>
+            <ul className="mt-4 space-y-3 text-sm text-ink-200">
               {[
                 'Background-checked operators',
                 'Insured crews',
@@ -127,7 +146,7 @@ export default async function Home({
                 'Stripe secure payments',
               ].map((line) => (
                 <li key={line} className="flex gap-3">
-                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-gleam/70" aria-hidden />
+                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-gleam" aria-hidden />
                   <span className="leading-relaxed">{line}</span>
                 </li>
               ))}
@@ -144,226 +163,85 @@ export default async function Home({
         footerLabel="Full guide for buildings and operators"
       />
 
-      {/* Property manager features */}
-      <section className="relative mx-auto max-w-6xl px-6 py-20 border-t border-white/10">
-        <div className="grid grid-cols-1 gap-12 lg:grid-cols-2 lg:gap-16 items-start">
-          <div className="max-w-lg">
-            <div className="text-xs uppercase tracking-[0.18em] text-gleam mb-3">For property managers</div>
-            <h2 className="font-display text-4xl font-semibold tracking-tight leading-[1.1] md:text-5xl mb-4">
-              A resident amenity your team does not have to manage
-            </h2>
-            <p className="text-ink-400 text-sm leading-relaxed mb-8">
-              Give residents access to convenient on site car washes without adding budget, staff time, or operational complexity.
+      {/* Who Lavo is for */}
+      <section className="relative border-t border-white/10 bg-ink-800/60">
+        <div className="mx-auto max-w-6xl px-6 py-20">
+          <div className="mx-auto max-w-2xl text-center">
+            <h2 className="font-display text-3xl font-bold tracking-tight md:text-4xl">Who Lavo is for</h2>
+            <p className="mt-4 text-ink-300">
+              One platform, three sides. Pick yours below — or read the full breakdown on the{' '}
+              <Link href="/learn-more" className="font-medium text-gleam hover:text-gleam-300">
+                Learn more
+              </Link>{' '}
+              page.
             </p>
-            <ul className="space-y-4 text-sm text-ink-300">
-              {[
-                'Free to add. Lavo never charges the building',
-                'Residents book and pay directly through your building link',
-                'Lavo vets local operators before they service your property',
-                'We provide QR codes, flyers, and resident announcement copy',
-                'Monthly wash day recap you can use in newsletters and renewal communication',
-                'Works with garages, surface lots, and scheduled service days',
-              ].map((text) => (
-                <li key={text} className="flex gap-3.5">
-                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-gleam/70" aria-hidden />
-                  <span className="leading-relaxed">{text}</span>
-                </li>
-              ))}
-            </ul>
-            <Link
-              href="/signup?role=building_manager"
-              className="mt-8 inline-block text-sm font-medium text-gleam hover:text-gleam-300 transition-colors"
-            >
-              Get your building link →
-            </Link>
           </div>
-          <div className="rounded-2xl border border-white/15 bg-ink-900/85 p-6 sm:p-8 shadow-card backdrop-blur-xl ring-1 ring-inset ring-white/[0.06]">
-            <div className="text-xs font-medium uppercase tracking-[0.18em] text-gleam mb-5">What you get</div>
-            <div className="divide-y divide-white/15">
-              {[
-                {
-                  title: 'Custom resident booking link',
-                  body: 'A shareable page residents can use to book washes directly.',
-                },
-                {
-                  title: 'Launch materials included',
-                  body: 'QR code, flyer copy, email copy, and resident announcement language.',
-                },
-                {
-                  title: 'Operator coordination handled',
-                  body: 'Lavo manages scheduling, payments, provider communication, and service flow.',
-                },
-                {
-                  title: 'Simple monthly recap',
-                  body: 'A ready to share amenity summary for resident newsletters and leasing follow up.',
-                },
-              ].map((item, index) => (
-                <div key={item.title} className={index === 0 ? 'pb-5' : 'py-5'}>
-                  <div className="text-sm font-medium text-ink-100">{item.title}</div>
-                  <p className="mt-1.5 text-sm leading-relaxed text-ink-300">{item.body}</p>
+          <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3">
+            {AUDIENCES.map((a) => (
+              <div key={a.id} className="card flex flex-col p-7">
+                <h3 className="font-display text-2xl font-bold tracking-tight">{a.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-ink-300">{a.description}</p>
+                <ul className="mt-5 space-y-3 text-sm text-ink-200">
+                  {a.points.map((point) => (
+                    <li key={point} className="flex gap-3">
+                      <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-gleam" aria-hidden />
+                      <span className="leading-relaxed">{point}</span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-auto flex items-center gap-5 pt-7">
+                  <Link href={a.signupHref} className="text-sm font-semibold text-gleam hover:text-gleam-300 transition-colors">
+                    Sign up →
+                  </Link>
+                  <Link
+                    href={`/learn-more#${a.id}`}
+                    className="text-sm font-medium text-ink-400 hover:text-ink-100 transition-colors"
+                  >
+                    Learn more
+                  </Link>
                 </div>
-              ))}
-              <p className="pt-5 text-xs leading-relaxed text-ink-400">
-                No building cost. No contract. No staff training.
-              </p>
-            </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      <section className="relative mx-auto max-w-6xl px-6 py-20 border-t border-white/10">
-        <div className="grid grid-cols-1 gap-12 lg:grid-cols-2 items-center">
-          <div>
-            <div className="text-xs uppercase tracking-[0.18em] text-gleam mb-3">For residents</div>
-            <h2 className="font-display text-4xl font-semibold tracking-tight leading-[1.1] md:text-5xl mb-3">
-              Clean car, <span className="gleam-text">zero effort</span>
-            </h2>
-            <p className="text-ink-400 text-sm leading-relaxed max-w-md mb-8">
-              Book and pay from your phone. Operators your building already trusts, with prices shown before you confirm.
-            </p>
-            <ul className="space-y-5 text-sm text-ink-300">
-              {[
-                'Only see operators within your building\'s radius — no browsing random Yelp listings',
-                'Book a building wash day slot (cheaper) or an on-demand open slot any available day',
-                'Pay securely in-app. No cash, no Venmo, no awkward conversations',
-                'Get a photo when your wash is done. Leave a review from your phone',
-                'Add wax, interior detail, or tire shine as a one-tap upgrade',
-              ].map((text) => (
-                <li key={text} className="flex gap-3.5">
-                  <span
-                    className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-gleam/70"
-                    aria-hidden
-                  />
-                  <span className="leading-relaxed">{text}</span>
-                </li>
-              ))}
-            </ul>
-            <Link href="/signup?role=resident" className="mt-8 inline-block text-sm text-gleam hover:text-gleam-300 transition-colors">
-              Sign up as a resident →
-            </Link>
-          </div>
-          <div className="rounded-2xl border border-white/15 bg-ink-900/85 p-8 shadow-card backdrop-blur-xl ring-1 ring-inset ring-white/[0.06] space-y-5">
-            <div>
-              <div className="text-xs font-medium uppercase tracking-[0.18em] text-gleam">Building wash day</div>
-              <p className="mt-2 text-sm leading-relaxed text-ink-200">
-                Scheduled visit — operators set their own rate for partnered buildings. Residents always see the exact price before booking.
-              </p>
-            </div>
-            <div className="border-t border-white/15 pt-5">
-              <div className="text-xs font-medium uppercase tracking-[0.18em] text-gleam">On-demand slot</div>
-              <p className="mt-2 text-sm leading-relaxed text-ink-200">
-                Book any available date. Price is set by the operator and shown upfront.
-              </p>
-            </div>
-            <p className="text-xs leading-relaxed text-ink-400">
-              No surprises. Every operator sets their own rates.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Operator features */}
-      <section className="relative mx-auto max-w-6xl px-6 py-20 border-t border-white/10">
-        <div className="grid grid-cols-1 gap-12 lg:grid-cols-2 items-center">
-          <div>
-            <div className="text-xs uppercase tracking-[0.18em] text-gleam mb-3">For operators</div>
-            <h2 className="font-display text-4xl font-semibold tracking-tight leading-[1.1] md:text-5xl mb-3">
-              Recurring revenue, <span className="gleam-text">no marketing</span>
-            </h2>
-            <p className="text-ink-400 text-sm leading-relaxed max-w-md mb-8">
-              Partner with apartment buildings and get a guaranteed customer base. Fill open slots with on-demand bookings between visits.
-            </p>
-            <ul className="space-y-5 text-sm text-ink-300">
-              {[
-                'Buildings bring the residents — you show up and wash',
-                'Set your own rates for scheduled wash days and open slots',
-                'Stripe payouts directly to your account after each wash',
-                'Manage your schedule, capacity, and service radius from your dashboard',
-                'Build your reputation with verified reviews from real residents',
-              ].map((text) => (
-                <li key={text} className="flex gap-3.5">
-                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-gleam/70" aria-hidden />
-                  <span className="leading-relaxed">{text}</span>
-                </li>
-              ))}
-            </ul>
-            <Link href="/signup?role=operator" className="mt-8 inline-block text-sm text-gleam hover:text-gleam-300 transition-colors">
-              Apply as an operator →
-            </Link>
-          </div>
-          <div className="rounded-2xl border border-white/15 bg-ink-900/85 p-8 shadow-card backdrop-blur-xl ring-1 ring-inset ring-white/[0.06] space-y-5">
-            <div>
-              <div className="text-xs font-medium uppercase tracking-[0.18em] text-gleam">Building partnerships</div>
-              <p className="mt-2 text-sm leading-relaxed text-ink-200">
-                Apply to partner with buildings in your area. Once approved, you run scheduled wash days and get direct access to their residents.
-              </p>
-            </div>
-            <div className="border-t border-white/15 pt-5">
-              <div className="text-xs font-medium uppercase tracking-[0.18em] text-gleam">Open-slot bookings</div>
-              <p className="mt-2 text-sm leading-relaxed text-ink-200">
-                Residents can book you on any day you mark available — at your open-slot rate. Fill dead days without lifting a finger on marketing.
-              </p>
-            </div>
-            <p className="text-xs leading-relaxed text-ink-400">
-              Background check required. Stripe Connect onboarding takes under 10 minutes.
-            </p>
-          </div>
-        </div>
-      </section>
-
+      {/* FAQ */}
       <section className="relative mx-auto max-w-3xl px-6 py-16 border-t border-white/10">
         <div className="text-center mb-10">
-          <div className="text-xs uppercase tracking-[0.18em] text-gleam mb-2">FAQ</div>
-          <h2 className="font-display text-3xl">Questions we hear a lot</h2>
+          <h2 className="font-display text-3xl font-bold">FAQ</h2>
         </div>
         <dl className="space-y-6 text-sm text-ink-300">
           <div>
-            <dt className="font-medium text-ink-100">Do I need to be home?</dt>
+            <dt className="font-semibold text-ink-100">Do I need to be home?</dt>
             <dd className="mt-1 leading-relaxed">
               Usually not. You tell us how to access your garage or spot. Many residents leave keys with concierge or use building protocols your operator already knows.
             </dd>
           </div>
           <div>
-            <dt className="font-medium text-ink-100">How do I know the wash happened?</dt>
+            <dt className="font-semibold text-ink-100">How do I know the wash happened?</dt>
             <dd className="mt-1 leading-relaxed">
               Operators upload before-and-after photos to your booking. You get a notification when the wash is marked complete.
             </dd>
           </div>
           <div>
-            <dt className="font-medium text-ink-100">What if my building is not listed yet?</dt>
+            <dt className="font-semibold text-ink-100">What if my building is not listed yet?</dt>
             <dd className="mt-1 leading-relaxed">
-              Use the checker at the top of this page. We track demand by address and notify you when an operator activates your building.
+              Check at the top of this page under{' '}
+              <a href="#get-started" className="font-medium text-gleam hover:text-gleam-300">
+                Get started
+              </a>{' '}
+              and sign up. We track demand by address and notify you when an operator activates your building.
             </dd>
           </div>
           <div>
-            <dt className="font-medium text-ink-100">Can I cancel?</dt>
+            <dt className="font-semibold text-ink-100">Can I cancel?</dt>
             <dd className="mt-1 leading-relaxed">
               Yes — cancel from your resident portal up to 24 hours before your scheduled slot, per our terms.
             </dd>
           </div>
         </dl>
       </section>
-
-      {/* CTA strip */}
-      <section className="relative mx-auto max-w-6xl px-6 py-20">
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          <div className="card p-8">
-            <h3 className="font-display text-2xl mb-2">Manage a building?</h3>
-            <p className="text-sm text-ink-300 mb-6">Add Lavo as a free amenity. Takes 5 minutes. No credit card. Ever.</p>
-            <Link href="/signup?role=building_manager" className="btn-primary">Get your building link →</Link>
-          </div>
-          <div className="card p-8">
-            <h3 className="font-display text-2xl mb-2">Run a mobile car wash or detailing business?</h3>
-            <p className="text-sm text-ink-300 mb-6">Apply to join our operator network and start receiving building partnerships.</p>
-            <Link href="/signup?role=operator" className="btn-ghost">Apply as an operator →</Link>
-          </div>
-        </div>
-      </section>
-
-      <section className="relative mx-auto max-w-6xl px-6 pb-8">
-        <RelatedLinks groups={HOME_RELATED_GROUPS} title="Explore Lavo" />
-      </section>
-
     </main>
   );
 }

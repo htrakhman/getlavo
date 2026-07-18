@@ -34,7 +34,7 @@ export function Turnstile({ onToken }: { onToken: (t: string) => void }) {
 
     const render = () => {
       if (window.turnstile && ref.current) {
-        window.turnstile.render(ref.current, { sitekey, callback: onToken, theme: 'dark' });
+        window.turnstile.render(ref.current, { sitekey, callback: onToken, theme: 'light' });
       }
     };
 

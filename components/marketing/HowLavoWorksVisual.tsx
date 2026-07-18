@@ -480,7 +480,7 @@ function PlatformDiagram() {
           <Node x={480} y={248} label="Review" accent="green" />
           <Node x={580} y={248} label="Payout" accent="green" />
 
-          <text x="640" y="280" fill="rgba(228,232,240,0.5)" fontSize="11" fontFamily="Space Grotesk, sans-serif" fontWeight="600">
+          <text x="640" y="280" fill="rgba(228,232,240,0.5)" fontSize="11" fontFamily="Plus Jakarta Sans, sans-serif" fontWeight="600">
             LAVO
           </text>
         </svg>
@@ -518,7 +518,7 @@ function Node({
         fill={hub ? '#19F0D8' : '#E4E8F0'}
         fontSize="11"
         fontWeight={hub ? '600' : '500'}
-        fontFamily="Space Grotesk, system-ui, sans-serif"
+        fontFamily="Plus Jakarta Sans, system-ui, sans-serif"
       >
         {label}
       </text>

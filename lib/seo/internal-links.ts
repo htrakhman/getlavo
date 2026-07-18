@@ -5,17 +5,9 @@ import { RESOURCES, RESOURCE_SLUGS, type ResourcePage } from '@/lib/seo/resource
 export type FooterLink = { href: string; label: string };
 export type FooterColumn = { title: string; links: FooterLink[] };
 
+// Footer intentionally carries only company and legal links — platform and
+// resource navigation lives in the MarketingNav menu instead.
 export const FOOTER_COLUMNS: FooterColumn[] = [
-  {
-    title: 'Platform',
-    links: [
-      { href: '/how-it-works', label: 'How it works' },
-      { href: '/buildings', label: 'For properties' },
-      { href: '/residents', label: 'For residents' },
-      { href: '/operators', label: 'For operators' },
-      { href: '/cities', label: 'Cities' },
-    ],
-  },
   {
     title: 'Company',
     links: [
