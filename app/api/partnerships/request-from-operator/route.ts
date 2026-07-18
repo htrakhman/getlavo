@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
-import { sendOperatorPartnershipInterest } from '@/lib/email/resend';
+import { sendAdminNotification, sendOperatorPartnershipInterest } from '@/lib/email/resend';
 import { z } from 'zod';
 
 const Body = z.object({
@@ -92,6 +92,15 @@ export async function POST(req: Request) {
       }).catch(() => {});
     }
   }
+
+  await sendAdminNotification({
+    subject: `Building request: ${operator.name} → ${building.name}`,
+    lines: [
+      `Operator ${operator.name} (${session.profile.email}) requested building ${building.name}.`,
+      `Partnership ID: ${partnership.id}`,
+    ],
+    replyTo: session.profile.email || undefined,
+  }).catch(() => {});
 
   return NextResponse.json({ partnershipId: partnership.id });
 }

@@ -17,16 +17,20 @@ export async function PATCH(req: Request) {
   const body = await req.json();
   const { carrier, expiresAt, docUrl, fileUploaded } = body;
 
-  const hasProof = !!docUrl || (!!carrier && !!expiresAt);
+  // "Verified" must mean a certificate is actually on file. Carrier name +
+  // expiry date alone used to flip the status to approved with nothing to
+  // back it up; now only an uploaded COI auto-approves.
+  const nextDocUrl = docUrl ?? op.insurance_doc_url;
+  const hasCertificate = !!nextDocUrl;
 
   const { error } = await supabaseAdmin()
     .from('operators')
     .update({
       insurance_carrier: carrier || null,
       insurance_expires_at: expiresAt || null,
-      insurance_doc_url: docUrl ?? op.insurance_doc_url,
+      insurance_doc_url: nextDocUrl,
       insurance_uploaded_at: fileUploaded ? new Date().toISOString() : op.insurance_uploaded_at,
-      insurance_review_status: hasProof ? 'approved' : op.insurance_review_status,
+      insurance_review_status: hasCertificate ? 'approved' : op.insurance_review_status,
     })
     .eq('id', op.id);
 

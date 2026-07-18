@@ -167,6 +167,23 @@ export async function sendPartnershipAcceptedByManager(args: {
   });
 }
 
+const ADMIN_TO = process.env.ADMIN_EMAIL || 'harold@getlavo.io';
+
+/** Internal ops notification to the Lavo admin inbox. */
+export async function sendAdminNotification(args: {
+  subject: string;
+  lines: string[];
+  replyTo?: string;
+}) {
+  return client().emails.send({
+    from: FROM,
+    to: ADMIN_TO,
+    replyTo: args.replyTo,
+    subject: args.subject,
+    html: args.lines.map((l) => `<p>${escapeHtml(l)}</p>`).join(''),
+  });
+}
+
 function escapeHtml(s: string) {
   return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
 }
