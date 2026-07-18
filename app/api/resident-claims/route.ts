@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
+import { escape } from '@/lib/email/template';
 
 export async function POST(req: Request) {
   const session = await getSessionUser();
@@ -34,5 +35,19 @@ export async function POST(req: Request) {
   });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  if (process.env.RESEND_API_KEY) {
+    try {
+      const { Resend } = await import('resend');
+      const resend = new Resend(process.env.RESEND_API_KEY);
+      await resend.emails.send({
+        from: process.env.RESEND_FROM_EMAIL || 'Lavo <hello@getlavo.io>',
+        to: process.env.ADMIN_EMAIL || 'harold@getlavo.io',
+        subject: `New resident claim: ${escape(category)}`,
+        html: `<p>${escape(description)}</p><p>Building: ${escape(resident.building_id)}</p>${bookingId ? `<p>Booking: ${escape(bookingId)}</p>` : ''}`,
+      });
+    } catch {}
+  }
+
   return NextResponse.json({ ok: true });
 }

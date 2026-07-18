@@ -13,13 +13,13 @@ export async function POST(req: Request) {
   const { reason } = await req.json().catch(() => ({}));
 
   // We don't auto-delete (would lose accounting). Email admin and audit-log.
-  if (process.env.RESEND_API_KEY && process.env.ADMIN_EMAIL) {
+  if (process.env.RESEND_API_KEY) {
     try {
       const { Resend } = await import('resend');
       const resend = new Resend(process.env.RESEND_API_KEY);
       await resend.emails.send({
         from: process.env.RESEND_FROM_EMAIL || 'Lavo <hello@getlavo.io>',
-        to: process.env.ADMIN_EMAIL,
+        to: process.env.ADMIN_EMAIL || 'harold@getlavo.io',
         subject: 'Account deletion request',
         html: `<p>User ${session.profile.email} (${session.user.id}) requested account deletion.</p><p>Reason: ${reason ?? '—'}</p>`,
       });
