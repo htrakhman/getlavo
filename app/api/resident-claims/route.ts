@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
+import { getSessionUser } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { escape } from '@/lib/email/template';
 
@@ -15,15 +15,20 @@ export async function POST(req: Request) {
 
   if (description.length < 10) return NextResponse.json({ error: 'Please describe what happened' }, { status: 400 });
 
-  const sb = supabaseServer();
-  const { data: resident } = await sb
+  // Admin client: RLS-scoped resident reads can fail/return empty even for a
+  // fully onboarded resident (the row is written by the service role during
+  // onboarding), which made this endpoint 400 with "no building".
+  const admin = supabaseAdmin();
+  const { data: resident, error: residentErr } = await admin
     .from('residents')
     .select('id, building_id')
     .eq('profile_id', session.user.id)
     .maybeSingle();
+  if (residentErr) {
+    console.error('[resident-claims] resident lookup failed:', residentErr.message);
+    return NextResponse.json({ error: 'Could not look up your building — try again' }, { status: 500 });
+  }
   if (!resident?.building_id) return NextResponse.json({ error: 'no building' }, { status: 400 });
-
-  const admin = supabaseAdmin();
   const { error } = await admin.from('issues').insert({
     building_id: resident.building_id,
     reporter_id: session.user.id,

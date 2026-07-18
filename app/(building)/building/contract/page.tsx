@@ -149,6 +149,13 @@ export default async function ContractPage() {
         </div>
       )}
 
+      {op && partnership?.status === 'pending' && (
+        <div className="mb-6 rounded-xl border border-yellow-500/30 bg-yellow-500/10 px-5 py-3 text-sm text-yellow-300">
+          {op.name} hasn&rsquo;t accepted your partnership request yet. Their details are pre-filled
+          below so you can review the agreement — it only takes effect once both parties sign.
+        </div>
+      )}
+
       {!op && !contract && (
         <div className="mb-6 rounded-xl border border-yellow-500/30 bg-yellow-500/10 px-5 py-3 text-sm text-yellow-300">
           Operator details will auto-fill once you're matched with a car wash crew.{' '}

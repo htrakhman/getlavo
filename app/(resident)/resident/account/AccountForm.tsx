@@ -34,13 +34,23 @@ export function AccountForm({ profile, residentId, subscription, prefs }: {
   async function save() {
     setBusy(true);
     setErr(null);
-    const sb = supabaseBrowser();
-    const { error: pe } = await sb.from('profiles').update({ full_name: name, phone }).eq('id', profile.id);
-    if (pe) { setErr(pe.message); setBusy(false); return; }
-    if (residentId) {
-      await sb.from('residents').update({ notification_preferences: p }).eq('id', residentId);
-    }
+    // Saved through a server route: direct browser writes are RLS-scoped and
+    // were silently matching zero rows, losing edits with no error shown.
+    const res = await fetch('/api/account/update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fullName: name,
+        phone: phone || null,
+        notificationPreferences: residentId ? p : undefined,
+      }),
+    }).catch(() => null);
     setBusy(false);
+    if (!res?.ok) {
+      const j = await res?.json().catch(() => null);
+      setErr(typeof j?.error === 'string' ? j.error : 'Could not save — please try again');
+      return;
+    }
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
     router.refresh();
