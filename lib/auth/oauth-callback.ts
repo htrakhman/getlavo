@@ -111,12 +111,15 @@ export async function handleOAuthCallback(request: NextRequest, options: OAuthCa
       return redirectWithSessionCookies(`${origin}/auth/pick-role?error=${encodeURIComponent(portalErr.message)}`);
     }
 
-    notifySignup({
-      email: user.email!,
-      name: fullName,
-      role,
-      method: 'google',
-    });
+    if (!user.user_metadata?.signup_notified) {
+      await notifySignup({
+        email: user.email!,
+        name: fullName,
+        role,
+        method: 'google',
+      });
+      await supabase.auth.updateUser({ data: { signup_notified: true } }).catch(() => {});
+    }
 
     dest = homePathForPortalKind(requestedPortal);
   } else {

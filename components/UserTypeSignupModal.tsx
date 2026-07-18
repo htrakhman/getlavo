@@ -195,6 +195,7 @@ function SignupModal({ role, onClose }: { role: SignupRole; onClose: () => void 
       return;
     }
     await sb.auth.getSession();
+    fetch('/api/auth/notify-signup', { method: 'POST', keepalive: true }).catch(() => {});
     setBusy(false);
     window.location.assign(`/auth/continue?next=${encodeURIComponent(homePathForSignupRole(role))}`);
   }

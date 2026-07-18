@@ -61,6 +61,7 @@ export default function PickRolePage() {
     const { error: portalError } = await sb.from('profile_portals').upsert({ profile_id: user.id, portal: portalKind });
     if (portalError) { setErr(portalError.message); setBusy(false); return; }
 
+    fetch('/api/auth/notify-signup', { method: 'POST', keepalive: true }).catch(() => {});
     window.location.href = homePathForSignupRole(role);
   }
 
