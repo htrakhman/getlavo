@@ -33,13 +33,13 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   }
 
   // Email admin
-  if (process.env.ADMIN_EMAIL && process.env.RESEND_API_KEY) {
+  if (process.env.RESEND_API_KEY) {
     try {
       const { Resend } = await import('resend');
       const resend = new Resend(process.env.RESEND_API_KEY);
       await resend.emails.send({
         from: process.env.RESEND_FROM_EMAIL || 'Lavo <hello@getlavo.io>',
-        to: process.env.ADMIN_EMAIL,
+        to: process.env.ADMIN_EMAIL || 'harold@getlavo.io',
         subject: `Resident complaint: ${reason}`,
         html: `<p>${escapeHtml(details ?? '')}</p><p>Wash: ${escapeHtml(params.id)}</p><p>Resident: ${escapeHtml(session.profile.email)}</p>`,
       });
