@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
+import { getSessionUser } from '@/lib/supabase/server';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 import Stripe from 'stripe';
 import { z } from 'zod';
 
@@ -27,11 +28,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Subscription products are not configured' }, { status: 503 });
   }
 
-  const sb = supabaseServer();
-  const { data: resident } = await sb.from('residents').select('id').eq('profile_id', session.user.id).maybeSingle();
+  const admin = supabaseAdmin();
+  const { data: resident } = await admin.from('residents').select('id').eq('profile_id', session.user.id).maybeSingle();
   if (!resident) return NextResponse.json({ error: 'Resident record not found' }, { status: 404 });
 
-  const { data: profile } = await sb.from('profiles').select('email').eq('id', session.user.id).maybeSingle();
+  const { data: profile } = await admin.from('profiles').select('email').eq('id', session.user.id).maybeSingle();
   const email = profile?.email as string | undefined;
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 

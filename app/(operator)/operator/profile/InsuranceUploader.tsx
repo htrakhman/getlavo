@@ -12,8 +12,12 @@ export function InsuranceUploader({ op }: { op: any }) {
   const [err, setErr] = useState<string | null>(null);
 
   async function save() {
-    setBusy(true);
     setErr(null);
+    if (!file && !op.insurance_doc_url) {
+      setErr('Upload your certificate of insurance (PDF or image) to get verified.');
+      return;
+    }
+    setBusy(true);
     const sb = supabaseBrowser();
 
     let docUrl = op.insurance_doc_url;

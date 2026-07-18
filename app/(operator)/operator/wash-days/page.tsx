@@ -11,14 +11,22 @@ export default async function WashDays() {
   const session = await getSessionUser();
   if (!session) redirect('/login');
   const sb = supabaseServer();
+  // The existence check must not include optional columns: if wash_days_hub
+  // (migration 0026) is missing in the database, the combined select errors,
+  // op comes back null, and the page ping-pongs to onboarding → overview.
   const { data: op } = await sb
     .from('operators')
-    .select('id, wash_days_hub')
+    .select('id')
     .eq('owner_id', session.user.id)
     .maybeSingle();
   if (!op) redirect('/operator/onboarding');
 
-  const hub = parseWashDaysHub(op.wash_days_hub);
+  const { data: hubRow } = await sb
+    .from('operators')
+    .select('wash_days_hub')
+    .eq('id', op.id)
+    .maybeSingle();
+  const hub = parseWashDaysHub(hubRow?.wash_days_hub);
 
   const [{ data: days }, { data: partnerships }] = await Promise.all([
     sb

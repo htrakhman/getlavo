@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
-import { sendPartnershipRequest } from '@/lib/email/resend';
+import { sendAdminNotification, sendPartnershipRequest } from '@/lib/email/resend';
 import { z } from 'zod';
 
 const Body = z.object({
@@ -82,6 +82,17 @@ export async function POST(req: Request) {
       partnershipId: partnership.id,
     }).catch(() => {});
   }
+
+  await sendAdminNotification({
+    subject: `Partnership request: ${building.name} → ${operator.name}`,
+    lines: [
+      `${session.profile.full_name} (${session.profile.email}) requested a partnership.`,
+      `Building: ${building.name}`,
+      `Operator: ${operator.name}`,
+      `Partnership ID: ${partnership.id}`,
+    ],
+    replyTo: session.profile.email || undefined,
+  }).catch(() => {});
 
   return NextResponse.json({ partnershipId: partnership.id });
 }

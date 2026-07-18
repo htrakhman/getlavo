@@ -65,10 +65,20 @@ export default async function BuildingCanonicalPage({ params }: { params: { slug
   const candidateKey = building.google_place_id ? `place:${building.google_place_id}` : `building:${building.id}`;
   const live = operator && packages.length > 0;
 
+  // Resident-facing branding: only trust a plain hex value from the DB.
+  const accent = /^#[0-9a-fA-F]{3,8}$/.test(building.brand_color ?? '') ? (building.brand_color as string) : null;
+  const accentText = accent ? { color: accent } : undefined;
+
   return (
     <>
       <BuildingAttributor slug={params.slug} />
       <main className="min-h-screen bg-ink-950">
+        {accent && (
+          <div
+            className="h-1 w-full"
+            style={{ background: `linear-gradient(90deg, ${accent}, ${accent}33)` }}
+          />
+        )}
         <div className="mx-auto max-w-2xl px-6 py-10">
           <div className="flex justify-center">
             <Logo />
@@ -84,7 +94,7 @@ export default async function BuildingCanonicalPage({ params }: { params: { slug
             </p>
             <p className="mt-4 text-base text-ink-200">{building.welcome_message ?? 'Your building offers in-garage car washing through Lavo.'}</p>
             {!live && requestCount > 0 && (
-              <p className="mt-3 text-sm text-gleam">
+              <p className="mt-3 text-sm text-gleam" style={accentText}>
                 {requestCount} resident{requestCount === 1 ? '' : 's'} want Lavo here.
               </p>
             )}
@@ -116,7 +126,7 @@ export default async function BuildingCanonicalPage({ params }: { params: { slug
                           {p.description && <p className="mt-1 text-sm text-ink-300">{p.description}</p>}
                           {p.est_minutes && <div className="mt-1 text-xs text-ink-500">~{p.est_minutes} min</div>}
                         </div>
-                        <div className="font-display text-xl text-gleam shrink-0">{money(p.price_cents)}</div>
+                        <div className="font-display text-xl text-gleam shrink-0" style={accentText}>{money(p.price_cents)}</div>
                       </div>
                     </div>
                   ))}
@@ -124,7 +134,11 @@ export default async function BuildingCanonicalPage({ params }: { params: { slug
               </div>
 
               <div className="flex flex-col gap-3">
-                <Link href={`/signup?role=resident&building=${params.slug}&promo=FIRSTWASH`} className="btn-primary w-full text-center py-4 text-base">
+                <Link
+                  href={`/signup?role=resident&building=${params.slug}&promo=FIRSTWASH`}
+                  className="btn-primary w-full text-center py-4 text-base"
+                  style={accent ? { background: accent } : undefined}
+                >
                   Sign up and get your first wash
                 </Link>
                 <Link href={`/login?building=${params.slug}`} className="btn-quiet w-full text-center">

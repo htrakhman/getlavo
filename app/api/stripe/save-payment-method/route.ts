@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
+import { getSessionUser } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 
 export async function POST(req: Request) {
@@ -15,15 +15,18 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'stripe not configured' }, { status: 503 });
   }
 
-  const sb = supabaseServer();
   const admin = supabaseAdmin();
 
-  const { data: resident } = await sb
+  // Admin lookup scoped by the session's profile_id — RLS-scoped resident
+  // reads have failed silently here and broke saving a card.
+  const { data: resident } = await admin
     .from('residents')
     .select('id, stripe_customer_id')
     .eq('profile_id', session.user.id)
     .maybeSingle();
-  if (!resident) return NextResponse.json({ error: 'no resident' }, { status: 404 });
+  if (!resident) {
+    return NextResponse.json({ error: 'We could not find your resident profile — finish onboarding first.' }, { status: 404 });
+  }
   if (!resident.stripe_customer_id) {
     return NextResponse.json({ error: 'no stripe customer' }, { status: 400 });
   }

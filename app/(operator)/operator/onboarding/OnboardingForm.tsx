@@ -306,6 +306,9 @@ export function OnboardingForm() {
       );
     }
 
+    // Let the team know a new operator finished onboarding (server-side email).
+    await fetch('/api/operator/onboarded', { method: 'POST' }).catch(() => {});
+
     localStorage.removeItem(SAVE_KEY);
     router.push('/operator');
     } catch (e: any) {

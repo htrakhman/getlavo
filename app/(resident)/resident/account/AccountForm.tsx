@@ -1,7 +1,6 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabaseBrowser } from '@/lib/supabase/client';
 
 type Prefs = {
   email_reminder: boolean;
@@ -30,6 +29,7 @@ export function AccountForm({ profile, residentId, subscription, prefs }: {
   const [saved, setSaved] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [subBusy, setSubBusy] = useState<string | null>(null);
+  const [resetStatus, setResetStatus] = useState<'idle' | 'sending' | 'sent' | string>('idle');
 
   async function save() {
     setBusy(true);
@@ -57,14 +57,17 @@ export function AccountForm({ profile, residentId, subscription, prefs }: {
   }
 
   async function changePassword() {
-    const sb = supabaseBrowser();
-    const { data: { user } } = await sb.auth.getUser();
-    if (!user?.email) return;
-    const { error } = await sb.auth.resetPasswordForEmail(user.email, {
-      redirectTo: `${window.location.origin}/auth/callback?next=/resident/account`,
-    });
-    if (error) alert(error.message);
-    else alert('Check your email for a password reset link.');
+    setResetStatus('sending');
+    // Server route: the browser-client reset silently no-oped when the
+    // client-side auth session was unavailable, and alert() dialogs are
+    // hostile to automation — inline status instead.
+    const res = await fetch('/api/account/password-reset', { method: 'POST' }).catch(() => null);
+    if (!res?.ok) {
+      const j = await res?.json().catch(() => null);
+      setResetStatus(typeof j?.error === 'string' ? j.error : 'Could not send reset email — please try again');
+      return;
+    }
+    setResetStatus('sent');
   }
 
   function toggle(k: keyof Prefs) {
@@ -106,7 +109,15 @@ export function AccountForm({ profile, residentId, subscription, prefs }: {
             <label className="label">Phone (for SMS reminders)</label>
             <input className="field" placeholder="+1 555 123 4567" value={phone} onChange={(e) => setPhone(e.target.value)} />
           </div>
-          <button onClick={changePassword} className="btn-quiet text-sm">Send password reset email</button>
+          <button onClick={changePassword} disabled={resetStatus === 'sending'} className="btn-quiet text-sm">
+            {resetStatus === 'sending' ? 'Sending…' : 'Send password reset email'}
+          </button>
+          {resetStatus === 'sent' && (
+            <p className="text-xs text-gleam">Check your email for a password reset link.</p>
+          )}
+          {resetStatus !== 'idle' && resetStatus !== 'sending' && resetStatus !== 'sent' && (
+            <p className="text-xs text-red-400">{resetStatus}</p>
+          )}
         </div>
       </div>
 
