@@ -27,7 +27,7 @@ export default async function InsuranceReviewPage() {
                     {' · '}Expires: {o.insurance_expires_at ?? '—'}
                     {' · '}Uploaded: {o.insurance_uploaded_at?.slice(0, 10) ?? '—'}
                   </div>
-                  <span className={`chip mt-2 inline-block ${o.insurance_review_status === 'rejected' ? 'text-red-400' : 'text-amber-300'}`}>
+                  <span className={`chip mt-2 inline-block ${o.insurance_review_status === 'rejected' ? 'text-red-400' : 'text-amber-600'}`}>
                     {o.insurance_review_status.replace('_', ' ')}
                   </span>
                   {o.insurance_review_note && <p className="mt-1 text-xs text-ink-400">Last note: {o.insurance_review_note}</p>}

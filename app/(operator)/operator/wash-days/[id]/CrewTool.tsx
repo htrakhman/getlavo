@@ -241,9 +241,9 @@ function VehicleCard({ w, busy, onStart, onDone, onFlag }: { w: any; busy: boole
         <div className="flex items-center justify-between gap-2">
           <div>
             <div className="font-medium">Spot {w.spot_label ?? '—'}</div>
-            <div className="text-xs text-amber-300">⚑ {w.flag_reason}</div>
+            <div className="text-xs text-amber-600">⚑ {w.flag_reason}</div>
           </div>
-          <span className="chip text-amber-300">flagged</span>
+          <span className="chip text-amber-600">flagged</span>
         </div>
       </div>
     );

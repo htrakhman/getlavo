@@ -55,7 +55,7 @@ export function OperatorStatusEditor({
       </div>
       <div className="flex items-center gap-3">
         <span className="text-sm text-ink-400">Stripe onboarding:</span>
-        <span className={`chip text-xs ${stripeOnboardingComplete ? 'bg-green-900/40 text-green-300' : 'bg-red-900/40 text-red-300'}`}>
+        <span className={`chip text-xs ${stripeOnboardingComplete ? 'bg-green-500/15 text-green-600' : 'bg-red-500/15 text-red-500'}`}>
           {stripeOnboardingComplete ? 'Complete' : 'Incomplete'}
         </span>
         <button onClick={toggleStripe} disabled={stripeBusy} className="btn-ghost text-xs">

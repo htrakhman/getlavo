@@ -66,7 +66,7 @@ export default async function OperatorProfilePage() {
           <div className="mb-3 flex items-center justify-between">
             <h3 className="font-display text-xl">Insurance on file</h3>
             {insuranceExpiringSoon && (
-              <span className="chip text-amber-300">Expiring soon</span>
+              <span className="chip text-amber-600">Expiring soon</span>
             )}
           </div>
           <InsuranceUploader op={op} />

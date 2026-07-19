@@ -131,7 +131,7 @@ export function OperatorProfileEditor({ op }: { op: any }) {
             <>
               <img src={coverPreview} alt="Cover" className="w-full h-full object-cover" />
               <div className="absolute inset-0 bg-black/0 hover:bg-black/30 transition-colors flex items-center justify-center">
-                <span className="opacity-0 hover:opacity-100 text-white text-sm font-medium">Change photo</span>
+                <span className="opacity-0 hover:opacity-100 text-[#fff] text-sm font-medium">Change photo</span>
               </div>
             </>
           ) : (

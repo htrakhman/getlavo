@@ -66,7 +66,7 @@ export default async function WashDays() {
                   <div className="text-xs text-ink-400">
                     {dateShort(wd.scheduled_for)}
                     {wd.confirmation === 'pending' && (
-                      <span className="ml-2 text-amber-300">· awaiting building confirmation</span>
+                      <span className="ml-2 text-amber-600">· awaiting building confirmation</span>
                     )}
                     {wd.confirmation === 'declined' && (
                       <span className="ml-2 text-red-400">· declined</span>

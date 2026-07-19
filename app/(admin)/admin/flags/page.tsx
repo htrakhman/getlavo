@@ -32,7 +32,7 @@ export default async function AdminFlagsPage() {
                     {w.resident?.profile?.full_name ?? 'Resident'} · Unit {w.resident?.unit_number}
                   </div>
                   <div className="mt-2 text-sm">
-                    <span className="text-amber-300">⚑ {w.flag_reason ?? '—'}</span>
+                    <span className="text-amber-600">⚑ {w.flag_reason ?? '—'}</span>
                   </div>
                   {w.crew_notes && <p className="mt-1 text-xs text-ink-400">Notes: {w.crew_notes}</p>}
                 </div>

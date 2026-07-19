@@ -120,14 +120,14 @@ export function PortfolioEditor({ operatorId, initial }: { operatorId: string; i
                   <img src={item.url} alt={item.title ?? ''} className="w-full h-full object-cover" />
                 )}
                 {item.media_type === 'video' && (
-                  <div className="absolute bottom-1 left-1 px-1 py-0.5 rounded text-xs bg-black/70 text-white">▶ Video</div>
+                  <div className="absolute bottom-1 left-1 px-1 py-0.5 rounded text-xs bg-black/70 text-[#fff]">▶ Video</div>
                 )}
                 {/* Hover overlay */}
                 <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
                   <button
                     type="button"
                     onClick={() => startEdit(item)}
-                    className="w-8 h-8 rounded-full bg-white/20 text-white text-sm hover:bg-gleam hover:text-black transition-colors"
+                    className="w-8 h-8 rounded-full bg-black/40 text-[#fff] text-sm hover:bg-gleam hover:text-ink-950 transition-colors"
                     title="Edit caption"
                   >
                     ✎
@@ -135,7 +135,7 @@ export function PortfolioEditor({ operatorId, initial }: { operatorId: string; i
                   <button
                     type="button"
                     onClick={() => remove(item.id)}
-                    className="w-8 h-8 rounded-full bg-white/20 text-white text-sm hover:bg-red-600 transition-colors"
+                    className="w-8 h-8 rounded-full bg-black/40 text-[#fff] text-sm hover:bg-red-600 transition-colors"
                     title="Remove"
                   >
                     Remove

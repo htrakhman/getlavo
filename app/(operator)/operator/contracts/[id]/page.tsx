@@ -83,7 +83,7 @@ export default async function OperatorContractPage({ params }: { params: { id: s
       )}
 
       {operatorSigned && !managerSigned && !isFullyExecuted && (
-        <div className="mb-6 rounded-xl border border-yellow-500/30 bg-yellow-500/10 px-5 py-3 text-sm text-yellow-300">
+        <div className="mb-6 rounded-xl border border-yellow-500/30 bg-yellow-500/10 px-5 py-3 text-sm text-amber-600">
           You've signed. Awaiting the building manager's signature.
         </div>
       )}

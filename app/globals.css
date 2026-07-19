@@ -7,11 +7,11 @@
 /*
  * Theme variables.
  *
- * :root is the light marketing theme (homepage, SEO pages, auth).
- * `.theme-dark` restores the original dark palette and is applied by the
- * logged-in portal shells. All ink/gleam/white Tailwind colors resolve
- * through these variables (see tailwind.config.ts), so `text-ink-300`,
- * `border-white/10`, etc. adapt automatically to their surrounding theme.
+ * :root is the light theme used across the whole site — marketing pages,
+ * QR landing pages, auth, and the logged-in portals. All ink/gleam/white
+ * Tailwind colors resolve through these variables (see tailwind.config.ts),
+ * so `text-ink-300`, `border-white/10`, etc. adapt automatically if a
+ * section ever opts into `.theme-dark`.
  */
 :root {
   color-scheme: light;

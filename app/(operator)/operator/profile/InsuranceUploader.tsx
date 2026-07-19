@@ -48,7 +48,7 @@ export function InsuranceUploader({ op }: { op: any }) {
   return (
     <div>
       {op.insurance_review_status === 'rejected' && (
-        <div className="card border-red-500/30 bg-red-500/5 mb-3 p-3 text-xs text-red-300">
+        <div className="card border-red-500/30 bg-red-500/5 mb-3 p-3 text-xs text-red-500">
           Rejected: {op.insurance_review_note ?? 'see admin notes'}. Upload a new certificate.
         </div>
       )}

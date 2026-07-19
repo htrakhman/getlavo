@@ -60,7 +60,7 @@ export default async function OperatorOverview({ searchParams }: { searchParams:
         title="Operator overview"
         action={
           op.status !== 'approved'
-            ? <span className="chip text-yellow-300">{op.status}</span>
+            ? <span className="chip text-amber-600">{op.status}</span>
             : op.stripe_onboarding_complete
             ? <span className="chip text-gleam">Active</span>
             : (
@@ -70,7 +70,7 @@ export default async function OperatorOverview({ searchParams }: { searchParams:
       />
 
       {stripeError && (
-        <div className="mb-6 card border-red-400/30 bg-red-400/5 p-4 text-sm text-red-300">
+        <div className="mb-6 card border-red-400/30 bg-red-400/5 p-4 text-sm text-red-500">
           <div>Could not connect to Stripe — please try again or contact support if the problem persists.</div>
           {stripeMsg && <div className="mt-1 font-mono text-xs opacity-70">{stripeMsg}</div>}
         </div>
@@ -78,8 +78,8 @@ export default async function OperatorOverview({ searchParams }: { searchParams:
 
       {incomplete.length > 0 && (
         <div className="mb-6 card border-yellow-400/30 bg-yellow-400/5 p-5">
-          <div className="font-medium text-yellow-200">Finish setup to start receiving washes</div>
-          <p className="mt-0.5 text-xs text-yellow-300/70">
+          <div className="font-medium text-amber-700">Finish setup to start receiving washes</div>
+          <p className="mt-0.5 text-xs text-amber-600/70">
             Residents can't book until everything below is checked off.
           </p>
           <ul className="mt-4 space-y-2">
@@ -111,7 +111,7 @@ export default async function OperatorOverview({ searchParams }: { searchParams:
               <div>
                 <div className="text-xs uppercase tracking-widest text-gleam">{isToday ? 'Today' : 'Next wash day'}</div>
                 <div className="mt-1 font-display text-2xl">{dateShort(next.scheduled_for)} · {next.building?.name}</div>
-                {next.started_at && !next.completed_at && <div className="mt-1 text-xs text-amber-300">In progress</div>}
+                {next.started_at && !next.completed_at && <div className="mt-1 text-xs text-amber-600">In progress</div>}
               </div>
               <div className="flex flex-col items-end gap-2">
                 <Link href={`/operator/wash-days/${next.id}/prep`} className="btn-quiet text-xs">Prep list</Link>
@@ -126,7 +126,7 @@ export default async function OperatorOverview({ searchParams }: { searchParams:
 
       {(pendingRequests ?? 0) > 0 && (
         <div className="mb-6 card border-yellow-400/20 bg-yellow-400/5 p-4 flex items-center justify-between">
-          <span className="text-sm text-yellow-200">
+          <span className="text-sm text-amber-700">
             {pendingRequests} pending partnership {pendingRequests === 1 ? 'request' : 'requests'}
           </span>
           <Link href="/operator/buildings" className="text-sm text-gleam">Review →</Link>

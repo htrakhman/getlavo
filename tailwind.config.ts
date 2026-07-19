@@ -1,8 +1,9 @@
 import type { Config } from 'tailwindcss';
 
 // All theme colors resolve through CSS variables defined in globals.css.
-// The default (:root) palette is the light marketing theme; the logged-in
-// portals opt back into the original dark palette via the `.theme-dark` class.
+// The default (:root) palette is the light theme used site-wide (marketing,
+// QR landing, auth, and logged-in portals). A section can opt into the
+// original dark palette with the `.theme-dark` class if ever needed.
 const config: Config = {
   content: ['./app/**/*.{ts,tsx}', './components/**/*.{ts,tsx}'],
   theme: {

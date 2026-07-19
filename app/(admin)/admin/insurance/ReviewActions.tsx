@@ -26,7 +26,7 @@ export function ReviewActions({ operatorId }: { operatorId: string }) {
       <div className="flex flex-col gap-2 items-end">
         <input className="field text-xs w-64" placeholder="Reason for rejection" value={note} onChange={(e) => setNote(e.target.value)} />
         <div className="flex gap-2">
-          <button onClick={() => call('rejected', note)} disabled={busy || !note} className="btn-primary !bg-red-500 !text-white text-sm">Send</button>
+          <button onClick={() => call('rejected', note)} disabled={busy || !note} className="btn-primary !bg-red-500 !text-[#fff] text-sm">Send</button>
           <button onClick={() => setRejecting(false)} className="btn-quiet text-sm">Cancel</button>
         </div>
       </div>

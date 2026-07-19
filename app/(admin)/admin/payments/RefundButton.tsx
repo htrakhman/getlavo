@@ -24,7 +24,7 @@ export function RefundButton({ bookingId }: { bookingId: string }) {
   }
 
   return (
-    <button onClick={refund} disabled={busy} className="text-xs text-red-300 hover:text-red-400">
+    <button onClick={refund} disabled={busy} className="text-xs text-red-500 hover:text-red-600">
       {busy ? '…' : 'Refund'}
     </button>
   );

@@ -45,7 +45,7 @@ export default async function HistoryPage() {
                   {washDay?.building?.name && (
                     <div className="text-sm text-ink-400">{washDay.building.name}</div>
                   )}
-                  {w.flag_reason && <div className="mt-1 text-xs text-amber-300">⚑ {w.flag_reason}</div>}
+                  {w.flag_reason && <div className="mt-1 text-xs text-amber-600">⚑ {w.flag_reason}</div>}
                 </div>
                 <span className={`chip ${w.status === 'completed' ? 'text-gleam' : ''}`}>{w.status}</span>
               </div>

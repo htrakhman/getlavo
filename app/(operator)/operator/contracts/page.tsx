@@ -12,7 +12,7 @@ const STATUS_LABEL: Record<string, string> = {
 
 const STATUS_COLOR: Record<string, string> = {
   draft: 'text-ink-400',
-  pending_signatures: 'text-yellow-300',
+  pending_signatures: 'text-amber-600',
   executed: 'text-gleam',
   terminated: 'text-red-400',
 };
@@ -66,7 +66,7 @@ export default async function OperatorContractsPage() {
                       {STATUS_LABEL[c.status] ?? c.status}
                     </div>
                     {needsYourSig && (
-                      <div className="mt-0.5 text-xs text-yellow-300">Needs your signature →</div>
+                      <div className="mt-0.5 text-xs text-amber-600">Needs your signature →</div>
                     )}
                   </div>
                 </div>

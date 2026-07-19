@@ -34,7 +34,7 @@ export default function BuildingBroadcastPage() {
       </div>
       {confirming ? (
         <div className="card p-4 space-y-3 border-amber-500/30">
-          <p className="text-sm text-amber-300">Are you sure? This will email all signed-up residents.</p>
+          <p className="text-sm text-amber-600">Are you sure? This will email all signed-up residents.</p>
           <div className="flex gap-2">
             <button type="button" className="btn-primary text-sm" onClick={send}>Yes, send now</button>
             <button type="button" className="btn-quiet text-sm" onClick={() => setConfirming(false)}>Cancel</button>
