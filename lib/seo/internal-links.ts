@@ -5,8 +5,8 @@ import { RESOURCES, RESOURCE_SLUGS, type ResourcePage } from '@/lib/seo/resource
 export type FooterLink = { href: string; label: string };
 export type FooterColumn = { title: string; links: FooterLink[] };
 
-// The top nav stays minimal (Home / How it works / Availability / Sign up /
-// Contact) — everything else lives down here in the footer.
+// The top nav stays minimal (Home / How it works / Check your building /
+// Sign up / Contact) — everything else lives down here in the footer.
 export const FOOTER_COLUMNS: FooterColumn[] = [
   {
     title: 'Lavo for',
@@ -14,7 +14,7 @@ export const FOOTER_COLUMNS: FooterColumn[] = [
       { href: '/residents', label: 'Residents' },
       { href: '/buildings', label: 'Properties' },
       { href: '/operators', label: 'Operators' },
-      { href: '/cities', label: 'Availability' },
+      { href: '/cities', label: 'Check your building' },
     ],
   },
   {

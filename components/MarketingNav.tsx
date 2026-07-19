@@ -13,7 +13,7 @@ const ROLES = [
 const PRIMARY_LINKS = [
   { href: '/', label: 'Home' },
   { href: '/how-it-works', label: 'How it works' },
-  { href: '/cities', label: 'Availability' },
+  { href: '/cities', label: 'Check your building' },
   { href: '/contact', label: 'Contact' },
 ];
 
