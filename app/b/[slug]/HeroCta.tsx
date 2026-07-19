@@ -1,9 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 
-const CTA_CLASSES =
-  'block w-full rounded-2xl bg-gradient-to-r from-[#D93EA0] via-[#8B35C9] to-[#2B7CE8] px-6 py-4 text-center text-base font-semibold text-white shadow-[0_8px_30px_rgba(139,53,201,0.45)] transition active:scale-[0.98]';
-
 /**
  * Hero CTA plus a sticky bottom bar that slides in once the hero button
  * scrolls out of view (the page is a QR scan target, so the CTA should
@@ -23,7 +20,7 @@ export function HeroCta({ href, label, buildingName }: { href: string; label: st
 
   return (
     <>
-      <a ref={heroRef} href={href} className={CTA_CLASSES}>
+      <a ref={heroRef} href={href} className="btn-primary w-full py-3.5 text-base">
         {label}
       </a>
       <div
@@ -32,9 +29,9 @@ export function HeroCta({ href, label, buildingName }: { href: string; label: st
           stuck ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-full opacity-0'
         }`}
       >
-        <div className="mx-auto max-w-md rounded-2xl border border-white/10 bg-black/85 p-3 backdrop-blur-md">
-          <div className="mb-2 truncate px-1 text-center text-xs text-white/60">{buildingName}</div>
-          <a href={href} className={CTA_CLASSES} tabIndex={stuck ? 0 : -1}>
+        <div className="card mx-auto max-w-md p-3">
+          <div className="mb-2 truncate px-1 text-center text-xs text-ink-400">{buildingName}</div>
+          <a href={href} className="btn-primary w-full py-3" tabIndex={stuck ? 0 : -1}>
             {label}
           </a>
         </div>

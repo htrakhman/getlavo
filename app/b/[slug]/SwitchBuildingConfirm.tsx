@@ -45,26 +45,19 @@ export function SwitchBuildingConfirm({
   }
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-6">
-      <h2 className="text-lg font-semibold text-white">Book at {buildingName}?</h2>
-      <p className="mt-2 text-sm text-white/60">
+    <div className="card p-6">
+      <h2 className="font-display text-xl">Book at {buildingName}?</h2>
+      <p className="mt-2 text-sm leading-relaxed text-ink-300">
         {currentBuildingName
           ? `Your account is currently set to ${currentBuildingName}. Switch to ${buildingName} to book here.`
           : `Confirm ${buildingName} as your building to book here.`}
       </p>
       {err && <p className="mt-3 text-sm text-red-400">{err}</p>}
       <div className="mt-5 flex flex-col gap-3">
-        <button
-          onClick={confirmSwitch}
-          disabled={busy}
-          className="w-full rounded-2xl bg-gradient-to-r from-[#D93EA0] via-[#8B35C9] to-[#2B7CE8] px-6 py-3.5 text-sm font-semibold text-white transition active:scale-[0.98] disabled:opacity-60"
-        >
+        <button onClick={confirmSwitch} disabled={busy} className="btn-primary w-full py-3">
           {busy ? 'Switching…' : `Yes — switch to ${buildingName}`}
         </button>
-        <a
-          href="/resident"
-          className="w-full rounded-2xl border border-white/15 px-6 py-3.5 text-center text-sm font-medium text-white/80 transition hover:bg-white/5"
-        >
+        <a href="/resident" className="btn-ghost w-full py-3 text-center">
           Keep my current building
         </a>
       </div>
