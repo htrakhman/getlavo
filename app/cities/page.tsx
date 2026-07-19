@@ -1,5 +1,7 @@
 import Link from 'next/link';
+import { Suspense } from 'react';
 import { Breadcrumbs } from '@/components/marketing/Breadcrumbs';
+import { CheckBuildingFlow } from '@/components/CheckBuildingFlow';
 import { CitiesIndexFilter } from '@/components/marketing/CitiesIndexFilter';
 import { ContentPageShell } from '@/components/marketing/ContentPageShell';
 import { JsonLd } from '@/components/seo/JsonLd';
@@ -14,9 +16,9 @@ import { createPageMetadata } from '@/lib/seo/site';
 
 export const metadata = createPageMetadata({
   path: '/cities',
-  title: 'Lavo Cities in New Jersey | Apartment Mobile Car Wash',
+  title: 'Availability | Lavo Apartment Mobile Car Wash in New Jersey',
   description:
-    'Lavo is building apartment based mobile car wash programs across Hudson, Bergen, and Middlesex County, NJ. Find your city, request service at your building, or launch Lavo as a property amenity.',
+    'Check whether Lavo is live at your building. Lavo runs apartment based mobile car wash programs across Hudson, Bergen, and Middlesex County, NJ — find your city or request service at your building.',
 });
 
 export default function CitiesIndexPage() {
@@ -43,7 +45,7 @@ export default function CitiesIndexPage() {
         data={[
           breadcrumbSchema([
             { name: 'Home', path: '/' },
-            { name: 'Cities', path: '/cities' },
+            { name: 'Availability', path: '/cities' },
           ]),
           serviceSchema({
             path: '/cities',
@@ -59,17 +61,33 @@ export default function CitiesIndexPage() {
       <Breadcrumbs
         items={[
           { name: 'Home', path: '/' },
-          { name: 'Cities', path: '/cities' },
+          { name: 'Availability', path: '/cities' },
         ]}
       />
       <header className="mb-10">
-        <h1 className="font-display text-3xl text-ink-50 sm:text-4xl">Lavo Cities in New Jersey</h1>
+        <h1 className="font-display text-3xl text-ink-50 sm:text-4xl">Availability</h1>
         <p className="mt-4 text-base leading-relaxed text-ink-200">
           Lavo focuses on apartment based mobile car wash in Hudson, Bergen, and Middlesex counties,
           helping residents request service at their buildings, property managers add a no cost amenity,
           and operators build local routes.
         </p>
       </header>
+
+      <section id="check-building" className="mb-10 scroll-mt-24">
+        <div className="card p-6 sm:p-8">
+          <h2 className="font-display text-2xl text-ink-100">Check your building&apos;s availability</h2>
+          <p className="mt-2 text-sm leading-relaxed text-ink-300">
+            Search your address to see if Lavo is live — or request it for your building.
+          </p>
+          <div className="mt-6">
+            <Suspense
+              fallback={<div className="text-center text-sm text-ink-500">Loading address search…</div>}
+            >
+              <CheckBuildingFlow />
+            </Suspense>
+          </div>
+        </div>
+      </section>
 
       {featured.length > 0 ? (
         <section className="mb-10">

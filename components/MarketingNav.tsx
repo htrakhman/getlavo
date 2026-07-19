@@ -11,19 +11,9 @@ const ROLES = [
 ];
 
 const PRIMARY_LINKS = [
+  { href: '/', label: 'Home' },
   { href: '/how-it-works', label: 'How it works' },
-  { href: '/learn-more', label: 'Learn more' },
-  { href: '/cities', label: 'Cities' },
-];
-
-const EXPLORE_LINKS = [
-  { href: '/residents', label: 'For residents' },
-  { href: '/buildings', label: 'For properties' },
-  { href: '/operators', label: 'For operators' },
-  { href: '/resources', label: 'Resources' },
-  { href: '/help', label: 'Help' },
-  { href: '/about', label: 'About' },
-  { href: '/safety', label: 'Safety' },
+  { href: '/cities', label: 'Availability' },
   { href: '/contact', label: 'Contact' },
 ];
 
@@ -82,7 +72,7 @@ function MobileMarketingMenu() {
       {open && (
         <div className="fixed inset-x-0 top-[84px] bottom-0 z-50 overflow-y-auto border-t border-white/10 bg-ink-950 px-6 py-6">
           <nav className="flex flex-col gap-1 text-base">
-            {[...PRIMARY_LINKS, ...EXPLORE_LINKS].map((l) => (
+            {PRIMARY_LINKS.map((l) => (
               <Link
                 key={l.href}
                 href={l.href}
@@ -127,24 +117,6 @@ export function MarketingNav() {
             {l.label}
           </Link>
         ))}
-        <NavDropdown
-          trigger={
-            <button className="flex items-center gap-1.5 hover:text-ink-100">
-              Explore
-              <ChevronDown />
-            </button>
-          }
-        >
-          {EXPLORE_LINKS.map((l) => (
-            <Link
-              key={l.href}
-              href={l.href}
-              className="block px-4 py-2.5 text-sm text-ink-200 hover:bg-white/5 hover:text-ink-100"
-            >
-              {l.label}
-            </Link>
-          ))}
-        </NavDropdown>
       </nav>
       <div className="flex items-center gap-2">
         <div className="hidden md:block">
@@ -190,7 +162,7 @@ export function MarketingFooter() {
     <footer className="border-t border-white/5 px-6 py-10 text-sm text-ink-400">
       <div className="mx-auto grid max-w-7xl gap-10 md:grid-cols-[minmax(0,12rem)_1fr] md:items-start">
         <Logo size="sm" />
-        <div className="grid gap-8 sm:grid-cols-2">
+        <div className="grid gap-8 sm:grid-cols-3">
           {FOOTER_COLUMNS.map((column) => (
             <div key={column.title}>
               <h2 className="text-xs font-medium uppercase tracking-widest text-ink-500">

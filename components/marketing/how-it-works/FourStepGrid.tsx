@@ -9,7 +9,7 @@ const STEPS = [
   {
     num: 2,
     title: 'We come to your building',
-    body: 'A vetted local wash team arrives on-site and follows your building’s process.',
+    body: 'A vetted local wash team arrives on-site with everything they need.',
   },
   {
     num: 3,
@@ -30,6 +30,8 @@ type FourStepGridProps = {
   subtitle?: string;
   footerHref?: string;
   footerLabel?: string;
+  /** 'accent' renders the whole section on a solid green panel (used on the homepage). */
+  variant?: 'default' | 'accent';
 };
 
 export function FourStepGrid({
@@ -39,34 +41,74 @@ export function FourStepGrid({
   subtitle = 'Simple enough to understand in a few seconds.',
   footerHref,
   footerLabel,
+  variant = 'default',
 }: FourStepGridProps) {
-  return (
-    <section
-      id={id}
-      className={`relative mx-auto max-w-6xl scroll-mt-24 px-6 py-20 ${className}`.trim()}
-    >
+  const accent = variant === 'accent';
+
+  const content = (
+    <>
       <div className="mx-auto max-w-2xl text-center">
-        <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">{title}</h2>
-        <p className="mx-auto mt-4 text-ink-300">{subtitle}</p>
+        <h2
+          className={
+            accent
+              ? 'font-display text-4xl font-bold tracking-tight text-teal-50 md:text-5xl'
+              : 'font-display text-3xl font-semibold tracking-tight md:text-4xl'
+          }
+        >
+          {title}
+        </h2>
+        <p className={`mx-auto mt-4 ${accent ? 'text-teal-100/90' : 'text-ink-300'}`}>{subtitle}</p>
       </div>
       <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
         {STEPS.map((step) => (
           <div key={step.num} className="card flex flex-col p-6">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-gleam/30 bg-gleam/10 font-display text-lg text-gleam">
+            <span
+              className={
+                accent
+                  ? 'flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-teal-600 font-display text-lg font-semibold text-teal-50'
+                  : 'flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-gleam/30 bg-gleam/10 font-display text-lg text-gleam'
+              }
+            >
               {step.num}
             </span>
-            <h3 className="mt-4 font-display text-lg text-ink-100">{step.title}</h3>
+            <h3 className="mt-4 font-display text-lg font-semibold text-ink-100">{step.title}</h3>
             <p className="mt-2 text-sm leading-relaxed text-ink-300">{step.body}</p>
           </div>
         ))}
       </div>
       {footerHref && footerLabel && (
         <p className="mt-10 text-center">
-          <Link href={footerHref} className="text-sm text-gleam transition-colors hover:text-gleam-300">
+          <Link
+            href={footerHref}
+            className={
+              accent
+                ? 'text-sm font-medium text-teal-50 underline underline-offset-4 transition-colors hover:text-teal-100'
+                : 'text-sm text-gleam transition-colors hover:text-gleam-300'
+            }
+          >
             {footerLabel} →
           </Link>
         </p>
       )}
+    </>
+  );
+
+  if (accent) {
+    return (
+      <section id={id} className={`relative scroll-mt-24 px-6 py-16 ${className}`.trim()}>
+        <div className="mx-auto max-w-6xl rounded-3xl bg-gradient-to-br from-teal-600 to-teal-800 px-6 py-14 shadow-card sm:px-10 md:px-14">
+          {content}
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section
+      id={id}
+      className={`relative mx-auto max-w-6xl scroll-mt-24 px-6 py-20 ${className}`.trim()}
+    >
+      {content}
     </section>
   );
 }
