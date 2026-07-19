@@ -193,7 +193,7 @@ export default function OnboardingForm() {
             </div>
             <div className="md:col-span-2 pt-2">
               {(!name || !addr1 || !city) && (
-                <p className="mb-2 text-xs text-amber-400/80">
+                <p className="mb-2 text-xs text-amber-600/80">
                   {!name ? 'Building name is required.' : !addr1 ? 'Street address is required.' : 'City is required.'}
                 </p>
               )}
@@ -237,7 +237,7 @@ export default function OnboardingForm() {
                 </div>
               )}
               {!lat && (
-                <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-300">
+                <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-4 py-3 text-sm text-amber-600">
                   Tip: select an address from the autocomplete dropdown to enable precise radius matching with nearby car washes.
                 </div>
               )}

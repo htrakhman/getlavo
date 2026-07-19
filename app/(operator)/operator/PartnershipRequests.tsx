@@ -44,7 +44,7 @@ export function PartnershipRequests({ requests }: { requests: Request[] }) {
       )}
       {local.length > 0 && (
       <>
-      <div className="mb-3 text-xs uppercase tracking-widest text-yellow-400">Partnership requests</div>
+      <div className="mb-3 text-xs uppercase tracking-widest text-amber-600">Partnership requests</div>
       <div className="space-y-3">
         {local.map((r) => (
           <div key={r.id} className="card border-yellow-400/20 bg-yellow-400/5 p-5 flex items-center justify-between gap-4">

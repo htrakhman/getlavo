@@ -164,7 +164,7 @@ export default function ResidentOnboarding() {
                 <p className="text-ink-200">
                   Forward this message to your property manager so they can add your building to Lavo:
                 </p>
-                <div className="rounded-lg bg-black/40 p-3 text-xs text-ink-300 leading-relaxed whitespace-pre-wrap">
+                <div className="rounded-lg bg-ink-800 p-3 text-xs text-ink-300 leading-relaxed whitespace-pre-wrap">
 {`Hi,
 
 I'd love to use Lavo for car care at our building, but it isn't listed yet on their resident portal.
@@ -185,13 +185,13 @@ Thanks!`}
                       setCopied(true);
                       setTimeout(() => setCopied(false), 2000);
                     }}
-                    className="btn-secondary text-xs px-3 py-1.5"
+                    className="btn-ghost text-xs px-3 py-1.5"
                   >
                     {copied ? 'Copied!' : 'Copy message'}
                   </button>
                   <a
                     href={`mailto:?subject=Lavo%20Car%20Care%20for%20Our%20Building&body=${encodeURIComponent(`Hi,\n\nI'd love to use Lavo for car care at our building, but it isn't listed yet on their resident portal.\n\nCould you reach out to the Lavo team to get our property set up? It's free for the building — residents just pay for the service.\n\nMore info for property managers: https://getlavo.io\n\nThanks!`)}`}
-                    className="btn-secondary text-xs px-3 py-1.5"
+                    className="btn-ghost text-xs px-3 py-1.5"
                   >
                     Open in email
                   </a>

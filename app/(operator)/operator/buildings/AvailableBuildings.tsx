@@ -72,7 +72,7 @@ export function AvailableBuildings({
             </div>
             <div className="shrink-0 text-right">
               {pending ? (
-                <span className="chip text-yellow-300">Request sent</span>
+                <span className="chip text-amber-600">Request sent</span>
               ) : (
                 <button
                   type="button"

@@ -56,8 +56,8 @@ export default async function OperatorBookings() {
       {!op.stripe_onboarding_complete && (
         <div className="mb-6 card border-yellow-400/30 bg-yellow-400/5 p-5 flex items-center justify-between gap-4">
           <div>
-            <div className="font-medium text-yellow-200">Connect your bank account</div>
-            <p className="mt-0.5 text-sm text-yellow-300/70">You must connect Stripe before residents can book with you.</p>
+            <div className="font-medium text-amber-700">Connect your bank account</div>
+            <p className="mt-0.5 text-sm text-amber-600/70">You must connect Stripe before residents can book with you.</p>
           </div>
           <a href="/api/stripe/connect/onboard" className="btn-primary shrink-0">Connect →</a>
         </div>
@@ -99,7 +99,7 @@ export default async function OperatorBookings() {
                         <div className="text-xs text-ink-400">Your payout</div>
                         <div className="font-display text-xl text-gleam">{money(b.net_cents)}</div>
                         <div className="mt-0.5 text-xs text-ink-500">of {money(b.gross_cents)}</div>
-                        <div className={`mt-1 text-xs font-medium ${b.status === 'confirmed' ? 'text-gleam' : 'text-yellow-300'}`}>
+                        <div className={`mt-1 text-xs font-medium ${b.status === 'confirmed' ? 'text-gleam' : 'text-amber-600'}`}>
                           {STATUS_LABEL[b.status] ?? b.status}
                         </div>
                         <Link href={`/operator/bookings/${b.id}`} className="mt-2 inline-block text-xs text-gleam hover:underline">

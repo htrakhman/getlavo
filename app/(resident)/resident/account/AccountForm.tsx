@@ -201,7 +201,7 @@ function DataPanel() {
       <div className="flex flex-wrap gap-3">
         <a href="/api/account/export" className="btn-quiet text-sm">Download a copy</a>
         {!confirming && !requested && (
-          <button onClick={() => setConfirming(true)} className="btn-quiet text-sm text-red-300">Request account deletion</button>
+          <button onClick={() => setConfirming(true)} className="btn-quiet text-sm text-red-500">Request account deletion</button>
         )}
       </div>
       {requested && (
@@ -214,7 +214,7 @@ function DataPanel() {
           <p className="text-sm">Tell us briefly why you're leaving (optional). We'll process the request manually within 7 days.</p>
           <input className="field mt-2" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Optional" />
           <div className="mt-3 flex gap-2">
-            <button onClick={requestDelete} disabled={busy} className="btn-primary !bg-red-500 !text-white text-sm">Submit request</button>
+            <button onClick={requestDelete} disabled={busy} className="btn-primary !bg-red-500 !text-[#fff] text-sm">Submit request</button>
             <button onClick={() => setConfirming(false)} className="btn-quiet text-sm">Cancel</button>
           </div>
         </div>

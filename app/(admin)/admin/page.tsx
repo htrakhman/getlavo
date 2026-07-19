@@ -43,7 +43,7 @@ export default async function AdminOverview() {
               {insuranceExpiring.map((o: any) => (
                 <li key={o.id} className="flex justify-between py-2 text-sm">
                   <span>{o.name}</span>
-                  <span className="text-amber-300">{o.insurance_expires_at}</span>
+                  <span className="text-amber-600">{o.insurance_expires_at}</span>
                 </li>
               ))}
             </ul>

@@ -74,7 +74,7 @@ export function PartnershipConnector({
       )}
 
       {status === 'pending' && (
-        <div className="rounded-xl border border-yellow-400/30 bg-yellow-400/5 p-4 text-sm text-yellow-200">
+        <div className="rounded-xl border border-yellow-400/30 bg-yellow-400/5 p-4 text-sm text-amber-700">
           Request sent. Waiting for the operator to accept.
         </div>
       )}
@@ -87,7 +87,7 @@ export function PartnershipConnector({
 
       {status === 'declined' && !sent && (
         <>
-          <div className="rounded-xl border border-red-400/30 bg-red-400/5 p-4 text-sm text-red-300">
+          <div className="rounded-xl border border-red-400/30 bg-red-400/5 p-4 text-sm text-red-500">
             This operator declined your last request. You can send a new one.
           </div>
           {err && <div className="text-sm text-red-400">{err}</div>}

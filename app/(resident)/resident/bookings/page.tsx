@@ -16,9 +16,9 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 const STATUS_COLOR: Record<string, string> = {
-  pending_payment: 'text-yellow-300',
+  pending_payment: 'text-amber-600',
   confirmed: 'text-gleam',
-  in_progress: 'text-blue-300',
+  in_progress: 'text-blue-600',
   completed: 'text-ink-400',
   cancelled: 'text-red-400',
 };
@@ -88,7 +88,7 @@ export default async function ResidentBookings({
         </div>
       )}
       {paymentBanner === 'processing' && (
-        <div className="mb-6 card border-yellow-400/30 bg-yellow-400/5 p-4 text-sm text-yellow-200">
+        <div className="mb-6 card border-yellow-400/30 bg-yellow-400/5 p-4 text-sm text-amber-700">
           Your payment is still processing. This page will show the booking as confirmed once
           Stripe finishes — refresh in a moment.
         </div>

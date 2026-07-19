@@ -19,7 +19,7 @@ export function DevRoleSwitcher({ currentPortal }: { currentPortal: string }) {
 
   return (
     <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/10 p-3">
-      <div className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-yellow-400">
+      <div className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-amber-600">
         Switch portal
       </div>
       <div className="flex flex-col gap-1">
@@ -30,8 +30,8 @@ export function DevRoleSwitcher({ currentPortal }: { currentPortal: string }) {
             disabled={busy || p.portal === currentPortal}
             className={`rounded-lg px-3 py-1.5 text-left text-xs transition ${
               p.portal === currentPortal
-                ? 'bg-yellow-500/20 font-semibold text-yellow-300 cursor-default'
-                : 'text-yellow-200/70 hover:bg-yellow-500/10 hover:text-yellow-200'
+                ? 'bg-yellow-500/20 font-semibold text-amber-600 cursor-default'
+                : 'text-amber-700/70 hover:bg-yellow-500/10 hover:text-amber-700'
             }`}
           >
             {p.portal === currentPortal ? `✓ ${p.label}` : p.label}

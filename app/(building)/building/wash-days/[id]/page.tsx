@@ -45,7 +45,7 @@ export default async function BuildingWashDayDetail({ params }: { params: { id: 
         action={wd.completed_at
           ? <span className="chip text-gleam">Completed</span>
           : wd.started_at
-            ? <span className="chip text-amber-300 animate-pulse">Live · refreshing</span>
+            ? <span className="chip text-amber-600 animate-pulse">Live · refreshing</span>
             : wd.confirmation === 'pending'
               ? <ConfirmProposal washDayId={wd.id} />
               : <span className="chip">Scheduled</span>}
@@ -85,10 +85,10 @@ export default async function BuildingWashDayDetail({ params }: { params: { id: 
                   <td className="px-4 py-3 text-xs">{w.resident?.profile?.full_name} · Unit {w.resident?.unit_number}</td>
                   <td className="px-4 py-3 text-xs">{w.vehicle?.year} {w.vehicle?.make} {w.vehicle?.model}</td>
                   <td className="px-4 py-3">
-                    <span className={`chip ${w.status === 'completed' ? 'text-gleam' : w.status === 'flagged' ? 'text-amber-300' : ''}`}>
+                    <span className={`chip ${w.status === 'completed' ? 'text-gleam' : w.status === 'flagged' ? 'text-amber-600' : ''}`}>
                       {w.status}
                     </span>
-                    {w.flag_reason && <div className="mt-1 text-[10px] text-amber-300">{w.flag_reason}</div>}
+                    {w.flag_reason && <div className="mt-1 text-[10px] text-amber-600">{w.flag_reason}</div>}
                   </td>
                   <td className="px-4 py-3">
                     {w.photo_url ? <a href={w.photo_url} target="_blank" rel="noreferrer">

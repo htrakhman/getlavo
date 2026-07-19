@@ -136,7 +136,7 @@ export default async function ResidentWashes() {
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <div className="text-sm">{dateShort(w.wash_day?.scheduled_for ?? w.completed_at)}</div>
-                    {w.flag_reason && <div className="mt-1 text-xs text-amber-300">⚑ {w.flag_reason}</div>}
+                    {w.flag_reason && <div className="mt-1 text-xs text-amber-600">⚑ {w.flag_reason}</div>}
                   </div>
                   <span className={`chip ${w.status === 'completed' ? 'text-gleam' : ''}`}>{w.status}</span>
                 </div>

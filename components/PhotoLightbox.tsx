@@ -25,7 +25,7 @@ export function PhotoThumb({ src, alt }: { src: string; alt?: string }) {
           <button
             onClick={(e) => { e.stopPropagation(); setOpen(false); }}
             aria-label="Close"
-            className="absolute top-4 right-4 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"
+            className="absolute top-4 right-4 rounded-full bg-[#fff]/10 p-2 text-[#fff] hover:bg-[#fff]/20"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
           </button>

@@ -104,7 +104,7 @@ function StepBar({ step, total }: { step: number; total: number }) {
             <div
               className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 transition-all ${
                 i < step
-                  ? 'bg-gleam text-black'
+                  ? 'bg-gleam text-ink-950'
                   : i === step
                   ? 'bg-gleam/20 border border-gleam text-gleam'
                   : 'bg-ink-800 border border-ink-700 text-ink-500'
@@ -469,10 +469,10 @@ export function OnboardingForm() {
                         <button
                           type="button"
                           onClick={() => setPortfolio((p) => p.filter((_, idx) => idx !== i))}
-                          className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/70 text-white text-xs flex items-center justify-center hover:bg-red-600"
+                          className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/70 text-[#fff] text-xs flex items-center justify-center hover:bg-red-600"
                         >✕</button>
                         {item.file.type.startsWith('video/') && (
-                          <div className="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 rounded text-xs bg-black/70 text-white">▶ Video</div>
+                          <div className="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 rounded text-xs bg-black/70 text-[#fff]">▶ Video</div>
                         )}
                       </div>
                       <input
@@ -534,7 +534,7 @@ export function OnboardingForm() {
                 + Add another package
               </button>
               {!packages.some((p) => p.name && p.price) && (
-                <p className="text-xs text-amber-400">Add at least one package with a name and price to continue.</p>
+                <p className="text-xs text-amber-600">Add at least one package with a name and price to continue.</p>
               )}
             </div>
           )}
@@ -562,7 +562,7 @@ export function OnboardingForm() {
                   {city && <p className="mt-1 text-xs text-ink-400">{city}, {region}</p>}
                   {lat
                     ? <p className="mt-0.5 text-xs text-gleam">✓ Location captured</p>
-                    : addr.length > 2 && <p className="mt-0.5 text-xs text-yellow-400">Pick from the dropdown so we can capture your exact location</p>
+                    : addr.length > 2 && <p className="mt-0.5 text-xs text-amber-600">Pick from the dropdown so we can capture your exact location</p>
                   }
                 </div>
                 <div>
