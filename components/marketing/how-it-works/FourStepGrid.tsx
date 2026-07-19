@@ -8,18 +8,18 @@ const STEPS = [
   },
   {
     num: 2,
-    title: 'We come to your building',
-    body: 'A vetted local wash team arrives on-site with everything they need.',
+    title: 'Drop your keys at the front desk',
+    body: 'Leave your keys with your building’s front desk before your scheduled appointment.',
   },
   {
     num: 3,
     title: 'Your car gets washed',
-    body: 'Your car is washed at your building, either in its spot or in an approved wash area.',
+    body: 'A vetted local team washes your car at your building, in its spot or in an approved wash area.',
   },
   {
     num: 4,
-    title: 'You get notified',
-    body: 'We let you know when the wash is complete.',
+    title: 'Pick up your keys',
+    body: 'Come back to a clean car — we let you know the moment the wash is complete.',
   },
 ] as const;
 

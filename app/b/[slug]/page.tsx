@@ -24,12 +24,16 @@ const STEPS = [
     body: 'Pick a wash or detail and a time that works. Takes under a minute.',
   },
   {
+    title: 'Drop your keys at the front desk',
+    body: 'Before your scheduled appointment, leave your keys with the front desk so the crew can access your car.',
+  },
+  {
     title: 'Leave your car parked',
     body: 'No driving anywhere, no waiting around. The crew comes to your building’s garage.',
   },
   {
-    title: 'Come back to it clean',
-    body: 'We send you photos the moment it’s done.',
+    title: 'Pick up your keys, come back to it clean',
+    body: 'Grab your keys from the front desk — we send you photos the moment it’s done.',
   },
 ];
 
