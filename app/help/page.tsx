@@ -28,7 +28,7 @@ const RESIDENT_FAQ = [
   {
     question: 'How do I report an issue?',
     answer:
-      'Use the in-app issue flow or email hello@getlavo.io with your booking date and photos.',
+      'Use the issue flow in your resident portal or email hello@getlavo.io with your booking date and photos.',
   },
 ];
 

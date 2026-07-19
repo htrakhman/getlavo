@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { sendBookingConfirmation, sendBookingNotification } from '@/lib/email/resend';
+import { buildIcs } from '@/lib/ics';
 
 /**
  * After payment (or a fully discounted checkout), mark paid and notify resident + operator.
@@ -35,7 +36,7 @@ export async function confirmPaidBookingAndNotify(
         id, scheduled_for, time_slot, gross_cents,
         resident:residents(profile:profiles(email, full_name)),
         operator:operators(name, owner_id, profiles:profiles!operators_owner_id_fkey(email, full_name)),
-        building:buildings(name),
+        building:buildings(name, address_line1, city, region),
         vehicle:vehicles(make, model, color)
       `)
     .eq('id', bookingId)
@@ -49,6 +50,24 @@ export async function confirmPaidBookingAndNotify(
   const vehicle = booking.vehicle as any;
   const ownerProfile = operator?.profiles;
 
+  const location = [building?.address_line1, building?.city, building?.region]
+    .filter(Boolean)
+    .join(', ');
+  const vehicleDesc = vehicle ? `${vehicle.color} ${vehicle.make} ${vehicle.model}` : 'Vehicle';
+  // METHOD:REQUEST makes mail clients render this as a real calendar invite,
+  // so the booking lands on both calendars automatically.
+  const ics = buildIcs(
+    {
+      uid: `${bookingId}@getlavo.io`,
+      title: `Lavo wash · ${vehicleDesc}`,
+      description: `Car wash at ${building?.name ?? 'your building'}. Keys at the front desk before the appointment.`,
+      location,
+      date: booking.scheduled_for,
+      time: booking.time_slot,
+    },
+    { method: 'REQUEST' }
+  );
+
   if (resident?.email) {
     await sendBookingConfirmation({
       to: resident.email,
@@ -59,6 +78,7 @@ export async function confirmPaidBookingAndNotify(
       timeSlot: booking.time_slot,
       grossCents: booking.gross_cents,
       bookingId,
+      ics,
     }).catch(() => {});
   }
 
@@ -73,6 +93,7 @@ export async function confirmPaidBookingAndNotify(
       scheduledFor: booking.scheduled_for,
       timeSlot: booking.time_slot,
       netCents: fullBooking?.net_cents ?? 0,
+      ics,
     }).catch(() => {});
   }
 }

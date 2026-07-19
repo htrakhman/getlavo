@@ -359,7 +359,7 @@ const ROLES = [
   },
   {
     title: 'For residents',
-    body: 'Book from your phone, add your car and parking spot, choose a wash day or open slot, and pay in the app.',
+    body: 'Book from your phone, add your car and parking spot, choose a wash day or open slot, and pay online.',
     href: '/signup?role=resident',
     cta: 'Book a wash',
     icon: (

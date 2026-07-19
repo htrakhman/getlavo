@@ -21,12 +21,17 @@ export async function sendBookingConfirmation(args: {
   timeSlot: string | null;
   grossCents: number;
   bookingId: string;
+  /** ICS calendar invite attached so the wash lands on the resident's calendar. */
+  ics?: string;
 }) {
   const price = (args.grossCents / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
   return client().emails.send({
     from: FROM,
     to: args.to,
     subject: `Your wash is booked — ${args.scheduledFor}`,
+    ...(args.ics
+      ? { attachments: [{ filename: 'lavo-wash.ics', content: Buffer.from(args.ics).toString('base64') }] }
+      : {}),
     html: `
       <p>Hi ${escapeHtml(args.residentName)},</p>
       <p>Your car wash is confirmed at <strong>${escapeHtml(args.buildingName)}</strong>.</p>
@@ -50,12 +55,17 @@ export async function sendBookingNotification(args: {
   scheduledFor: string;
   timeSlot: string | null;
   netCents: number;
+  /** ICS calendar invite attached so the job lands on the operator's calendar automatically. */
+  ics?: string;
 }) {
   const net = (args.netCents / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
   return client().emails.send({
     from: FROM,
     to: args.to,
     subject: `New booking — ${escapeHtml(args.buildingName)} on ${escapeHtml(args.scheduledFor)}`,
+    ...(args.ics
+      ? { attachments: [{ filename: 'lavo-booking.ics', content: Buffer.from(args.ics).toString('base64') }] }
+      : {}),
     html: `
       <p>Hi ${escapeHtml(args.operatorName)},</p>
       <p>A resident at <strong>${escapeHtml(args.buildingName)}</strong> has booked a wash.</p>

@@ -9,7 +9,7 @@ export const metadata = createPageMetadata({
   path: '/residents',
   title: 'Mobile Car Wash for Apartment Residents | Lavo',
   description:
-    'Book a mobile car wash from your apartment building garage or parking spot. See prices upfront, pay in the app, and get notified when your wash is done.',
+    'Book a mobile car wash from your apartment building garage or parking spot. See prices upfront, pay online, and get notified when your wash is done.',
 });
 
 const RESIDENTS_RELATED = [
@@ -31,7 +31,7 @@ export default function ResidentsPage() {
             name: 'Mobile car wash for apartment residents',
             serviceType: 'In-building mobile car wash booking for residents',
             description:
-              'Residents book vetted operators at their building, pay in the app, and get a photo when the wash is complete.',
+              'Residents book vetted operators at their building, pay online, and get a photo when the wash is complete.',
             audience: 'Apartment and condo residents',
           }),
           breadcrumbSchema([
@@ -75,7 +75,7 @@ export default function ResidentsPage() {
               body: 'Book a building wash day slot (usually cheaper) or grab an open on-demand slot any day your operator has capacity.',
             },
             {
-              title: 'Pay in the app',
+              title: 'Pay online',
               body: 'No cash, no Venmo, no awkward conversations. Every price is shown before you confirm.',
             },
             {
@@ -100,7 +100,7 @@ export default function ResidentsPage() {
             ['Join your building', 'Scan the QR code in your lobby or use the link from your property manager. Sign up in under a minute.'],
             ['Add your vehicle', 'Enter make, model, color, and where you park — garage level, spot number, or street instructions.'],
             ['Pick a slot', 'Choose a building wash day or an on-demand open slot. See the exact price before you book.'],
-            ['Pay and relax', 'Pay securely in the app. Get a notification and photo when your wash is done.'],
+            ['Pay and relax', 'Pay securely online. Get a notification and photo when your wash is done.'],
           ].map(([title, body], i) => (
             <li key={String(title)} className="flex gap-6 items-start">
               <span className="shrink-0 flex items-center justify-center w-10 h-10 rounded-full bg-gleam/10 border border-gleam/30 font-display text-lg text-gleam">

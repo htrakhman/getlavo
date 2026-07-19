@@ -55,6 +55,34 @@ export function BookingForm({
   const [timeSlot, setTimeSlot] = useState(() =>
     initialTimeSlot && TIME_SLOTS.includes(initialTimeSlot) ? initialTimeSlot : TIME_SLOTS[0]
   );
+
+  // Live availability (operator hours + agreed wash days + capacity). When
+  // present, the date/time pickers are constrained to it; otherwise the
+  // free-form inputs below remain as a fallback.
+  const [availability, setAvailability] = useState<{ date: string; slots: string[] }[] | null>(null);
+
+  useEffect(() => {
+    fetch(`/api/availability?operatorId=${encodeURIComponent(operatorId)}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        const days = ((d?.days ?? []) as { date: string; slots: string[] }[]).filter(
+          (day) => day.slots.length > 0
+        );
+        if (days.length > 0) setAvailability(days);
+      })
+      .catch(() => {});
+  }, [operatorId]);
+
+  const availableDay = availability?.find((d) => d.date === date) ?? null;
+  const slotOptions = availableDay ? availableDay.slots : TIME_SLOTS;
+
+  useEffect(() => {
+    if (!availability) return;
+    // Snap stale selections to the live schedule.
+    if (date && !availability.some((d) => d.date === date)) setDate('');
+    if (availableDay && !availableDay.slots.includes(timeSlot)) setTimeSlot(availableDay.slots[0]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [availability, date]);
   const [recurring, setRecurring] = useState<'none' | 'weekly' | 'biweekly' | 'monthly'>('none');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -175,20 +203,35 @@ export function BookingForm({
 
       <div>
         <label className="label">Date</label>
-        <input
-          className="field"
-          type="date"
-          min={isoDateMin()}
-          max={isoDateMax()}
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-        />
+        {availability ? (
+          <select className="field" value={date} onChange={(e) => setDate(e.target.value)}>
+            <option value="">Select a date…</option>
+            {availability.map((d) => (
+              <option key={d.date} value={d.date}>
+                {new Date(`${d.date}T12:00:00`).toLocaleDateString('en-US', {
+                  weekday: 'short',
+                  month: 'short',
+                  day: 'numeric',
+                })}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <input
+            className="field"
+            type="date"
+            min={isoDateMin()}
+            max={isoDateMax()}
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+          />
+        )}
       </div>
 
       <div>
         <label className="label">Preferred time</label>
         <select className="field" value={timeSlot} onChange={(e) => setTimeSlot(e.target.value)}>
-          {TIME_SLOTS.map((t) => <option key={t} value={t}>{t}</option>)}
+          {slotOptions.map((t) => <option key={t} value={t}>{t}</option>)}
         </select>
       </div>
 

@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 
 const STEPS = [
   {
-    title: 'Book in the app',
+    title: 'Book online',
     body: 'Pick a wash or detail and a time that works. Takes under a minute.',
   },
   {
@@ -41,7 +41,7 @@ const TRUST = [
   'Approved by your building’s management',
   'Insured, vetted professionals',
   'Interior, exterior & full-detail options',
-  'Secure in-app payment',
+  'Secure online payment',
 ];
 
 // QR-code landing for building partners. Everything here is Lavo-branded —
@@ -168,7 +168,7 @@ export default async function QrBuildingLanding({ params }: { params: { slug: st
               <div className="mt-8">
                 <HeroCta href="#pick-a-time" label="Book a wash" buildingName={building.name} />
               </div>
-              <p className="mt-3 text-xs text-ink-400">Free to join · pay per wash in the app</p>
+              <p className="mt-3 text-xs text-ink-400">Free to join · pay per wash online</p>
             </section>
 
             {/* Live availability */}

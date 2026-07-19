@@ -126,7 +126,7 @@ export default function FlyerPage() {
             {[
               { n: '1', title: 'Scan the QR code', body: 'Use your phone camera to scan and open the sign-up page. No app download needed.' },
               { n: '2', title: 'Create your account', body: 'Takes 60 seconds. Enter your unit, register your car, and you\'re in.' },
-              { n: '3', title: 'Book a wash', body: 'Pick a date from the upcoming wash day schedule. Pay securely in-app.' },
+              { n: '3', title: 'Book a wash', body: 'Pick a date from the upcoming wash day schedule. Pay securely online.' },
               { n: '4', title: 'We come to you', body: 'The crew washes your car right here at the building. You get a photo when it\'s done.' },
             ].map((step) => (
               <div key={step.n} style={{ display: 'flex', gap: '16px', marginBottom: '22px' }}>
@@ -154,7 +154,7 @@ export default function FlyerPage() {
                 'Exterior hand wash at building wash day pricing',
                 'Optional add-ons: wax, interior detail, tire shine',
                 'Progress photo when your car is done',
-                'All payments handled securely in-app',
+                'All payments handled securely online',
               ].map((f) => (
                 <div key={f} style={{ display: 'flex', gap: '10px', marginBottom: '8px', fontSize: '13px', color: '#374151' }}>
                   <span style={{ color: '#2dd4bf', fontWeight: 700, flexShrink: 0 }}>✓</span>

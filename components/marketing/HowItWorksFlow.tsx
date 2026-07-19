@@ -22,7 +22,7 @@ export const AUDIENCES = [
     bullets: [
       'Book washes from the mobile app',
       'Add your car and parking spot details',
-      'Choose a time slot and pay through the app',
+      'Choose a time slot and pay online',
     ],
     href: '/signup?role=resident',
     cta: 'Book a wash',
@@ -53,7 +53,7 @@ const PHASES = [
     id: 'book',
     label: 'Book',
     title: 'Resident books & pays',
-    summary: 'Resident signs up via the building link, adds vehicle and parking spot, picks a wash day or open slot, and pays in the app.',
+    summary: 'Resident signs up via the building link, adds vehicle and parking spot, picks a wash day or open slot, and pays online.',
     actors: ['Resident'],
   },
   {
@@ -74,7 +74,7 @@ const PHASES = [
 
 export const PRICING_MODEL = [
   { role: 'Buildings', price: '$0', detail: 'Free amenity — no subscription or setup fee' },
-  { role: 'Residents', price: 'Per wash', detail: 'Pay only for washes you book in the app' },
+  { role: 'Residents', price: 'Per wash', detail: 'Pay only for washes you book online' },
   { role: 'Operators', price: 'After review', detail: 'Payout once the job is completed and reviewed' },
 ] as const;
 
@@ -502,7 +502,7 @@ export const PROCESS_PHASES = [
       {
         who: 'Resident',
         title: 'Pick a time slot & pay',
-        body: 'Choose a building wash day (often lower rate) or an on-demand open slot. Stripe processes payment in the app; Lavo retains a platform fee and queues the rest for the operator.',
+        body: 'Choose a building wash day (often lower rate) or an on-demand open slot. Stripe processes payment online; Lavo retains a platform fee and queues the rest for the operator.',
       },
     ],
   },
