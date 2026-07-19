@@ -1,0 +1,87 @@
+{
+  "_note": "Gomes Group (Newark) QR-funnel buildings. Addresses prefilled from public listings — verify with the property manager before printing QR codes. Re-run `node --env-file=.env.local scripts/seed-gomes-buildings.mjs` and `node scripts/generate-building-qr.mjs` after editing.",
+  "managerEmail": "haroldtrakhman@gmail.com",
+  "operatorSlug": "two-hands-car-detailing",
+  "buildings": [
+    {
+      "slug": "gomes-orange-st",
+      "name": "Arbol by Gomes",
+      "address_line1": "254-270 Orange St",
+      "city": "Newark",
+      "region": "NJ",
+      "postal_code": "07103"
+    },
+    {
+      "slug": "gomes-gibson-blvd",
+      "name": "Nova by Gomes",
+      "address_line1": "1213-1221 Mayor Kenneth A. Gibson Blvd",
+      "city": "Newark",
+      "region": "NJ",
+      "postal_code": "07114"
+    },
+    {
+      "slug": "gomes-norfolk-st-58",
+      "name": "Envy by Gomes",
+      "address_line1": "58-84 Norfolk St",
+      "city": "Newark",
+      "region": "NJ",
+      "postal_code": "07103"
+    },
+    {
+      "slug": "gomes-emmet-st",
+      "name": "Astor by Gomes",
+      "address_line1": "64-68 Emmet St",
+      "city": "Newark",
+      "region": "NJ",
+      "postal_code": "07114"
+    },
+    {
+      "slug": "gomes-n-5th-st",
+      "name": "Olea by Gomes",
+      "address_line1": "162-166 N 5th St",
+      "city": "Newark",
+      "region": "NJ",
+      "postal_code": "07107"
+    },
+    {
+      "slug": "gomes-hudson-st",
+      "name": "Vida by Gomes",
+      "address_line1": "34-40 Hudson St",
+      "city": "Newark",
+      "region": "NJ",
+      "postal_code": "07103"
+    },
+    {
+      "slug": "gomes-mlk-blvd",
+      "name": "Motto by Gomes",
+      "address_line1": "323 Dr Martin Luther King Jr Blvd",
+      "city": "Newark",
+      "region": "NJ",
+      "postal_code": "07102"
+    },
+    {
+      "slug": "gomes-norfolk-st-42",
+      "name": "Norfolk by Gomes",
+      "address_line1": "42-48 Norfolk St",
+      "city": "Newark",
+      "region": "NJ",
+      "postal_code": "07103"
+    },
+    {
+      "slug": "gomes-norfolk-st-50",
+      "name": "Norfolk 2 by Gomes",
+      "address_line1": "50-56 Norfolk St",
+      "city": "Newark",
+      "region": "NJ",
+      "postal_code": "07103"
+    },
+    {
+      "slug": "gomes-sussex-ave",
+      "name": "Sussex by Gomes",
+      "address_line1": "134-142 Sussex Ave",
+      "city": "Newark",
+      "region": "NJ",
+      "postal_code": "07103"
+    }
+  ]
+}

@@ -5,6 +5,10 @@ export function BuildingAttributor({ slug }: { slug: string }) {
   useEffect(() => {
     localStorage.setItem('lavo_building_slug', slug);
 
+    // Cookie mirror of the slug so server-side auth callbacks (email confirm,
+    // Google OAuth) can attribute the completed signup to this building's QR.
+    document.cookie = `lavo_qr_slug=${encodeURIComponent(slug)}; path=/; max-age=7200; samesite=lax`;
+
     // If the URL carries ?invite=<token>, persist it for the signup form to consume,
     // and ping the server to mark the invite "opened".
     const url = new URL(window.location.href);

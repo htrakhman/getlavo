@@ -4,17 +4,11 @@ import { Logo } from '@/components/Logo';
 import { supabaseBrowser } from '@/lib/supabase/client';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
-
-const PORTAL_HOMES = ['/resident', '/building', '/operator'] as const;
-
-function isPortalHome(path: string): path is (typeof PORTAL_HOMES)[number] {
-  return (PORTAL_HOMES as readonly string[]).includes(path);
-}
+import { safeInternalPath } from '@/lib/safe-redirect';
 
 function ContinueInner() {
   const params = useSearchParams();
-  const raw = params.get('next') ?? '/resident';
-  const dest = isPortalHome(raw) ? raw : '/resident';
+  const dest = safeInternalPath(params.get('next')) ?? '/resident';
   const [note, setNote] = useState('Signing you in…');
 
   useEffect(() => {

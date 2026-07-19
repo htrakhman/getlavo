@@ -1,6 +1,7 @@
 'use client';
 import { Logo } from '@/components/Logo';
 import { supabaseBrowser } from '@/lib/supabase/client';
+import { safeInternalPath } from '@/lib/safe-redirect';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -34,7 +35,11 @@ export default function ResidentOnboarding() {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    const slug = typeof window !== 'undefined' ? localStorage.getItem('lavo_building_slug') : null;
+    // Prefer the QR-funnel ?b= param, then the slug stashed by the landing page.
+    const urlSlug = typeof window !== 'undefined'
+      ? new URLSearchParams(window.location.search).get('b')
+      : null;
+    const slug = urlSlug ?? (typeof window !== 'undefined' ? localStorage.getItem('lavo_building_slug') : null);
     sb.from('buildings')
       .select('id, name, address_line1, city, status, slug, wash_day')
       .in('status', ['prospect', 'pilot', 'active'])
@@ -106,7 +111,9 @@ export default function ResidentOnboarding() {
     setBusy(false);
     // Hard navigation so the browser makes a fresh full-page request with all cookies,
     // rather than a client-side RSC fetch that can serve a cached redirect.
-    window.location.href = '/resident/washes';
+    // The QR funnel passes ?redirect= so residents land back in scheduling.
+    const redirectTarget = safeInternalPath(new URLSearchParams(window.location.search).get('redirect'));
+    window.location.href = redirectTarget ?? '/resident/washes';
   }
 
   return (
