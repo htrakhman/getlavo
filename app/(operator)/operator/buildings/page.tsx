@@ -4,6 +4,8 @@ import { getSessionUser, supabaseServer, supabaseAdmin } from '@/lib/supabase/se
 import { AvailableBuildings } from './AvailableBuildings';
 import { PartnershipRequests } from '../PartnershipRequests';
 import { redirect } from 'next/navigation';
+import { parseDateList, futureDates } from '@/lib/wash-dates';
+import { dateShort } from '@/lib/format';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,7 +19,7 @@ export default async function OperatorBuildings() {
   const [{ data: partnerships }, { data: pendingPartnerships }, availableData] = await Promise.all([
     admin
       .from('partnerships')
-      .select('id, status, connected_at, building:buildings(name, address_line1, city, region, total_units)')
+      .select('id, status, connected_at, building:buildings(name, address_line1, city, region, total_units, wash_day, preferred_wash_day, requested_wash_dates)')
       .eq('operator_id', op?.id ?? '')
       .eq('status', 'active')
       .order('connected_at', { ascending: false }),
@@ -53,22 +55,41 @@ export default async function OperatorBuildings() {
       <section className="mb-10">
         <h2 className="mb-4 font-display text-xl">Your buildings</h2>
         <div className="space-y-4">
-          {(partnerships ?? []).map((p: any) => (
-            <div key={p.id} className="card flex items-center justify-between p-6">
-              <div>
-                <div className="font-display text-xl">{p.building.name}</div>
-                <div className="text-sm text-ink-400">
-                  {p.building.address_line1} · {p.building.city}, {p.building.region}
+          {(partnerships ?? []).map((p: any) => {
+            const weeklyDay = p.building.wash_day ?? p.building.preferred_wash_day;
+            const requestedDates = futureDates(parseDateList(p.building.requested_wash_dates));
+            return (
+              <div key={p.id} className="card flex items-center justify-between p-6">
+                <div>
+                  <div className="font-display text-xl">{p.building.name}</div>
+                  <div className="text-sm text-ink-400">
+                    {p.building.address_line1} · {p.building.city}, {p.building.region}
+                  </div>
+                  {p.building.total_units && (
+                    <div className="mt-1 text-xs text-ink-500">{p.building.total_units} units</div>
+                  )}
+                  {(weeklyDay || requestedDates.length > 0) && (
+                    <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                      {weeklyDay && <span className="chip">Wash day: {weeklyDay}</span>}
+                      {requestedDates.map((d: string) => (
+                        <span key={d} className="chip text-gleam">
+                          {dateShort(d)}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  {requestedDates.length > 0 && (
+                    <p className="mt-1 text-xs text-ink-500">
+                      Dates this building chose — they&rsquo;re confirmed on your wash day calendar.
+                    </p>
+                  )}
                 </div>
-                {p.building.total_units && (
-                  <div className="mt-1 text-xs text-ink-500">{p.building.total_units} units</div>
-                )}
+                <div className="text-right">
+                  <span className="chip text-gleam">Active</span>
+                </div>
               </div>
-              <div className="text-right">
-                <span className="chip text-gleam">Active</span>
-              </div>
-            </div>
-          ))}
+            );
+          })}
           {!partnerships?.length && (
             <div className="card p-8 text-center text-ink-400">
               No buildings assigned yet. Browse available buildings below to request a partnership.

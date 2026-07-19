@@ -5,7 +5,9 @@ import { getCurrentBuildingForSession } from '@/lib/building';
 
 export const dynamic = 'force-dynamic';
 import { PreferredWashDayForm } from './PreferredWashDayForm';
+import { RequestedWashDatesForm } from './RequestedWashDatesForm';
 import { IncomingOperatorRequests } from './IncomingOperatorRequests';
+import { parseDateList } from '@/lib/wash-dates';
 import Link from 'next/link';
 import { money } from '@/lib/format';
 
@@ -18,7 +20,7 @@ export default async function MyOperator() {
 
   const { current: bSel } = await getCurrentBuildingForSession(session.user.id);
   const { data: building } = bSel
-    ? await admin.from('buildings').select('id, name, wash_day, preferred_wash_day, lat, lng').eq('id', bSel.id).maybeSingle()
+    ? await admin.from('buildings').select('id, name, wash_day, preferred_wash_day, requested_wash_dates, lat, lng').eq('id', bSel.id).maybeSingle()
     : { data: null };
 
   // Admin client: RLS-scoped partnership reads can silently return nothing for
@@ -101,6 +103,20 @@ export default async function MyOperator() {
             <PreferredWashDayForm
               buildingId={building?.id ?? ''}
               initial={building?.preferred_wash_day ?? ''}
+            />
+          </div>
+
+          {/* Requested wash dates */}
+          <div className="card p-6">
+            <h3 className="font-display text-lg">Request specific wash dates</h3>
+            <p className="mt-1 text-xs text-ink-400">
+              Pick the exact dates you want service. Operators see them alongside your building, and
+              they become your operator&rsquo;s confirmed wash days once you&rsquo;re matched.
+            </p>
+            <RequestedWashDatesForm
+              buildingId={building?.id ?? ''}
+              initial={parseDateList(building?.requested_wash_dates)}
+              matched={false}
             />
           </div>
 
@@ -201,6 +217,19 @@ export default async function MyOperator() {
                 </div>
               </div>
             )}
+          </div>
+
+          <div className="card p-6">
+            <h3 className="font-display text-lg">Choose wash dates</h3>
+            <p className="mt-1 text-xs text-ink-400">
+              Dates you save here are confirmed onto {operator.name}&rsquo;s calendar — your building&rsquo;s
+              schedule takes priority over the crew&rsquo;s general availability.
+            </p>
+            <RequestedWashDatesForm
+              buildingId={building?.id ?? ''}
+              initial={parseDateList(building?.requested_wash_dates)}
+              matched
+            />
           </div>
         </div>
       )}

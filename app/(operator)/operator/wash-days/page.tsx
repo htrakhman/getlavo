@@ -6,6 +6,8 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { ProposeWashDay } from './ProposeWashDay';
 import { WashDaysHubPanel } from './WashDaysHubPanel';
+import { AvailabilityPanel } from './AvailabilityPanel';
+import { parseDateList, futureDates } from '@/lib/wash-dates';
 
 export default async function WashDays() {
   const session = await getSessionUser();
@@ -27,6 +29,14 @@ export default async function WashDays() {
     .eq('id', op.id)
     .maybeSingle();
   const hub = parseWashDaysHub(hubRow?.wash_days_hub);
+
+  // Separate select for the same schema-drift reason as wash_days_hub above.
+  const { data: availRow } = await sb
+    .from('operators')
+    .select('availability_dates')
+    .eq('id', op.id)
+    .maybeSingle();
+  const availabilityDates = futureDates(parseDateList(availRow?.availability_dates));
 
   const [{ data: days }, { data: partnerships }] = await Promise.all([
     sb
@@ -107,6 +117,8 @@ export default async function WashDays() {
           </div>
         </>
       )}
+
+      <AvailabilityPanel operatorId={op.id} initial={availabilityDates} />
 
       <WashDaysHubPanel
         operatorId={op.id}
