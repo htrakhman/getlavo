@@ -25,7 +25,7 @@ const STEPS = [
   },
   {
     title: 'Leave your car parked',
-    body: 'No driving anywhere, no waiting around. Your car stays right in its spot.',
+    body: 'No driving anywhere, no waiting around. The crew comes to your building’s garage.',
   },
   {
     title: 'Come back to it clean',
@@ -158,8 +158,8 @@ export default async function QrBuildingLanding({ params }: { params: { slug: st
                 <span className="gleam-text">while it’s parked.</span>
               </h1>
               <p className="mx-auto mt-4 max-w-md text-base leading-relaxed text-ink-300">
-                Book a wash or full detail that happens right in your garage. No driving anywhere,
-                no waiting in line — your car never leaves its spot.
+                Book a wash or full detail that happens right in your building’s garage. No driving
+                anywhere, no waiting in line — the crew comes to you.
               </p>
               <div className="mt-8">
                 <HeroCta href="#pick-a-time" label="Book a wash" buildingName={building.name} />
