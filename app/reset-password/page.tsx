@@ -30,7 +30,7 @@ export default function ResetPasswordPage() {
         <h1 className="font-display text-4xl tracking-tight">Set a new password</h1>
         {done ? (
           <div className="mt-8 card border-gleam/30 p-5 text-sm">
-            Password updated. <a href="/login" className="text-gleam">Sign in</a>
+            Password updated. <a href="/login" className="text-gleam">Login</a>
           </div>
         ) : (
           <form onSubmit={submit} className="mt-8 space-y-4">

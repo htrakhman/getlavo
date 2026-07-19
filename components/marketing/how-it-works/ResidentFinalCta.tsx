@@ -23,7 +23,7 @@ export function ResidentFinalCta() {
       <p className="mt-8 text-center text-sm text-ink-500">
         Already on Lavo?{' '}
         <Link href="/login" className="text-ink-300 underline-offset-2 hover:text-ink-100 hover:underline">
-          Sign in
+          Login
         </Link>
       </p>
     </section>

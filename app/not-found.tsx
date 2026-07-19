@@ -11,7 +11,7 @@ export default function NotFound() {
         <p className="mt-2 text-sm text-ink-400">The link may be broken or the page may have moved.</p>
         <div className="mt-6 flex flex-col gap-2">
           <Link href="/" className="btn-primary">Back home</Link>
-          <Link href="/login" className="btn-quiet">Sign in</Link>
+          <Link href="/login" className="btn-quiet">Login</Link>
         </div>
       </div>
     </main>

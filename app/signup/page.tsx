@@ -148,7 +148,7 @@ function SignupForm() {
     // (instead of an error) to avoid leaking whether an address exists.
     if (data.user && data.user.identities?.length === 0) {
       setBusy(false);
-      setErr('An account with that email already exists. Sign in instead.');
+      setErr('An account with that email already exists. Login instead.');
       return;
     }
 
@@ -173,7 +173,7 @@ function SignupForm() {
 
     if (!data.session) {
       setBusy(false);
-      setInfo('Check your email to confirm your address, then sign in. You will land in the portal that matches the account type you chose.');
+      setInfo('Check your email to confirm your address, then log in. You will land in the portal that matches the account type you chose.');
       return;
     }
 
@@ -318,7 +318,7 @@ function SignupForm() {
             <div className="text-sm text-red-400">
               {err}{' '}
               {err.includes('already exists') && (
-                <a href={`/login?${email ? `next=%2Fresident` : ''}`} className="underline text-gleam">Sign in</a>
+                <a href={`/login?${email ? `next=%2Fresident` : ''}`} className="underline text-gleam">Login</a>
               )}
             </div>
           )}
@@ -332,7 +332,7 @@ function SignupForm() {
         </p>
 
         <div className="mt-6 text-center text-sm text-ink-400">
-          Already have an account? <a href="/login" className="text-gleam">Sign in</a>
+          Already have an account? <a href="/login" className="text-gleam">Login</a>
         </div>
       </div>
     </main>

@@ -33,7 +33,7 @@ export function signupRoleFromPortalPrefer(value: string | null | undefined): Si
   return null;
 }
 
-/** Sign-up URL that matches “Sign in as …” (`?prefer=`) from the marketing nav. */
+/** Sign-up URL that matches “Login as …” (`?prefer=`) from the marketing nav. */
 export function signupHrefFromPortalPrefer(prefer: string | null | undefined): string {
   const r = signupRoleFromPortalPrefer(prefer);
   return r ? `/signup?role=${encodeURIComponent(r)}` : '/signup';
