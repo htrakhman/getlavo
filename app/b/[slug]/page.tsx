@@ -25,7 +25,7 @@ const STEPS = [
   },
   {
     title: 'Leave your car parked',
-    body: 'No driving anywhere, no waiting around. Your car stays right in its spot.',
+    body: 'No driving anywhere, no waiting around. The crew comes to your building’s garage.',
   },
   {
     title: 'Come back to it clean',
@@ -130,7 +130,12 @@ export default async function QrBuildingLanding({ params }: { params: { slug: st
 
         {mismatchResident ? (
           <div className="mt-16">
-            <div className="chip mb-6">For residents of {building.name}</div>
+            <div className="mb-6">
+              <div className="text-xs font-semibold uppercase tracking-[0.25em] text-gleam">
+                For residents of
+              </div>
+              <div className="mt-1 font-display text-2xl font-bold tracking-tight">{building.name}</div>
+            </div>
             <SwitchBuildingConfirm
               slug={slug}
               buildingName={building.name}
@@ -141,15 +146,20 @@ export default async function QrBuildingLanding({ params }: { params: { slug: st
           <>
             {/* Hero */}
             <section className="mt-12 text-center">
-              <div className="chip">For residents of {building.name}</div>
-              <h1 className="mt-5 font-display text-4xl font-bold leading-[1.08] tracking-tight sm:text-5xl">
+              <div className="text-xs font-semibold uppercase tracking-[0.25em] text-gleam">
+                For residents of
+              </div>
+              <div className="mt-1.5 font-display text-2xl font-bold tracking-tight sm:text-3xl">
+                {building.name}
+              </div>
+              <h1 className="mt-6 font-display text-4xl font-bold leading-[1.08] tracking-tight sm:text-5xl">
                 Your car, washed
                 <br />
                 <span className="gleam-text">while it’s parked.</span>
               </h1>
               <p className="mx-auto mt-4 max-w-md text-base leading-relaxed text-ink-300">
-                Book a wash or full detail that happens right in your garage. No driving anywhere,
-                no waiting in line — your car never leaves its spot.
+                Book a wash or full detail that happens right in your building’s garage. No driving
+                anywhere, no waiting in line — the crew comes to you.
               </p>
               <div className="mt-8">
                 <HeroCta href="#pick-a-time" label="Book a wash" buildingName={building.name} />
