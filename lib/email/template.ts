@@ -9,12 +9,12 @@ const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL || 'harold@getlavo.io';
 /** Lavo ribbon mark + wordmark for email clients (absolute URL required). */
 export function emailBrandHeader() {
   const base = APP_URL.replace(/\/$/, '');
-  const logoUrl = `${base}/lavo-email-logo.svg`;
+  const logoUrl = `${base}/lavo-mark.png`;
   return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 8px 0;">
     <tr>
       <td style="vertical-align:middle;padding-right:12px;">
         <a href="${base}" style="text-decoration:none;display:inline-block;">
-          <img src="${logoUrl}" alt="Lavo" width="42" height="55" style="display:block;border:0;outline:none;height:auto;max-width:42px;" />
+          <img src="${logoUrl}" alt="Lavo" width="42" height="44" style="display:block;border:0;outline:none;height:auto;max-width:42px;" />
         </a>
       </td>
       <td style="vertical-align:middle;">

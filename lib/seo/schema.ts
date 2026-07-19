@@ -9,7 +9,7 @@ export function organizationSchema() {
     '@id': `${SITE_ORIGIN}/#organization`,
     name: 'Lavo',
     url: `${SITE_ORIGIN}/`,
-    logo: `${SITE_ORIGIN}/lavo-email-logo.svg`,
+    logo: `${SITE_ORIGIN}/lavo-mark.png`,
     description:
       'Lavo connects apartment residents, property managers, and vetted mobile car wash operators so residents can book car washes without leaving home.',
     email: 'hello@getlavo.io',
