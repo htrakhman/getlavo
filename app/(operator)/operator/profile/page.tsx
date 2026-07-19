@@ -7,6 +7,7 @@ import { AddonsEditor } from './AddonsEditor';
 import { InsuranceUploader } from './InsuranceUploader';
 import { CrewEditor } from './CrewEditor';
 import { PortfolioEditor } from './PortfolioEditor';
+import { WorkingDaysEditor } from './WorkingDaysEditor';
 
 export default async function OperatorProfilePage() {
   const session = await getSessionUser();
@@ -34,6 +35,8 @@ export default async function OperatorProfilePage() {
       <PageHeader eyebrow="Profile" title={op.name} />
       <div className="space-y-6">
         <OperatorProfileEditor op={op} />
+
+        <WorkingDaysEditor op={op} />
 
         <PortfolioEditor operatorId={op.id} initial={portfolio ?? []} />
 
