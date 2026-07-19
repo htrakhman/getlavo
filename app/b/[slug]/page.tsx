@@ -6,7 +6,6 @@ import { getSessionUser } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { logScanEvent } from '@/lib/qr-attribution';
 import { BuildingAttributor } from './BuildingAttributor';
-import { HeroCta } from './HeroCta';
 import { SwitchBuildingConfirm } from './SwitchBuildingConfirm';
 import { AvailabilityCalendar } from './AvailabilityCalendar';
 
@@ -165,14 +164,11 @@ export default async function QrBuildingLanding({ params }: { params: { slug: st
                 Book a wash or full detail that happens right in your building’s garage. No driving
                 anywhere, no waiting in line — the crew comes to you.
               </p>
-              <div className="mt-8">
-                <HeroCta href="#pick-a-time" label="Book a wash" buildingName={building.name} />
-              </div>
               <p className="mt-3 text-xs text-ink-400">Free to join · pay per wash online</p>
             </section>
 
             {/* Live availability */}
-            <section id="pick-a-time" className="mt-12 scroll-mt-6">
+            <section id="pick-a-time" className="mt-8 scroll-mt-6">
               <AvailabilityCalendar slug={slug} />
             </section>
 
