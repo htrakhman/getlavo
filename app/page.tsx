@@ -22,7 +22,7 @@ const AUDIENCES = [
     description: 'Book a car wash at your building, right from your phone.',
     points: [
       'Vetted, insured operators your building already trusts',
-      'Pay in-app with prices shown before you confirm',
+      'Pay online with prices shown before you confirm',
       'Get a photo when your wash is done',
     ],
     signupHref: '/signup?role=resident',

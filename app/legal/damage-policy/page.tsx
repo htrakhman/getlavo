@@ -22,7 +22,7 @@ export default function DamagePolicyPage() {
       />
       <h1 className="font-display text-3xl">Damage policy</h1>
       <p className="mt-4 text-sm leading-relaxed text-ink-300">
-        Pre and post photos are required on every wash. Residents file claims in the app. Operators respond with their photos. Lavo support reviews reports with booking context and may involve operator insurance when applicable.
+        Pre and post photos are required on every wash. Residents file claims from their resident portal. Operators respond with their photos. Lavo support reviews reports with booking context and may involve operator insurance when applicable.
       </p>
       <h2 className="mt-6 font-display text-xl">Who is responsible</h2>
       <p className="mt-2 text-sm leading-relaxed text-ink-300">

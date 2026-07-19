@@ -27,7 +27,7 @@ const RELATED = [
 const WHY_LAVO = [
   {
     title: 'Free for your building',
-    body: 'Lavo never charges the property. Residents pay operators directly through the app.',
+    body: 'Lavo never charges the property. Residents pay operators directly online through your building link.',
   },
   {
     title: 'Zero management overhead',
@@ -80,7 +80,7 @@ const WHAT_YOU_GET = [
 const FAQ = [
   [
     'Does this cost my building anything?',
-    'No. Lavo is free for properties. Residents pay operators directly through the app. The building is never invoiced.',
+    'No. Lavo is free for properties. Residents pay operators directly online. The building is never invoiced.',
   ],
   [
     'What if we already have a car wash vendor?',

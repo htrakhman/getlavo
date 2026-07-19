@@ -97,7 +97,7 @@ export default function HowItWorksPage() {
                 {[
                   "Only see operators within your building's radius — no browsing random listings",
                   'Book a building wash day slot (cheaper) or an on-demand open slot any available day',
-                  'Pay securely in-app. No cash, no Venmo, no awkward conversations',
+                  'Pay securely online. No cash, no Venmo, no awkward conversations',
                   'Get a photo when your wash is done. Leave a review from your phone',
                   'Add wax, interior detail, or tire shine as a one-tap upgrade',
                 ].map((text) => (
