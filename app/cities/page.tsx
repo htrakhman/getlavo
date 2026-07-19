@@ -16,7 +16,7 @@ import { createPageMetadata } from '@/lib/seo/site';
 
 export const metadata = createPageMetadata({
   path: '/cities',
-  title: 'Availability | Lavo Apartment Mobile Car Wash in New Jersey',
+  title: 'Check Your Building | Lavo Apartment Mobile Car Wash in New Jersey',
   description:
     'Check whether Lavo is live at your building. Lavo runs apartment based mobile car wash programs across Hudson, Bergen, and Middlesex County, NJ — find your city or request service at your building.',
 });
@@ -45,7 +45,7 @@ export default function CitiesIndexPage() {
         data={[
           breadcrumbSchema([
             { name: 'Home', path: '/' },
-            { name: 'Availability', path: '/cities' },
+            { name: 'Check your building', path: '/cities' },
           ]),
           serviceSchema({
             path: '/cities',
@@ -61,11 +61,11 @@ export default function CitiesIndexPage() {
       <Breadcrumbs
         items={[
           { name: 'Home', path: '/' },
-          { name: 'Availability', path: '/cities' },
+          { name: 'Check your building', path: '/cities' },
         ]}
       />
       <header className="mb-10">
-        <h1 className="font-display text-3xl text-ink-50 sm:text-4xl">Availability</h1>
+        <h1 className="font-display text-3xl text-ink-50 sm:text-4xl">Check buildings in your area</h1>
         <p className="mt-4 text-base leading-relaxed text-ink-200">
           Lavo focuses on apartment based mobile car wash in Hudson, Bergen, and Middlesex counties,
           helping residents request service at their buildings, property managers add a no cost amenity,
@@ -75,7 +75,7 @@ export default function CitiesIndexPage() {
 
       <section id="check-building" className="mb-10 scroll-mt-24">
         <div className="card p-6 sm:p-8">
-          <h2 className="font-display text-2xl text-ink-100">Check your building&apos;s availability</h2>
+          <h2 className="font-display text-2xl text-ink-100">Is Lavo live at your building?</h2>
           <p className="mt-2 text-sm leading-relaxed text-ink-300">
             Search your address to see if Lavo is live — or request it for your building.
           </p>
