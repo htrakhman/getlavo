@@ -26,10 +26,10 @@ const AUDIENCES = [
       'Get a photo when your wash is done',
     ],
     signupHref: '/signup?role=resident',
-    accentBar: 'border-t-sky-500',
-    accentTitle: 'text-sky-600',
-    accentDot: 'bg-sky-500',
-    accentLink: 'text-sky-600 hover:text-sky-700',
+    accentBar: 'border-t-teal-500',
+    accentTitle: 'text-teal-600',
+    accentDot: 'bg-teal-500',
+    accentLink: 'text-teal-600 hover:text-teal-700',
   },
   {
     id: 'property-managers',
@@ -41,10 +41,10 @@ const AUDIENCES = [
       'We handle operators, scheduling, and payments',
     ],
     signupHref: '/signup?role=building_manager',
-    accentBar: 'border-t-violet-500',
-    accentTitle: 'text-violet-600',
-    accentDot: 'bg-violet-500',
-    accentLink: 'text-violet-600 hover:text-violet-700',
+    accentBar: 'border-t-sky-400',
+    accentTitle: 'text-sky-500',
+    accentDot: 'bg-sky-400',
+    accentLink: 'text-sky-500 hover:text-sky-600',
   },
   {
     id: 'operators',
@@ -56,10 +56,10 @@ const AUDIENCES = [
       'Stripe payouts directly to your account',
     ],
     signupHref: '/signup?role=operator',
-    accentBar: 'border-t-amber-500',
-    accentTitle: 'text-amber-600',
-    accentDot: 'bg-amber-500',
-    accentLink: 'text-amber-600 hover:text-amber-700',
+    accentBar: 'border-t-blue-800',
+    accentTitle: 'text-blue-800',
+    accentDot: 'bg-blue-800',
+    accentLink: 'text-blue-800 hover:text-blue-900',
   },
 ] as const;
 
@@ -124,19 +124,19 @@ export default async function Home({
             <div className="flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
               <Link
                 href="/signup?role=resident"
-                className="w-full rounded-full bg-sky-600 px-7 py-3 text-base font-medium text-sky-50 shadow-card transition-colors hover:bg-sky-700 sm:w-auto"
+                className="w-full rounded-full bg-teal-600 px-7 py-3 text-base font-medium text-teal-50 shadow-card transition-colors hover:bg-teal-700 sm:w-auto"
               >
                 Sign up as a resident
               </Link>
               <Link
                 href="/signup?role=building_manager"
-                className="w-full rounded-full bg-violet-600 px-7 py-3 text-base font-medium text-violet-50 shadow-card transition-colors hover:bg-violet-700 sm:w-auto"
+                className="w-full rounded-full bg-sky-500 px-7 py-3 text-base font-medium text-white shadow-card transition-colors hover:bg-sky-600 sm:w-auto"
               >
                 Sign up as a property manager
               </Link>
               <Link
                 href="/signup?role=operator"
-                className="w-full rounded-full bg-amber-500 px-7 py-3 text-base font-medium text-amber-950 shadow-card transition-colors hover:bg-amber-600 sm:w-auto"
+                className="w-full rounded-full bg-blue-800 px-7 py-3 text-base font-medium text-blue-50 shadow-card transition-colors hover:bg-blue-900 sm:w-auto"
               >
                 Sign up as an operator
               </Link>
