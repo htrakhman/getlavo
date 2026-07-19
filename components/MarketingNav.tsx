@@ -111,7 +111,7 @@ export function MarketingNav() {
   return (
     <header className="relative mx-auto flex max-w-7xl items-center justify-between px-6 py-6">
       <Logo />
-      <nav className="hidden items-center gap-6 text-sm text-ink-300 lg:gap-8 md:flex">
+      <nav className="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-6 text-sm text-ink-300 lg:gap-8 md:flex">
         {PRIMARY_LINKS.map((l) => (
           <Link key={l.href} href={l.href} className="hover:text-ink-100">
             {l.label}
