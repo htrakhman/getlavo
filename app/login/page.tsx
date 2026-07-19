@@ -3,9 +3,30 @@ import { Suspense } from 'react';
 import { Logo } from '@/components/Logo';
 import { supabaseBrowser } from '@/lib/supabase/client';
 import { pickLandingPortal, signupHrefFromPortalPrefer, signupRoleFromPortalPrefer } from '@/lib/portal-routing';
+import type { ReadonlyURLSearchParams } from 'next/navigation';
 import { safeInternalPath } from '@/lib/safe-redirect';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
+
+const PORTAL_LABELS: Record<string, string> = {
+  building: 'Property Manager',
+  operator: 'Car Wash Operator',
+  resident: 'Resident',
+};
+
+/** Human-readable description of what the visitor is logging in as / to, from the URL that got them here. */
+function loginContextLabel(params: ReadonlyURLSearchParams): string | null {
+  const prefer = params.get('prefer');
+  if (prefer && PORTAL_LABELS[prefer]) return `Logging in as a ${PORTAL_LABELS[prefer]}`;
+  const next = params.get('next');
+  if (next === '/building') return `Logging in as a ${PORTAL_LABELS.building}`;
+  if (next === '/operator') return `Logging in as a ${PORTAL_LABELS.operator}`;
+  if (next === '/resident') return `Logging in as a ${PORTAL_LABELS.resident}`;
+  if (params.get('b') || params.get('building') || params.get('redirect')?.startsWith('/schedule')) {
+    return 'Logging in to book your car wash';
+  }
+  return null;
+}
 
 function LoginForm() {
   const params = useSearchParams();
@@ -21,6 +42,7 @@ function LoginForm() {
   const [password, setPassword] = useState('');
   const [err, setErr] = useState<string | null>(params.get('error') ? 'Sign-in failed — please try again.' : null);
   const [busy, setBusy] = useState(false);
+  const contextLabel = loginContextLabel(params);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -75,6 +97,7 @@ function LoginForm() {
       <Logo />
       <div className="mt-16">
         <h1 className="font-display text-4xl tracking-tight">Welcome back</h1>
+        {contextLabel && <p className="mt-2 text-sm text-ink-400">{contextLabel}</p>}
 
         <button
           onClick={signInWithGoogle}
