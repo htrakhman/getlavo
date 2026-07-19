@@ -2,6 +2,8 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextRequest, NextResponse } from 'next/server';
 import { homePathForSignupRole, normalizeSignupRole, pickLandingPortal, portalForSignupRole } from '@/lib/portal-routing';
 import { notifySignup } from '@/lib/auth/notify-signup';
+import { safeInternalPath } from '@/lib/safe-redirect';
+import { QR_SLUG_COOKIE, logScanEvent } from '@/lib/qr-attribution';
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
@@ -52,6 +54,17 @@ export async function GET(request: NextRequest) {
         method: 'email',
       });
       await supabase.auth.updateUser({ data: { signup_notified: true } }).catch(() => {});
+
+      // Attribute the completed signup to the building QR that started the flow.
+      const qrSlug = request.cookies.get(QR_SLUG_COOKIE)?.value;
+      if (qrSlug) {
+        await logScanEvent({
+          slug: qrSlug,
+          event: 'signup',
+          profileId: confirmedUser.id,
+          userAgent: request.headers.get('user-agent'),
+        });
+      }
     }
   }
 
@@ -60,10 +73,11 @@ export async function GET(request: NextRequest) {
     return redirect(`${origin}/reset-password`);
   }
 
-  // If a next= param was passed, honour it (must be a known portal path)
-  const PORTAL_PATHS = ['/resident', '/building', '/operator'] as const;
-  if (next && PORTAL_PATHS.includes(next as (typeof PORTAL_PATHS)[number])) {
-    return redirect(`${origin}${next}`);
+  // If a next= param was passed, honour it (any same-origin path — e.g. the
+  // building QR funnel's /schedule?b={slug} target)
+  const safeNext = safeInternalPath(next);
+  if (safeNext) {
+    return redirect(`${origin}${safeNext}`);
   }
 
   // Resolve destination from role

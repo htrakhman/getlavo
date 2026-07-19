@@ -2,6 +2,8 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextRequest, NextResponse } from 'next/server';
 import { homePathForPortalKind, normalizeSignupRole, pickLandingPortal, portalForSignupRole } from '@/lib/portal-routing';
 import { notifySignup } from '@/lib/auth/notify-signup';
+import { safeInternalPath } from '@/lib/safe-redirect';
+import { QR_SLUG_COOKIE, logScanEvent } from '@/lib/qr-attribution';
 
 export type OAuthCallbackOptions = {
   /** Optional segment from `/auth/callback/:signupRole` (legacy / extra allowlist entries). */
@@ -12,6 +14,7 @@ export async function handleOAuthCallback(request: NextRequest, options: OAuthCa
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
   const roleFromQuery = searchParams.get('role');
+  const redirectParam = safeInternalPath(searchParams.get('redirect'));
   const cookieRole = request.cookies.get('oauth_signup_role')?.value;
   const pathRoleCandidate = options.roleFromPath ?? null;
 
@@ -119,6 +122,17 @@ export async function handleOAuthCallback(request: NextRequest, options: OAuthCa
         method: 'google',
       });
       await supabase.auth.updateUser({ data: { signup_notified: true } }).catch(() => {});
+
+      // Attribute the completed signup to the building QR that started the flow.
+      const qrSlug = request.cookies.get(QR_SLUG_COOKIE)?.value;
+      if (qrSlug) {
+        await logScanEvent({
+          slug: qrSlug,
+          event: 'signup',
+          profileId: user.id,
+          userAgent: request.headers.get('user-agent'),
+        });
+      }
     }
 
     dest = homePathForPortalKind(requestedPortal);
@@ -128,6 +142,12 @@ export async function handleOAuthCallback(request: NextRequest, options: OAuthCa
 
   if (role) {
     await supabase.auth.updateUser({ data: { role } }).catch(() => {});
+  }
+
+  // A validated redirect param (e.g. the QR funnel's /schedule?b={slug}) wins
+  // over the default portal home — but never over pick-role/error routes.
+  if (redirectParam && !dest.startsWith('/auth/')) {
+    dest = redirectParam;
   }
 
   return redirectWithSessionCookies(`${origin}${dest}`);

@@ -3,6 +3,7 @@ import { Suspense } from 'react';
 import { Logo } from '@/components/Logo';
 import { supabaseBrowser } from '@/lib/supabase/client';
 import { pickLandingPortal, signupHrefFromPortalPrefer, signupRoleFromPortalPrefer } from '@/lib/portal-routing';
+import { safeInternalPath } from '@/lib/safe-redirect';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
@@ -34,6 +35,13 @@ function LoginForm() {
       sb.from('profile_portals').select('portal').eq('profile_id', user.id),
     ]);
     if (pe) { setErr(`Profile error: ${pe.message}`); setBusy(false); return; }
+    // QR-funnel (and other) deep links: ?redirect= wins over portal routing.
+    const redirectTarget = safeInternalPath(params.get('redirect'));
+    if (redirectTarget) {
+      setBusy(false);
+      window.location.href = `/auth/continue?next=${encodeURIComponent(redirectTarget)}`;
+      return;
+    }
     const nextRaw = params.get('next');
     if (nextRaw === '/resident' || nextRaw === '/building' || nextRaw === '/operator') {
       setBusy(false);
@@ -53,9 +61,12 @@ function LoginForm() {
 
   async function signInWithGoogle() {
     const sb = supabaseBrowser();
+    const callback = new URL('/auth/callback', window.location.origin);
+    const redirectTarget = safeInternalPath(params.get('redirect'));
+    if (redirectTarget) callback.searchParams.set('redirect', redirectTarget);
     await sb.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      options: { redirectTo: callback.toString() },
     });
   }
 

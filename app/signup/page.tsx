@@ -6,6 +6,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { Turnstile } from '@/components/Turnstile';
 import { homePathForSignupRole, normalizeSignupRole, type SignupRole } from '@/lib/portal-routing';
+import { safeInternalPath } from '@/lib/safe-redirect';
 
 const ROLES = [
   {
@@ -63,7 +64,8 @@ function SignupForm() {
   );
 
   useEffect(() => {
-    const b = params.get('building');
+    // `b` is the short param used by the building QR funnel; `building` is legacy.
+    const b = params.get('b') ?? params.get('building');
     if (b && typeof window !== 'undefined') {
       localStorage.setItem('lavo_building_slug', b);
     }
@@ -123,9 +125,12 @@ function SignupForm() {
       return;
     }
 
+    const redirectTarget = safeInternalPath(params.get('redirect'));
+
     const sb = supabaseBrowser();
     const confirmUrl = new URL('/auth/confirm', window.location.origin);
     confirmUrl.searchParams.set('role', role);
+    if (redirectTarget) confirmUrl.searchParams.set('next', redirectTarget);
     const { data, error } = await sb.auth.signUp({
       email,
       password,
@@ -174,9 +179,21 @@ function SignupForm() {
 
     await sb.auth.getSession();
     fetch('/api/auth/notify-signup', { method: 'POST', keepalive: true }).catch(() => {});
+
+    // Attribute the completed signup to the building QR that started the flow.
+    const qrSlug = params.get('b') ?? localStorage.getItem('lavo_building_slug');
+    if (qrSlug) {
+      fetch('/api/b/track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug: qrSlug, event: 'signup' }),
+        keepalive: true,
+      }).catch(() => {});
+    }
+
     setBusy(false);
-    const home = homePathForSignupRole(role);
-    window.location.assign(`/auth/continue?next=${encodeURIComponent(home)}`);
+    const dest = redirectTarget ?? homePathForSignupRole(role);
+    window.location.assign(`/auth/continue?next=${encodeURIComponent(dest)}`);
   }
 
   async function signUpWithGoogle() {
@@ -204,10 +221,14 @@ function SignupForm() {
         return;
       }
       const sb = supabaseBrowser();
+      const redirectTarget = safeInternalPath(params.get('redirect'));
+      const callback = new URL('/auth/callback', window.location.origin);
+      callback.searchParams.set('role', role);
+      if (redirectTarget) callback.searchParams.set('redirect', redirectTarget);
       const { error } = await sb.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback?role=${encodeURIComponent(role)}`,
+          redirectTo: callback.toString(),
         },
       });
       if (error) setErr(error.message);
