@@ -130,7 +130,12 @@ export default async function QrBuildingLanding({ params }: { params: { slug: st
 
         {mismatchResident ? (
           <div className="mt-16">
-            <div className="chip mb-6">For residents of {building.name}</div>
+            <div className="mb-6">
+              <div className="text-xs font-semibold uppercase tracking-[0.25em] text-gleam">
+                For residents of
+              </div>
+              <div className="mt-1 font-display text-2xl font-bold tracking-tight">{building.name}</div>
+            </div>
             <SwitchBuildingConfirm
               slug={slug}
               buildingName={building.name}
@@ -141,8 +146,13 @@ export default async function QrBuildingLanding({ params }: { params: { slug: st
           <>
             {/* Hero */}
             <section className="mt-12 text-center">
-              <div className="chip">For residents of {building.name}</div>
-              <h1 className="mt-5 font-display text-4xl font-bold leading-[1.08] tracking-tight sm:text-5xl">
+              <div className="text-xs font-semibold uppercase tracking-[0.25em] text-gleam">
+                For residents of
+              </div>
+              <div className="mt-1.5 font-display text-2xl font-bold tracking-tight sm:text-3xl">
+                {building.name}
+              </div>
+              <h1 className="mt-6 font-display text-4xl font-bold leading-[1.08] tracking-tight sm:text-5xl">
                 Your car, washed
                 <br />
                 <span className="gleam-text">while it’s parked.</span>
