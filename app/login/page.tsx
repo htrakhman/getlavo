@@ -94,7 +94,7 @@ function LoginForm() {
           <div><label className="label">Email</label><input className="field" type="email" required value={email} onChange={(e)=>setEmail(e.target.value)} /></div>
           <div><label className="label">Password</label><input className="field" type="password" required value={password} onChange={(e)=>setPassword(e.target.value)} /></div>
           {err && <div className="text-sm text-red-400">{err}</div>}
-          <button disabled={busy} className="btn-primary w-full">{busy ? 'Signing in…' : 'Sign in'}</button>
+          <button disabled={busy} className="btn-primary w-full">{busy ? 'Logging in…' : 'Login'}</button>
         </form>
 
         <div className="mt-4 text-center text-xs">

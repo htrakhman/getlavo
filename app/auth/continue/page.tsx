@@ -26,7 +26,7 @@ function ContinueInner() {
       }
       attempts += 1;
       if (attempts >= maxAttempts) {
-        setNote('Session not ready — please sign in.');
+        setNote('Session not ready — please log in.');
         window.location.replace(`/login?next=${encodeURIComponent(dest)}`);
         return;
       }

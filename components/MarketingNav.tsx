@@ -87,7 +87,7 @@ function MobileMarketingMenu() {
             <Link href="/signup" onClick={() => setOpen(false)} className="btn-primary w-full py-3">
               Sign up
             </Link>
-            <div className="mt-4 text-xs uppercase tracking-widest text-ink-500">Sign in as</div>
+            <div className="mt-4 text-xs uppercase tracking-widest text-ink-500">Login as</div>
             <div className="mt-1 flex flex-col">
               {ROLES.map((r) => (
                 <Link
@@ -123,12 +123,12 @@ export function MarketingNav() {
           <NavDropdown
             trigger={
               <button className="btn-quiet flex items-center gap-1.5">
-                Sign in
+                Login
                 <ChevronDown />
               </button>
             }
           >
-            <div className="px-3 py-2 text-[10px] uppercase tracking-widest text-ink-500">Sign in as</div>
+            <div className="px-3 py-2 text-[10px] uppercase tracking-widest text-ink-500">Login as</div>
             {ROLES.map((r) => (
               <Link
                 key={r.label}

@@ -82,7 +82,7 @@ export default async function QrBuildingLanding({ params }: { params: { slug: st
               Sign up for Lavo
             </a>
             <a href="/login" className="btn-quiet mt-3 w-full">
-              Already have an account? Sign in
+              Already have an account? Login
             </a>
           </div>
         </div>
@@ -128,7 +128,7 @@ export default async function QrBuildingLanding({ params }: { params: { slug: st
         <header className="flex items-center justify-between">
           <Logo size="sm" />
           <a href={loginHref} className="btn-quiet text-sm">
-            Sign in
+            Login
           </a>
         </header>
 
@@ -218,7 +218,7 @@ export default async function QrBuildingLanding({ params }: { params: { slug: st
               <div className="mt-2">
                 Already a member?{' '}
                 <a href={loginHref} className="font-medium text-gleam hover:text-gleam-300">
-                  Sign in
+                  Login
                 </a>
               </div>
             </footer>

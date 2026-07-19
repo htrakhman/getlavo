@@ -152,7 +152,7 @@ export function OperatorApplicationForm({
       <p className="text-center text-xs text-ink-500">
         Already approved?{' '}
         <Link href="/signup?role=operator" className="text-gleam hover:underline">
-          Sign in or create account
+          Login or create account
         </Link>
       </p>
     </form>

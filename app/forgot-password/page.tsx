@@ -45,7 +45,7 @@ export default function ForgotPasswordPage() {
         )}
 
         <div className="mt-6 text-center text-sm text-ink-400">
-          <a href="/login" className="text-gleam">Back to sign in</a>
+          <a href="/login" className="text-gleam">Back to login</a>
         </div>
       </div>
     </main>

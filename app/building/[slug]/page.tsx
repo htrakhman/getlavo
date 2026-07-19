@@ -142,7 +142,7 @@ export default async function BuildingCanonicalPage({ params }: { params: { slug
                   Sign up and get your first wash
                 </Link>
                 <Link href={`/login?building=${params.slug}`} className="btn-quiet w-full text-center">
-                  Already have an account? Sign in
+                  Already have an account? Login
                 </Link>
               </div>
             </div>

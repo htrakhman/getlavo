@@ -37,7 +37,7 @@ export default function PickRolePage() {
     setBusy(true); setErr(null);
     const sb = supabaseBrowser();
     const { data: { user } } = await sb.auth.getUser();
-    if (!user) { setErr('Session expired — please sign in again'); setBusy(false); return; }
+    if (!user) { setErr('Session expired — please log in again'); setBusy(false); return; }
 
     const fullName =
       user.user_metadata?.full_name ||
