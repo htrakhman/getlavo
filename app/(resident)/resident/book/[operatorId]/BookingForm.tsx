@@ -5,7 +5,10 @@ import { captureEvent } from '@/lib/analytics';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
-const TIME_SLOTS = ['8:00 AM', '9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM', '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM'];
+const TIME_SLOTS = [
+  '8:00 AM', '9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM',
+  '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM', '6:00 PM', '7:00 PM',
+];
 
 function isoDateMin() {
   const d = new Date();
@@ -27,6 +30,8 @@ export function BookingForm({
   vehicles,
   isPartner,
   partnershipId,
+  initialDate,
+  initialTimeSlot,
 }: {
   operatorId: string;
   operatorName: string;
@@ -35,14 +40,21 @@ export function BookingForm({
   vehicles: { id: string; make: string; model: string; color: string; license_plate: string; is_primary: boolean }[];
   isPartner: boolean;
   partnershipId?: string;
+  initialDate?: string;
+  initialTimeSlot?: string;
 }) {
   const router = useRouter();
   const [bookingType, setBookingType] = useState<'building_day' | 'open_slot'>(
     isPartner ? 'building_day' : 'open_slot'
   );
   const [vehicleId, setVehicleId] = useState(vehicles.find((v) => v.is_primary)?.id ?? vehicles[0]?.id ?? '');
-  const [date, setDate] = useState('');
-  const [timeSlot, setTimeSlot] = useState(TIME_SLOTS[0]);
+  // A slot picked on the QR landing calendar arrives via query params.
+  const [date, setDate] = useState(() =>
+    initialDate && initialDate >= isoDateMin() && initialDate <= isoDateMax() ? initialDate : ''
+  );
+  const [timeSlot, setTimeSlot] = useState(() =>
+    initialTimeSlot && TIME_SLOTS.includes(initialTimeSlot) ? initialTimeSlot : TIME_SLOTS[0]
+  );
   const [recurring, setRecurring] = useState<'none' | 'weekly' | 'biweekly' | 'monthly'>('none');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);

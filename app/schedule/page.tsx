@@ -10,11 +10,20 @@ export const dynamic = 'force-dynamic';
  * assigned operator; anyone not ready yet is sent to the step that gets
  * them there (login → onboarding → confirm-switch).
  */
-export default async function SchedulePage({ searchParams }: { searchParams: { b?: string } }) {
+export default async function SchedulePage({
+  searchParams,
+}: {
+  searchParams: { b?: string; date?: string; time?: string };
+}) {
   const slug = (searchParams.b ?? '').trim();
   if (!slug) redirect('/resident/book');
 
-  const self = `/schedule?b=${encodeURIComponent(slug)}`;
+  // Optional preselected slot from the landing-page calendar.
+  const date = /^\d{4}-\d{2}-\d{2}$/.test(searchParams.date ?? '') ? searchParams.date! : null;
+  const time = /^\d{1,2}:\d{2} (AM|PM)$/.test(searchParams.time ?? '') ? searchParams.time! : null;
+  const slotQs = `${date ? `&date=${encodeURIComponent(date)}` : ''}${time ? `&time=${encodeURIComponent(time)}` : ''}`;
+
+  const self = `/schedule?b=${encodeURIComponent(slug)}${slotQs}`;
   const session = await getSessionUser();
   if (!session) redirect(`/login?b=${encodeURIComponent(slug)}&redirect=${encodeURIComponent(self)}`);
 
@@ -50,7 +59,7 @@ export default async function SchedulePage({ searchParams }: { searchParams: { b
 
   const operator = (partnership?.operator as any) ?? null;
   if (operator && operator.status === 'approved' && operator.stripe_onboarding_complete) {
-    redirect(`/resident/book/${operator.id}?partnershipId=${partnership!.id}`);
+    redirect(`/resident/book/${operator.id}?partnershipId=${partnership!.id}${slotQs}`);
   }
 
   // No bookable assigned operator yet — the general booking page handles that.

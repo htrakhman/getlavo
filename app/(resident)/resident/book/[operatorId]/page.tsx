@@ -9,7 +9,7 @@ export default async function BookOperator({
   searchParams,
 }: {
   params: { operatorId: string };
-  searchParams: { partnershipId?: string };
+  searchParams: { partnershipId?: string; date?: string; time?: string };
 }) {
   const session = await getSessionUser();
   if (!session) redirect('/login');
@@ -79,6 +79,8 @@ export default async function BookOperator({
           vehicles={vehicles ?? []}
           isPartner={isPartner}
           partnershipId={searchParams.partnershipId}
+          initialDate={searchParams.date}
+          initialTimeSlot={searchParams.time}
         />
       </div>
     </>
