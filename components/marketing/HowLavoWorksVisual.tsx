@@ -470,8 +470,8 @@ function PlatformDiagram() {
             <line x1="560" y1="188" x2="580" y2="248" />
           </g>
 
-          <Node x={120} y={72} label="Setup" accent="purple" />
-          <Node x={600} y={72} label="QR Link" accent="purple" />
+          <Node x={120} y={72} label="Setup" accent="blue" />
+          <Node x={600} y={72} label="QR Link" accent="blue" />
           <Node x={360} y={108} label="Booking" hub />
           <Node x={120} y={188} label="Vehicle" />
           <Node x={240} y={200} label="Parking Spot" />
@@ -500,12 +500,12 @@ function Node({
   y: number;
   label: string;
   hub?: boolean;
-  accent?: 'purple' | 'green';
+  accent?: 'blue' | 'green';
 }) {
   const w = hub ? 100 : label.length > 12 ? 110 : 88;
   const h = 36;
   const stroke =
-    hub ? '#19F0D8' : accent === 'purple' ? 'rgba(139,53,201,0.5)' : accent === 'green' ? 'rgba(25,240,216,0.45)' : 'rgba(255,255,255,0.15)';
+    hub ? '#19F0D8' : accent === 'blue' ? 'rgba(56,189,248,0.55)' : accent === 'green' ? 'rgba(25,240,216,0.45)' : 'rgba(255,255,255,0.15)';
   const fill = hub ? 'rgba(25,240,216,0.15)' : 'rgba(15,17,21,0.92)';
 
   return (

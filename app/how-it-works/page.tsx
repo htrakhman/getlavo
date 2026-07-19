@@ -86,7 +86,7 @@ export default function HowItWorksPage() {
         <div className="mx-auto max-w-6xl px-6 py-20">
           <div className="grid grid-cols-1 gap-12 lg:grid-cols-2 items-center">
             <div>
-              <h2 className="font-display text-4xl font-bold tracking-tight leading-[1.1] md:text-5xl mb-3 text-sky-600">
+              <h2 className="font-display text-4xl font-bold tracking-tight leading-[1.1] md:text-5xl mb-3 text-teal-600">
                 For residents
               </h2>
               <p className="text-ink-300 leading-relaxed max-w-md mb-8">
@@ -102,7 +102,7 @@ export default function HowItWorksPage() {
                   'Add wax, interior detail, or tire shine as a one-tap upgrade',
                 ].map((text) => (
                   <li key={text} className="flex gap-3.5">
-                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-sky-500" aria-hidden />
+                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-teal-500" aria-hidden />
                     <span className="leading-relaxed">{text}</span>
                   </li>
                 ))}
@@ -111,16 +111,16 @@ export default function HowItWorksPage() {
                 Sign up as a resident
               </Link>
             </div>
-            <div className="card p-8 space-y-5 border-t-4 border-t-sky-500">
+            <div className="card p-8 space-y-5 border-t-4 border-t-teal-500">
               <div>
-                <div className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-600">Building wash day</div>
+                <div className="text-xs font-semibold uppercase tracking-[0.18em] text-teal-600">Building wash day</div>
                 <p className="mt-2 text-sm leading-relaxed text-ink-200">
                   Scheduled visit — operators set their own rate for partnered buildings. Residents always see
                   the exact price before booking.
                 </p>
               </div>
               <div className="border-t border-white/10 pt-5">
-                <div className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-600">On-demand slot</div>
+                <div className="text-xs font-semibold uppercase tracking-[0.18em] text-teal-600">On-demand slot</div>
                 <p className="mt-2 text-sm leading-relaxed text-ink-200">
                   Book any available date. Price is set by the operator and shown upfront.
                 </p>
@@ -138,7 +138,7 @@ export default function HowItWorksPage() {
         <div className="mx-auto max-w-6xl px-6 py-20">
           <div className="grid grid-cols-1 gap-12 lg:grid-cols-2 lg:gap-16 items-start">
             <div className="max-w-lg">
-              <h2 className="font-display text-4xl font-bold tracking-tight leading-[1.1] md:text-5xl mb-4 text-violet-600">
+              <h2 className="font-display text-4xl font-bold tracking-tight leading-[1.1] md:text-5xl mb-4 text-sky-500">
                 For property managers
               </h2>
               <p className="text-ink-300 leading-relaxed mb-8">
@@ -155,7 +155,7 @@ export default function HowItWorksPage() {
                   'Works with garages, surface lots, and scheduled service days',
                 ].map((text) => (
                   <li key={text} className="flex gap-3.5">
-                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-violet-500" aria-hidden />
+                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-sky-400" aria-hidden />
                     <span className="leading-relaxed">{text}</span>
                   </li>
                 ))}
@@ -164,8 +164,8 @@ export default function HowItWorksPage() {
                 Get your building link
               </Link>
             </div>
-            <div className="card p-6 sm:p-8 border-t-4 border-t-violet-500">
-              <div className="text-xs font-semibold uppercase tracking-[0.18em] text-violet-600 mb-5">What you get</div>
+            <div className="card p-6 sm:p-8 border-t-4 border-t-sky-400">
+              <div className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-500 mb-5">What you get</div>
               <div className="divide-y divide-white/10">
                 {[
                   {
@@ -204,7 +204,7 @@ export default function HowItWorksPage() {
         <div className="mx-auto max-w-6xl px-6 py-20">
           <div className="grid grid-cols-1 gap-12 lg:grid-cols-2 items-center">
             <div>
-              <h2 className="font-display text-4xl font-bold tracking-tight leading-[1.1] md:text-5xl mb-3 text-amber-600">
+              <h2 className="font-display text-4xl font-bold tracking-tight leading-[1.1] md:text-5xl mb-3 text-blue-800">
                 For operators
               </h2>
               <p className="text-ink-300 leading-relaxed max-w-md mb-8">
@@ -220,7 +220,7 @@ export default function HowItWorksPage() {
                   'Build your reputation with verified reviews from real residents',
                 ].map((text) => (
                   <li key={text} className="flex gap-3.5">
-                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500" aria-hidden />
+                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-800" aria-hidden />
                     <span className="leading-relaxed">{text}</span>
                   </li>
                 ))}
@@ -229,16 +229,16 @@ export default function HowItWorksPage() {
                 Apply as an operator
               </Link>
             </div>
-            <div className="card p-8 space-y-5 border-t-4 border-t-amber-500">
+            <div className="card p-8 space-y-5 border-t-4 border-t-blue-800">
               <div>
-                <div className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-600">Building partnerships</div>
+                <div className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-800">Building partnerships</div>
                 <p className="mt-2 text-sm leading-relaxed text-ink-200">
                   Apply to partner with buildings in your area. Once approved, you run scheduled wash days and
                   get direct access to their residents.
                 </p>
               </div>
               <div className="border-t border-white/10 pt-5">
-                <div className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-600">Open-slot bookings</div>
+                <div className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-800">Open-slot bookings</div>
                 <p className="mt-2 text-sm leading-relaxed text-ink-200">
                   Residents can book you on any day you mark available — at your open-slot rate. Fill dead days
                   without lifting a finger on marketing.
