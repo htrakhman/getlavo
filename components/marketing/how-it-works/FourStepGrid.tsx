@@ -9,7 +9,7 @@ const STEPS = [
   {
     num: 2,
     title: 'We come to your building',
-    body: 'A vetted local wash team arrives on-site and follows your building’s process.',
+    body: 'A vetted local wash team arrives on-site with everything they need.',
   },
   {
     num: 3,

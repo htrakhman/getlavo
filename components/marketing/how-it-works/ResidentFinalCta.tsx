@@ -6,7 +6,7 @@ export function ResidentFinalCta() {
   return (
     <section id="check-building" className="mx-auto max-w-xl scroll-mt-24 px-6 py-20">
       <h2 className="font-display text-center text-3xl font-semibold tracking-tight md:text-4xl">
-        Check availability at your building
+        Check your building&apos;s availability
       </h2>
       <p className="mx-auto mt-4 max-w-lg text-center text-ink-300">
         Search your address to see if Lavo is live — or request it for your building.

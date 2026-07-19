@@ -269,6 +269,13 @@ function SignupForm() {
           <p className="mt-3 text-xs text-ink-500">Select one of the options above to continue with Google or email.</p>
         )}
 
+        <p className="mt-4 text-sm text-ink-400">
+          Not sure Lavo is at your building yet?{' '}
+          <a href="/cities#check-building" className="text-gleam underline-offset-2 hover:underline">
+            Check your building&apos;s availability
+          </a>
+        </p>
+
         <button
           type="button"
           onClick={signUpWithGoogle}

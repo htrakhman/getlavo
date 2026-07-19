@@ -122,15 +122,30 @@ export default async function Home({
               <div className="h-px flex-1 bg-gradient-to-l from-transparent to-ink-600" />
             </div>
             <div className="flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
-              <Link href="/signup" className="btn-primary w-full px-8 py-3 text-base sm:w-auto">
-                Sign up
+              <Link
+                href="/signup?role=resident"
+                className="w-full rounded-full bg-sky-600 px-7 py-3 text-base font-medium text-sky-50 shadow-card transition-colors hover:bg-sky-700 sm:w-auto"
+              >
+                Sign up as a resident
               </Link>
-              <Link href="/learn-more" className="btn-ghost w-full px-8 py-3 text-base sm:w-auto">
-                Learn more
+              <Link
+                href="/signup?role=building_manager"
+                className="w-full rounded-full bg-violet-600 px-7 py-3 text-base font-medium text-violet-50 shadow-card transition-colors hover:bg-violet-700 sm:w-auto"
+              >
+                Sign up as a property manager
+              </Link>
+              <Link
+                href="/signup?role=operator"
+                className="w-full rounded-full bg-amber-500 px-7 py-3 text-base font-medium text-amber-950 shadow-card transition-colors hover:bg-amber-600 sm:w-auto"
+              >
+                Sign up as an operator
               </Link>
             </div>
             <p className="mt-4 text-sm text-ink-400">
-              Residents, property managers, and wash operators each get their own account.
+              Each group gets its own account.{' '}
+              <Link href="/how-it-works" className="font-medium text-gleam hover:text-gleam-300">
+                See how it works →
+              </Link>
             </p>
           </div>
         </div>
@@ -167,8 +182,8 @@ export default async function Home({
             <h2 className="mt-3 font-display text-4xl font-bold tracking-tight md:text-5xl">Who Lavo is for</h2>
             <p className="mt-4 text-ink-300">
               Pick yours below — or read the full breakdown on the{' '}
-              <Link href="/learn-more" className="font-medium text-gleam hover:text-gleam-300">
-                Learn more
+              <Link href="/how-it-works" className="font-medium text-gleam hover:text-gleam-300">
+                How it works
               </Link>{' '}
               page.
             </p>
@@ -191,7 +206,7 @@ export default async function Home({
                     Sign up →
                   </Link>
                   <Link
-                    href={`/learn-more#${a.id}`}
+                    href={`/how-it-works#${a.id}`}
                     className="text-sm font-medium text-ink-400 hover:text-ink-100 transition-colors"
                   >
                     Learn more
