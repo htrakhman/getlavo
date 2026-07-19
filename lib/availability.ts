@@ -3,14 +3,18 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
 /**
  * Single source of truth for bookable wash slots. Every surface that shows
  * availability (QR landing calendar, resident booking form, /schedule) reads
- * through here, so an operator updating their hours — or a building manager
- * and operator agreeing on wash days — propagates everywhere at once.
+ * through here, so an operator updating their wash days — or a building
+ * manager overriding them — propagates everywhere at once.
  *
- * Day filtering, in priority order:
- *  1. Confirmed wash_days rows for the building (specific agreed dates).
- *  2. The building's weekly wash_day / preferred_wash_day (recurring weekday).
- *  3. No agreement recorded yet → operator's general hours only.
- * The agreed-day constraint applies only to the building's partnered operator.
+ * Day filtering for the building's partnered operator:
+ *  - Base: the wash days the operator selects (non-closed days in hours_json).
+ *  - Override: if the property manager set a weekly day on the building
+ *    (wash_day, else preferred_wash_day), that day replaces the operator's
+ *    selection — the manager's preference wins even where it disagrees.
+ *  - Specific wash_days rows (operator-proposed, manager-confirmed dates) are
+ *    always bookable on top of either of the above.
+ * Slot times always come from the operator's hours for that weekday. For a
+ * non-partnered operator only their own hours/days apply.
  */
 
 const DOW_KEYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const;
@@ -104,9 +108,7 @@ export async function getBuildingAvailability(
   }
 
   const agreedDates = new Set((agreedRows ?? []).map((r: any) => r.scheduled_for as string));
-  const weeklyDay = building.wash_day ?? building.preferred_wash_day ?? null;
-  // Only constrain to agreed days when an agreement actually exists.
-  const hasAgreement = isPartnerOperator && (agreedDates.size > 0 || !!weeklyDay);
+  const managerDay = building.wash_day ?? building.preferred_wash_day ?? null;
 
   const hours = (operator.hours_json ?? {}) as Record<string, DayHours>;
   const capacity = operator.capacity_per_day ?? 20;
@@ -114,14 +116,17 @@ export async function getBuildingAvailability(
   return dates.map((date) => {
     const dow = DOW_KEYS[new Date(`${date}T12:00:00Z`).getUTCDay()];
     const dayHours = hours[dow];
-    const closed = dayHours?.closed === true;
+    const operatorDay = dayHours?.closed !== true;
     const open = parseHour(dayHours?.open, 8);
     const close = parseHour(dayHours?.close, 17);
     const full = (bookedPerDay.get(date) ?? 0) >= capacity;
-    const agreed = !hasAgreement || agreedDates.has(date) || sameWeekday(weeklyDay, dow);
+
+    const bookable = isPartnerOperator
+      ? agreedDates.has(date) || (managerDay ? sameWeekday(managerDay, dow) : operatorDay)
+      : operatorDay;
 
     const slots: string[] = [];
-    if (!closed && !full && agreed) {
+    if (bookable && !full) {
       for (let h = open; h < close; h++) slots.push(hourLabel(h));
     }
 
