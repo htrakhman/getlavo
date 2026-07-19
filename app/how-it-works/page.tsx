@@ -27,7 +27,7 @@ const FAQ = [
   {
     question: 'Do I need to be there?',
     answer:
-      'Usually not. You tell us how to access your car when you book, so the wash can happen while you go about your day.',
+      'Usually not. Drop your keys at your building’s front desk before your scheduled appointment, then pick them up when the wash is done — it all happens while you go about your day.',
   },
   {
     question: 'Where does the wash happen?',
