@@ -11,6 +11,8 @@ export type AvailableBuilding = {
   status: string;
   lat: number | null;
   lng: number | null;
+  preferred_wash_day: string | null;
+  requested_wash_dates: unknown;
 };
 
 export type OperatorPendingRequest = {
@@ -29,7 +31,7 @@ export async function getAvailableBuildingsForOperator(operatorId: string): Prom
     admin.from('operators').select('id, lat, lng, service_radius_miles').eq('id', operatorId).single(),
     admin
       .from('buildings')
-      .select('id, name, address_line1, city, region, total_units, status, lat, lng')
+      .select('id, name, address_line1, city, region, total_units, status, lat, lng, preferred_wash_day, requested_wash_dates')
       .in('status', ['prospect', 'pilot', 'active'])
       .order('name'),
     admin.from('partnerships').select('id, building_id, operator_id, status').in('status', ['active', 'pending']),

@@ -1,6 +1,7 @@
 import { PageHeader } from '@/components/PortalShell';
 import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
-import { money } from '@/lib/format';
+import { money, dateShort } from '@/lib/format';
+import { parseDateList, futureDates } from '@/lib/wash-dates';
 import { redirect } from 'next/navigation';
 import { PartnershipConnector } from './PartnershipConnector';
 
@@ -65,6 +66,29 @@ export default async function OperatorDetail({ params }: { params: { id: string 
                 </div>
               )}
             </div>
+          </div>
+          <div className="card p-6">
+            <h3 className="font-display text-xl">Availability</h3>
+            {(() => {
+              const availability = futureDates(parseDateList(op.availability_dates));
+              return availability.length > 0 ? (
+                <>
+                  <p className="mt-1 text-xs text-ink-400">
+                    Dates this crew has marked open for wash days. Your building&rsquo;s chosen dates
+                    take priority once you&rsquo;re matched.
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {availability.map((d) => (
+                      <span key={d} className="chip text-gleam">
+                        {dateShort(d)}
+                      </span>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <p className="mt-3 text-sm text-ink-400">No specific dates posted yet.</p>
+              );
+            })()}
           </div>
           <div className="card p-6">
             <h3 className="font-display text-xl">Add-ons offered to residents</h3>

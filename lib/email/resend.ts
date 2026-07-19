@@ -177,6 +177,44 @@ export async function sendPartnershipAcceptedByManager(args: {
   });
 }
 
+export async function sendContractOffer(args: {
+  to: string;
+  managerName: string;
+  buildingName: string;
+  operatorName: string;
+}) {
+  return client().emails.send({
+    from: FROM,
+    to: args.to,
+    subject: `${escapeHtml(args.operatorName)} sent you a service agreement for ${escapeHtml(args.buildingName)}`,
+    html: `
+      <p>Hi ${escapeHtml(args.managerName)},</p>
+      <p><strong>${escapeHtml(args.operatorName)}</strong> would like to be the car wash operator for <strong>${escapeHtml(args.buildingName)}</strong> and has sent you a service agreement on Lavo.</p>
+      <p>Review the agreement and sign if you'd like them washing at your building — or ignore this if you're not interested.</p>
+      <p><a href="${APP_URL}/building/contract" style="display:inline-block;padding:12px 18px;border-radius:8px;background:#00ff88;color:#000;font-weight:600;text-decoration:none">Review agreement</a></p>
+    `,
+  });
+}
+
+export async function sendBuildingDatesScheduled(args: {
+  to: string;
+  operatorName: string;
+  buildingName: string;
+  dates: string[];
+}) {
+  return client().emails.send({
+    from: FROM,
+    to: args.to,
+    subject: `${escapeHtml(args.buildingName)} scheduled wash days`,
+    html: `
+      <p>Hi ${escapeHtml(args.operatorName)},</p>
+      <p><strong>${escapeHtml(args.buildingName)}</strong> chose wash dates for your partnership. They've been added to your calendar as confirmed wash days:</p>
+      <ul>${args.dates.map((d) => `<li><strong>${escapeHtml(d)}</strong></li>`).join('')}</ul>
+      <p><a href="${APP_URL}/operator/wash-days" style="display:inline-block;padding:12px 18px;border-radius:8px;background:#00ff88;color:#000;font-weight:600;text-decoration:none">View wash days</a></p>
+    `,
+  });
+}
+
 const ADMIN_TO = process.env.ADMIN_EMAIL || 'harold@getlavo.io';
 
 /** Internal ops notification to the Lavo admin inbox. */

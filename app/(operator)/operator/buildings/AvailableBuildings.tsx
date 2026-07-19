@@ -2,6 +2,8 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { dateShort } from '@/lib/format';
+import { parseDateList, futureDates } from '@/lib/wash-dates';
 
 type Building = {
   id: string;
@@ -11,6 +13,8 @@ type Building = {
   region: string | null;
   total_units: number | null;
   status: string;
+  preferred_wash_day?: string | null;
+  requested_wash_dates?: unknown;
 };
 
 export function AvailableBuildings({
@@ -56,6 +60,7 @@ export function AvailableBuildings({
     <div className="space-y-3">
       {buildings.map((b) => {
         const pending = sent[b.id];
+        const requestedDates = futureDates(parseDateList(b.requested_wash_dates));
         return (
           <div key={b.id} className="card flex items-center justify-between gap-4 p-6">
             <div className="min-w-0">
@@ -66,9 +71,22 @@ export function AvailableBuildings({
               {b.total_units != null && (
                 <div className="mt-1 text-xs text-ink-500">{b.total_units} units</div>
               )}
-              <div className="mt-2">
+              <div className="mt-2 flex flex-wrap items-center gap-2">
                 <span className="chip capitalize">{b.status}</span>
+                {b.preferred_wash_day && (
+                  <span className="chip">Prefers {b.preferred_wash_day}</span>
+                )}
+                {requestedDates.map((d) => (
+                  <span key={d} className="chip text-gleam">
+                    {dateShort(d)}
+                  </span>
+                ))}
               </div>
+              {requestedDates.length > 0 && (
+                <p className="mt-1 text-xs text-ink-500">
+                  Dates this building wants service — once matched, they&rsquo;re confirmed on your calendar.
+                </p>
+              )}
             </div>
             <div className="shrink-0 text-right">
               {pending ? (

@@ -3,6 +3,7 @@ import { getSessionUser } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { sendPartnershipAccepted, sendPartnershipAcceptedByManager } from '@/lib/email/resend';
 import { maybeNotifyBuildingLive } from '@/lib/building-activation';
+import { syncRequestedDatesToWashDays } from '@/lib/building-requested-dates';
 
 export async function POST(_req: Request, { params }: { params: { id: string } }) {
   const session = await getSessionUser();
@@ -88,6 +89,13 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
   }
 
   await admin.from('buildings').update({ status: 'active' }).eq('id', partnership.building_id);
+
+  // The building's requested wash dates become confirmed wash days on the new
+  // partner's calendar — they override the operator's general availability.
+  await syncRequestedDatesToWashDays(partnership.building_id).catch((e) =>
+    console.error('syncRequestedDatesToWashDays', e),
+  );
+
   await maybeNotifyBuildingLive(partnership.building_id).catch((e) =>
     console.error('maybeNotifyBuildingLive', e),
   );
