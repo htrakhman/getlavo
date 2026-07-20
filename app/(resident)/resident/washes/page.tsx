@@ -1,5 +1,5 @@
 import { PageHeader } from '@/components/PortalShell';
-import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
+import { getSessionUser } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 
 export const dynamic = 'force-dynamic';
@@ -14,7 +14,6 @@ import { PhotoThumb } from '@/components/PhotoLightbox';
 export default async function ResidentWashes() {
   const session = await getSessionUser();
   if (!session) redirect('/login');
-  const sb = supabaseServer();
   const sbAdmin = supabaseAdmin();
 
   // Use admin client to bypass RLS — supabaseServer() with complex joins (buildings + vehicles)
@@ -33,23 +32,33 @@ export default async function ResidentWashes() {
 
   const today = new Date().toISOString().slice(0, 10);
 
-  const [{ data: nextWashDay }, { data: history }, { data: skips }, { data: reviews }] = await Promise.all([
-    sb.from('wash_days')
+  // Admin client for the same RLS reason as above; every query is still scoped
+  // to this resident via building_id / resident.id from the row fetched above.
+  const [{ data: nextWashDay }, { data: nextBooking }, { data: history }, { data: skips }, { data: reviews }] = await Promise.all([
+    sbAdmin.from('wash_days')
       .select('id, scheduled_for, operator:operators(name)')
       .eq('building_id', resident.building_id)
       .gte('scheduled_for', today)
       .order('scheduled_for')
       .limit(1)
       .maybeSingle(),
-    sb.from('washes')
+    sbAdmin.from('bookings')
+      .select('id, scheduled_for, time_slot, status')
+      .eq('resident_id', resident.id)
+      .gte('scheduled_for', today)
+      .in('status', ['confirmed', 'in_progress', 'pending_payment'])
+      .order('scheduled_for')
+      .limit(1)
+      .maybeSingle(),
+    sbAdmin.from('washes')
       .select('id, status, completed_at, photo_url, flag_reason, wash_day:wash_days(scheduled_for)')
       .eq('resident_id', resident.id)
       .order('completed_at', { ascending: false, nullsFirst: false })
       .limit(20),
-    sb.from('wash_skips')
+    sbAdmin.from('wash_skips')
       .select('wash_day_id')
       .eq('resident_id', resident.id),
-    sb.from('wash_reviews')
+    sbAdmin.from('wash_reviews')
       .select('wash_id, rating')
       .eq('resident_id', resident.id),
   ]);
@@ -58,6 +67,10 @@ export default async function ResidentWashes() {
 
   const skipIds = new Set((skips ?? []).map((s) => s.wash_day_id));
   const nextSkipped = nextWashDay && skipIds.has(nextWashDay.id);
+  // A wash the resident booked themselves takes priority over the building-wide
+  // schedule when it comes first (or on the same day, since it has a time slot).
+  const bookingIsNext =
+    !!nextBooking && (!nextWashDay || nextBooking.scheduled_for <= nextWashDay.scheduled_for);
   const vehicle = (resident.vehicles as any[])?.[0];
   const building = resident.building as any;
 
@@ -72,16 +85,29 @@ export default async function ResidentWashes() {
     <>
       <PageHeader eyebrow={building?.name} title="My washes" />
 
-      {!history?.length && nextWashDay && (
+      {!history?.length && (bookingIsNext || nextWashDay) && (
         <div className="mb-6 card border-gleam/30 p-5 text-sm text-ink-200">
-          You're registered. Your first wash is {dateShort(nextWashDay.scheduled_for)}.
+          You're registered. Your first wash is {dateShort(bookingIsNext ? nextBooking!.scheduled_for : nextWashDay!.scheduled_for)}.
         </div>
       )}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div className="card p-6">
           <div className="text-xs uppercase tracking-widest text-gleam">Next wash</div>
-          {nextWashDay ? (
+          {bookingIsNext ? (
+            <>
+              <div className="mt-2 font-display text-4xl">{dateShort(nextBooking!.scheduled_for)}</div>
+              <div className="mt-1 text-sm text-ink-400">{daysUntil(nextBooking!.scheduled_for)}</div>
+              <div className="mt-3 text-sm">
+                {nextBooking!.time_slot && <div>Time: <span className="text-ink-100">{nextBooking!.time_slot}</span></div>}
+                <div>Spot: <span className="text-ink-100">{resident.spot_label || '—'}</span></div>
+                {nextBooking!.status === 'pending_payment' && (
+                  <div className="mt-1 text-amber-600">Pending payment</div>
+                )}
+              </div>
+              <Link href="/resident/bookings" className="mt-5 inline-block text-xs text-gleam">Manage booking →</Link>
+            </>
+          ) : nextWashDay ? (
             <>
               <div className="mt-2 font-display text-4xl">{dateShort(nextWashDay.scheduled_for)}</div>
               <div className="mt-1 text-sm text-ink-400">{daysUntil(nextWashDay.scheduled_for)}</div>
@@ -100,13 +126,13 @@ export default async function ResidentWashes() {
             <div className="mt-2 text-sm text-ink-400">
               {building?.wash_day
                 ? `Your next wash will be on a ${building.wash_day}.`
-                : 'No upcoming wash day yet. Your building manager will schedule one soon.'}
+                : 'Not scheduled yet.'}
             </div>
           )}
         </div>
 
         <div className="card p-6">
-          <h3 className="font-display text-lg">Your setup</h3>
+          <h3 className="font-display text-lg">Your vehicle</h3>
           {vehicle && (
             <div className="mt-2 text-sm text-ink-200">
               {vehicle.year} {vehicle.make} {vehicle.model} · {vehicle.color}{resident.spot_label ? ` · Spot ${resident.spot_label}` : ''}
@@ -121,7 +147,7 @@ export default async function ResidentWashes() {
           <h3 className="font-display text-lg">What to expect</h3>
           <ol className="mt-3 space-y-2 text-sm text-ink-300">
             <li>1. Leave your car in your spot.</li>
-            <li>2. The crew works through the garage on wash day.</li>
+            <li>2. The crew will get to your vehicle based on your designated time slot. Please allow anywhere from 1–3 hours for your vehicle to get done.</li>
             <li>3. You get a notification with a photo when it's done.</li>
           </ol>
         </div>
