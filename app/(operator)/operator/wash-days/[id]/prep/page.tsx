@@ -27,7 +27,7 @@ export default async function PrepPage({ params }: { params: { id: string } }) {
     .select(`
       id, spot_label, status,
       vehicle:vehicles(license_plate, make, model, color, year),
-      resident:residents(unit_number, floor_number, package:service_packages(name), profile:profiles(full_name))
+      resident:residents(floor_number, package:service_packages(name), profile:profiles(full_name))
     `)
     .eq('wash_day_id', wd.id);
 
@@ -115,7 +115,7 @@ export default async function PrepPage({ params }: { params: { id: string } }) {
                       return (
                         <tr key={w.id} className={`border-t border-white/5 ${skip ? 'text-ink-500 line-through' : ''}`}>
                           <td className="px-4 py-2 font-mono text-xs">{w.spot_label ?? '—'}</td>
-                          <td className="px-4 py-2">{w.resident?.profile?.full_name ?? '—'} <span className="text-xs text-ink-500">· Unit {w.resident?.unit_number}</span></td>
+                          <td className="px-4 py-2">{w.resident?.profile?.full_name ?? '—'}</td>
                           <td className="px-4 py-2">{w.vehicle?.year} {w.vehicle?.make} {w.vehicle?.model} <span className="text-xs text-ink-500">· {w.vehicle?.color}</span></td>
                           <td className="px-4 py-2 font-mono text-xs">{w.vehicle?.license_plate}</td>
                           <td className="px-4 py-2 text-xs">{w.resident?.package?.name ?? '—'}</td>

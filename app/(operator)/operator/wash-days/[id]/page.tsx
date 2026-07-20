@@ -22,7 +22,7 @@ export default async function WashDayPage({ params }: { params: { id: string } }
     .select(`
       *,
       vehicle:vehicles(license_plate, make, model, color, year),
-      resident:residents(id, unit_number, spot_label, floor_number, package:service_packages(name), profile:profiles(full_name)),
+      resident:residents(id, spot_label, floor_number, package:service_packages(name), profile:profiles(full_name)),
       addon_orders(operator_addon:operator_addons(label))
     `)
     .eq('wash_day_id', wd.id);

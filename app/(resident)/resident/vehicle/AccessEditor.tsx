@@ -5,15 +5,12 @@ import { useRouter } from 'next/navigation';
 
 export function AccessEditor({
   residentId,
-  method,
   notes,
 }: {
   residentId: string;
-  method: string | null;
   notes: string | null;
 }) {
   const router = useRouter();
-  const [m, setM] = useState(method ?? '');
   const [n, setN] = useState(notes ?? '');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -28,7 +25,7 @@ export function AccessEditor({
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        vehicleAccessMethod: m || null,
+        vehicleAccessMethod: 'front_desk',
         vehicleAccessNotes: n || null,
       }),
     }).catch(() => null);
@@ -46,20 +43,16 @@ export function AccessEditor({
   return (
     <div className="card p-6 space-y-4">
       <h3 className="font-display text-xl">Vehicle access</h3>
+      <p className="text-sm text-ink-200">
+        Leave your keys with the front desk before your scheduled service.
+      </p>
+      <p className="text-xs text-ink-500">
+        If keys are not provided to the front desk prior to your service, the operator will not be
+        able to service your vehicle and a refund will not be given.
+      </p>
       <div>
-        <label className="label">How should the operator access your car?</label>
-        <select className="field" value={m} onChange={(e) => setM(e.target.value)}>
-          <option value="">Not set</option>
-          <option value="guest_spot">Guest spot</option>
-          <option value="lockbox">Lockbox</option>
-          <option value="home">I will be home</option>
-          <option value="doorman">Doorman has key</option>
-          <option value="instructions">Custom instructions</option>
-        </select>
-      </div>
-      <div>
-        <label className="label">Details</label>
-        <textarea className="field min-h-[88px]" value={n} onChange={(e) => setN(e.target.value)} placeholder="Codes, landmarks, anything the crew needs" />
+        <label className="label">Details <span className="text-ink-500">(optional)</span></label>
+        <textarea className="field min-h-[88px]" value={n} onChange={(e) => setN(e.target.value)} placeholder="Anything else the crew should know" />
       </div>
       <button type="button" disabled={busy} className="btn-primary text-sm" onClick={() => save()}>
         {busy ? 'Saving…' : saved ? 'Saved ✓' : 'Save access info'}

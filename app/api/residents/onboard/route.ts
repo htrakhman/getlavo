@@ -5,8 +5,6 @@ import { z } from 'zod';
 
 const Body = z.object({
   buildingId: z.string().uuid(),
-  unitNumber: z.string().min(1).optional(),
-  floorNumber: z.number().int().nullable().optional(),
   phone: z.string().min(1).max(40).nullable().optional(),
   spotLabel: z.string().nullable().optional(),
   vehicleAccessMethod: z.string().nullable().optional(),
@@ -16,7 +14,6 @@ const Body = z.object({
   year: z.number().int(),
   color: z.string().min(1),
   plate: z.string().nullable().optional(),
-  photoUrl: z.string().nullable().optional(),
 });
 
 export async function POST(req: Request) {
@@ -27,9 +24,9 @@ export async function POST(req: Request) {
   if (!parsed.success) return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
 
   const {
-    buildingId, unitNumber, floorNumber, phone, spotLabel,
+    buildingId, phone, spotLabel,
     vehicleAccessMethod, vehicleAccessNotes,
-    make, model, year, color, plate, photoUrl,
+    make, model, year, color, plate,
   } = parsed.data;
 
   const admin = supabaseAdmin();
@@ -65,15 +62,10 @@ export async function POST(req: Request) {
 
   const residentPayload: Record<string, unknown> = {
     building_id: buildingId,
-    floor_number: floorNumber ?? null,
     spot_label: spotLabel ?? null,
     vehicle_access_method: vehicleAccessMethod ?? null,
     vehicle_access_notes: vehicleAccessNotes ?? null,
   };
-
-  // unit_number is NOT NULL in the schema but the intake form no longer asks for it,
-  // so only set it when provided (new rows fall back to 'N/A').
-  if (unitNumber) residentPayload.unit_number = unitNumber;
 
   let residentId: string;
 
@@ -103,6 +95,7 @@ export async function POST(req: Request) {
       residentId = data!.id;
     }
   } else {
+    // unit_number is NOT NULL in the schema but no longer collected anywhere.
     const { data, error } = await admin
       .from('residents')
       .insert({ profile_id: profileId, unit_number: 'N/A', ...residentPayload })
@@ -141,25 +134,14 @@ export async function POST(req: Request) {
     year,
     color,
     is_primary: true,
-    photo_url: photoUrl ?? null,
   };
 
   if (existingVeh?.id) {
     const { error: vehErr } = await admin.from('vehicles').update(vehiclePayload).eq('id', existingVeh.id);
-    if (vehErr) {
-      console.error('[onboard] vehicle UPDATE failed (will retry without photo_url):', vehErr.message, vehErr.details);
-      const { photo_url: _p, ...vehBase } = vehiclePayload;
-      const { error: vehErr2 } = await admin.from('vehicles').update(vehBase).eq('id', existingVeh.id);
-      if (vehErr2) console.error('[onboard] vehicle UPDATE fallback failed:', vehErr2.message, vehErr2.details);
-    }
+    if (vehErr) console.error('[onboard] vehicle UPDATE failed:', vehErr.message, vehErr.details);
   } else {
     const { error: vehErr } = await admin.from('vehicles').insert(vehiclePayload);
-    if (vehErr) {
-      console.error('[onboard] vehicle INSERT failed (will retry without photo_url):', vehErr.message, vehErr.details);
-      const { photo_url: _p, ...vehBase } = vehiclePayload;
-      const { error: vehErr2 } = await admin.from('vehicles').insert(vehBase);
-      if (vehErr2) console.error('[onboard] vehicle INSERT fallback failed:', vehErr2.message, vehErr2.details);
-    }
+    if (vehErr) console.error('[onboard] vehicle INSERT failed:', vehErr.message, vehErr.details);
   }
 
   console.log('[onboard] SUCCESS residentId:', residentId, 'profileId:', profileId);
