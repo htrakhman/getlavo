@@ -70,7 +70,7 @@ export default async function ResidentWashes() {
 
   return (
     <>
-      <PageHeader eyebrow={building?.name} title="My washes" />
+      <PageHeader eyebrow={building?.name} title="My account" />
 
       {!history?.length && nextWashDay && (
         <div className="mb-6 card border-gleam/30 p-5 text-sm text-ink-200">
@@ -112,7 +112,10 @@ export default async function ResidentWashes() {
               {vehicle.year} {vehicle.make} {vehicle.model} · {vehicle.color}{resident.spot_label ? ` · Spot ${resident.spot_label}` : ''}
             </div>
           )}
-          <Link href="/resident/vehicle" className="mt-4 inline-block text-xs text-gleam">Edit →</Link>
+          <div className="mt-4 flex gap-4">
+            <Link href="/resident/vehicle" className="text-xs text-gleam">Edit →</Link>
+            <Link href="/resident/account" className="text-xs text-gleam">Profile &amp; notifications →</Link>
+          </div>
         </div>
       </div>
 

@@ -3,17 +3,10 @@ import { getSessionUser } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 
 const NAV = [
-  { href: '/resident/washes', label: 'My washes' },
-  { href: '/resident/bookings', label: 'Bookings' },
-  { href: '/resident/history', label: 'Wash history' },
+  { href: '/resident/washes', label: 'My account' },
   { href: '/resident/vehicle', label: 'Vehicle' },
-  { href: '/resident/addons', label: 'Add-ons' },
-  { href: '/resident/referrals', label: 'Referrals' },
-  { href: '/resident/claim', label: 'Claims' },
-  { href: '/resident/announcements', label: 'Announcements' },
   { href: '/resident/payment', label: 'Payment' },
   { href: '/resident/charges', label: 'Charges' },
-  { href: '/resident/account', label: 'Account' },
 ];
 
 export default async function ResidentLayout({ children }: { children: React.ReactNode }) {
