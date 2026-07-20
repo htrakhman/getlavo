@@ -26,7 +26,7 @@ export default async function BuildingWashDayDetail({ params }: { params: { id: 
     .select(`
       id, status, completed_at, photo_url, flag_reason, spot_label,
       vehicle:vehicles(make, model, color, year, license_plate),
-      resident:residents(unit_number, floor_number, profile:profiles(full_name))
+      resident:residents(profile:profiles(full_name))
     `)
     .eq('wash_day_id', wd.id);
 
@@ -82,7 +82,7 @@ export default async function BuildingWashDayDetail({ params }: { params: { id: 
               .map((w: any) => (
                 <tr key={w.id} className="border-t border-white/5 align-top">
                   <td className="px-4 py-3 font-mono text-xs">{w.spot_label ?? '—'}</td>
-                  <td className="px-4 py-3 text-xs">{w.resident?.profile?.full_name} · Unit {w.resident?.unit_number}</td>
+                  <td className="px-4 py-3 text-xs">{w.resident?.profile?.full_name}</td>
                   <td className="px-4 py-3 text-xs">{w.vehicle?.year} {w.vehicle?.make} {w.vehicle?.model}</td>
                   <td className="px-4 py-3">
                     <span className={`chip ${w.status === 'completed' ? 'text-gleam' : w.status === 'flagged' ? 'text-amber-600' : ''}`}>

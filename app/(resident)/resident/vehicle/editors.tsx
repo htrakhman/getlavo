@@ -17,11 +17,9 @@ async function apiCall(path: string, method: string, body: unknown): Promise<str
   return typeof j?.error === 'string' ? j.error : 'Could not save — please try again';
 }
 
-export function SpotEditor({ residentId, unit, floor, spotLabel }: { residentId: string; unit: string; floor: number | null; spotLabel: string }) {
+export function SpotEditor({ residentId, spotLabel }: { residentId: string; spotLabel: string }) {
   const router = useRouter();
   const [editing, setEditing] = useState(false);
-  const [u, setU] = useState(unit);
-  const [f, setF] = useState(floor != null ? String(floor) : '');
   const [s, setS] = useState(spotLabel);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -30,8 +28,6 @@ export function SpotEditor({ residentId, unit, floor, spotLabel }: { residentId:
     setBusy(true);
     setErr(null);
     const error = await apiCall('/api/residents/update', 'POST', {
-      unitNumber: u,
-      floorNumber: f ? parseInt(f, 10) : null,
       spotLabel: s,
     });
     setBusy(false);
@@ -47,24 +43,9 @@ export function SpotEditor({ residentId, unit, floor, spotLabel }: { residentId:
         {!editing && <button onClick={() => setEditing(true)} className="text-xs text-gleam">Edit</button>}
       </div>
       {!editing ? (
-        <>
-          <div className="mt-3 font-display text-2xl">{spotLabel || '—.—'}</div>
-          <div className="mt-1 text-sm text-ink-400">
-            Unit {unit || '—'}{floor != null ? ` · Floor ${floor}` : ''}
-          </div>
-        </>
+        <div className="mt-3 font-display text-2xl">{spotLabel || '—.—'}</div>
       ) : (
         <div className="mt-4 space-y-3">
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="label">Unit</label>
-              <input className="field" value={u} onChange={(e) => setU(e.target.value)} />
-            </div>
-            <div>
-              <label className="label">Floor</label>
-              <input className="field" type="number" value={f} onChange={(e) => setF(e.target.value)} />
-            </div>
-          </div>
           <div>
             <label className="label">Parking spot</label>
             <input className="field" value={s} onChange={(e) => setS(e.target.value)} />
@@ -177,7 +158,6 @@ function VehicleForm({ residentId, vehicle, onDone, onCancel, isFirst }: {
   const [year, setYear] = useState(vehicle?.year ? String(vehicle.year) : '');
   const [color, setColor] = useState(vehicle?.color ?? 'White');
   const [plate, setPlate] = useState(vehicle?.license_plate ?? '');
-  const [photoUrl, setPhotoUrl] = useState(vehicle?.photo_url ?? '');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
@@ -190,7 +170,6 @@ function VehicleForm({ residentId, vehicle, onDone, onCancel, isFirst }: {
       year: year ? parseInt(year, 10) : null,
       color,
       plate: plate || null,
-      photoUrl: photoUrl.trim() || null,
     };
     const error = vehicle?.id
       ? await apiCall('/api/residents/vehicles', 'PATCH', { id: vehicle.id, ...payload })
@@ -225,10 +204,6 @@ function VehicleForm({ residentId, vehicle, onDone, onCancel, isFirst }: {
             <button type="button" key={c} onClick={() => setColor(c)} className={`chip ${color === c ? 'border-gleam text-gleam' : ''}`}>{c}</button>
           ))}
         </div>
-      </div>
-      <div className="col-span-2">
-        <label className="label">Vehicle photo URL <span className="text-ink-500">(optional)</span></label>
-        <input className="field" value={photoUrl} onChange={(e) => setPhotoUrl(e.target.value)} placeholder="https://…" />
       </div>
       <div className="col-span-2 flex gap-2">
         <button onClick={save} disabled={busy || !make || !model} className="btn-primary text-sm">{busy ? 'Saving…' : 'Save'}</button>

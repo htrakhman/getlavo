@@ -23,7 +23,6 @@ export default function ResidentOnboarding() {
   const [year, setYear] = useState('');
   const [color, setColor] = useState('White');
   const [plate, setPlate] = useState('');
-  const [vehiclePhotoUrl, setVehiclePhotoUrl] = useState('');
   const [accessNotes, setAccessNotes] = useState('');
   const [keysAcknowledged, setKeysAcknowledged] = useState(false);
 
@@ -87,7 +86,6 @@ export default function ResidentOnboarding() {
         year: parseInt(year, 10),
         color,
         plate: plate || null,
-        photoUrl: vehiclePhotoUrl.trim() || null,
       }),
     });
 
@@ -247,10 +245,6 @@ Thanks!`}
                     </button>
                   ))}
                 </div>
-              </div>
-              <div className="col-span-2">
-                <label className="label">Vehicle photo URL <span className="text-ink-500">(optional)</span></label>
-                <input className="field" value={vehiclePhotoUrl} onChange={(e) => setVehiclePhotoUrl(e.target.value)} placeholder="https://…" />
               </div>
             </div>
           </div>

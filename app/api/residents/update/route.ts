@@ -4,8 +4,6 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
 import { z } from 'zod';
 
 const Body = z.object({
-  unitNumber: z.string().min(1).max(40).optional(),
-  floorNumber: z.number().int().nullable().optional(),
   spotLabel: z.string().max(80).nullable().optional(),
   vehicleAccessMethod: z.string().max(40).nullable().optional(),
   vehicleAccessNotes: z.string().max(2000).nullable().optional(),
@@ -22,8 +20,6 @@ export async function POST(req: Request) {
   const b = parsed.data;
 
   const patch: Record<string, unknown> = {};
-  if (b.unitNumber !== undefined) patch.unit_number = b.unitNumber;
-  if (b.floorNumber !== undefined) patch.floor_number = b.floorNumber;
   if (b.spotLabel !== undefined) patch.spot_label = b.spotLabel;
   if (b.vehicleAccessMethod !== undefined) patch.vehicle_access_method = b.vehicleAccessMethod;
   if (b.vehicleAccessNotes !== undefined) patch.vehicle_access_notes = b.vehicleAccessNotes;

@@ -14,7 +14,7 @@ export default async function VehiclePage() {
 
   const { data: resident, error: residentErr } = await supabaseAdmin()
     .from('residents')
-    .select('id, unit_number, floor_number, spot_label, vehicle_access_method, vehicle_access_notes')
+    .select('id, spot_label, vehicle_access_notes')
     .eq('profile_id', session.user.id)
     .maybeSingle();
   if (residentErr) {
@@ -31,13 +31,10 @@ export default async function VehiclePage() {
         <div className="space-y-6">
           <SpotEditor
             residentId={resident.id}
-            unit={resident.unit_number ?? ''}
-            floor={resident.floor_number ?? null}
             spotLabel={resident.spot_label ?? ''}
           />
           <AccessEditor
             residentId={resident.id}
-            method={resident.vehicle_access_method}
             notes={resident.vehicle_access_notes}
           />
         </div>

@@ -14,7 +14,7 @@ export default async function Residents() {
 
   const [{ data: residents }, { data: invites }] = await Promise.all([
     sbAdmin.from('residents')
-      .select('id, unit_number, profile:profiles(full_name, email), vehicles(id, color, make, model, license_plate)')
+      .select('id, spot_label, profile:profiles(full_name, email), vehicles(id, color, make, model, license_plate)')
       .eq('building_id', building.id)
       .eq('active', true),
     sb.from('building_invites')
@@ -43,7 +43,7 @@ export default async function Residents() {
           <thead className="border-b border-white/5 text-left text-xs uppercase tracking-widest text-ink-400">
             <tr>
               <th className="px-5 py-3">Name</th>
-              <th className="px-5 py-3">Unit</th>
+              <th className="px-5 py-3">Spot</th>
               <th className="px-5 py-3">Vehicle</th>
               <th className="px-5 py-3">Plate</th>
             </tr>
@@ -52,7 +52,7 @@ export default async function Residents() {
             {(residents ?? []).map((r: any) => (
               <tr key={r.id} className="hover:bg-white/5">
                 <td className="px-5 py-3">{r.profile?.full_name || r.profile?.email || '—'}</td>
-                <td className="px-5 py-3">{r.unit_number}</td>
+                <td className="px-5 py-3">{r.spot_label ?? '—'}</td>
                 <td className="px-5 py-3">{r.vehicles?.[0] ? `${r.vehicles[0].color} ${r.vehicles[0].make} ${r.vehicles[0].model}` : '—'}</td>
                 <td className="px-5 py-3 font-mono text-xs">{r.vehicles?.[0]?.license_plate ?? '—'}</td>
               </tr>

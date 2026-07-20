@@ -8,7 +8,7 @@ export default async function AdminFlagsPage() {
     .select(`
       id, status, flag_reason, crew_notes, completed_at,
       wash_day:wash_days(scheduled_for, building:buildings(name), operator:operators(name)),
-      resident:residents(unit_number, profile:profiles(full_name, email))
+      resident:residents(profile:profiles(full_name, email))
     `)
     .eq('status', 'flagged')
     .order('completed_at', { ascending: false, nullsFirst: false })
@@ -29,7 +29,7 @@ export default async function AdminFlagsPage() {
                     {w.wash_day?.scheduled_for} · {w.wash_day?.building?.name} · {w.wash_day?.operator?.name}
                   </div>
                   <div className="mt-1 font-medium">
-                    {w.resident?.profile?.full_name ?? 'Resident'} · Unit {w.resident?.unit_number}
+                    {w.resident?.profile?.full_name ?? 'Resident'}
                   </div>
                   <div className="mt-2 text-sm">
                     <span className="text-amber-600">⚑ {w.flag_reason ?? '—'}</span>

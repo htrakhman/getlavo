@@ -14,7 +14,7 @@ export default async function OperatorTodayPage() {
   const { data: bookings } = await sb
     .from('bookings')
     .select(
-      'id, scheduled_for, time_slot, status, gross_cents, building:buildings(name), vehicle:vehicles(make, model, color, license_plate), resident:residents(unit_number, spot_label, vehicle_access_method, vehicle_access_notes)',
+      'id, scheduled_for, time_slot, status, gross_cents, building:buildings(name), vehicle:vehicles(make, model, color, license_plate), resident:residents(spot_label, vehicle_access_method, vehicle_access_notes)',
     )
     .eq('operator_id', op.id)
     .eq('scheduled_for', today)
@@ -30,7 +30,6 @@ export default async function OperatorTodayPage() {
             <div className="flex justify-between gap-3">
               <div>
                 <div className="font-medium">{b.building?.name}</div>
-                <div className="text-ink-400">Unit {b.resident?.unit_number ?? '—'}</div>
                 <div className="text-xs text-ink-500 mt-1">
                   {b.vehicle?.color} {b.vehicle?.make} {b.vehicle?.model} · {b.vehicle?.license_plate}
                 </div>

@@ -35,7 +35,7 @@ export async function GET(req: Request) {
     .select(`
       id, status, completed_at, flag_reason,
       wash_day:wash_days!inner(scheduled_for, building_id, operator:operators(name)),
-      resident:residents(unit_number, profile:profiles(full_name)),
+      resident:residents(profile:profiles(full_name)),
       vehicle:vehicles(make, model, license_plate)
     `)
     .eq('wash_days.building_id', buildingId)
@@ -52,11 +52,10 @@ export async function GET(req: Request) {
     return wd?.building_id === buildingId && wd?.scheduled_for >= start && wd?.scheduled_for < end;
   });
 
-  const header = ['Date', 'Resident', 'Unit', 'Vehicle', 'Plate', 'Operator', 'Status', 'Flag reason'];
+  const header = ['Date', 'Resident', 'Vehicle', 'Plate', 'Operator', 'Status', 'Flag reason'];
   const rows = filtered.map((w: any) => [
     w.wash_day?.scheduled_for ?? '',
     w.resident?.profile?.full_name ?? '',
-    w.resident?.unit_number ?? '',
     `${w.vehicle?.make ?? ''} ${w.vehicle?.model ?? ''}`.trim(),
     w.vehicle?.license_plate ?? '',
     w.wash_day?.operator?.name ?? '',

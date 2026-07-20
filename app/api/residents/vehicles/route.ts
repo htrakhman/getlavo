@@ -9,7 +9,6 @@ const VehicleFields = z.object({
   year: z.number().int().nullable().optional(),
   color: z.string().max(40).optional(),
   plate: z.string().max(20).nullable().optional(),
-  photoUrl: z.string().max(2000).nullable().optional(),
 });
 
 async function ownedResident(userId: string) {
@@ -62,7 +61,6 @@ export async function POST(req: Request) {
     year: b.year ?? null,
     color: b.color ?? 'White',
     license_plate: b.plate || 'UNKNOWN',
-    photo_url: b.photoUrl ?? null,
     is_primary: !!b.isPrimary,
   });
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -110,7 +108,6 @@ export async function PATCH(req: Request) {
   if (b.year !== undefined) patch.year = b.year;
   if (b.color !== undefined) patch.color = b.color;
   if (b.plate !== undefined) patch.license_plate = b.plate || 'UNKNOWN';
-  if (b.photoUrl !== undefined) patch.photo_url = b.photoUrl;
   if (!Object.keys(patch).length) return NextResponse.json({ error: 'Nothing to update' }, { status: 400 });
 
   const { error } = await admin.from('vehicles').update(patch).eq('id', b.id);
