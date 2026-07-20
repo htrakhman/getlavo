@@ -16,17 +16,16 @@ export default function ResidentOnboarding() {
   const [buildingId, setBuildingId] = useState('');
 
   // Step 2 fields
-  const [unit, setUnit] = useState('');
-  const [floor, setFloor] = useState('');
   const [spotLabel, setSpotLabel] = useState('');
+  const [phone, setPhone] = useState('');
   const [make, setMake] = useState('');
   const [model, setModel] = useState('');
   const [year, setYear] = useState('');
   const [color, setColor] = useState('White');
   const [plate, setPlate] = useState('');
   const [vehiclePhotoUrl, setVehiclePhotoUrl] = useState('');
-  const [accessMethod, setAccessMethod] = useState('');
   const [accessNotes, setAccessNotes] = useState('');
+  const [keysAcknowledged, setKeysAcknowledged] = useState(false);
 
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -66,7 +65,7 @@ export default function ResidentOnboarding() {
   }, []);
 
   const canStep2 = !!buildingId;
-  const canFinish = canStep2 && unit && floor !== '' && make && model && year && color && accessMethod;
+  const canFinish = canStep2 && spotLabel.trim() && phone.trim() && make && model && year && color && keysAcknowledged;
 
   const totalSteps = 2;
 
@@ -79,10 +78,9 @@ export default function ResidentOnboarding() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         buildingId,
-        unitNumber: unit,
-        floorNumber: parseInt(floor, 10),
-        spotLabel: spotLabel || null,
-        vehicleAccessMethod: accessMethod || null,
+        spotLabel: spotLabel.trim(),
+        phone: phone.trim(),
+        vehicleAccessMethod: 'front_desk',
         vehicleAccessNotes: accessNotes || null,
         make,
         model,
@@ -202,35 +200,18 @@ Thanks!`}
 
       {step === 2 && (
         <div className="mt-8 space-y-5">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="label">Unit number</label>
-              <input className="field" value={unit} onChange={(e) => setUnit(e.target.value)} placeholder="4B" required />
-            </div>
-            <div>
-              <label className="label">Floor</label>
-              <input className="field" type="number" value={floor} onChange={(e) => setFloor(e.target.value)} placeholder="2" required />
-            </div>
+          <div>
+            <label className="label">Where is your parking spot?</label>
+            <input className="field" value={spotLabel} onChange={(e) => setSpotLabel(e.target.value)} placeholder="Spot number or details — B-14, green pillar near elevator" required />
           </div>
           <div>
-            <label className="label">Parking spot label for your crew</label>
-            <input className="field" value={spotLabel} onChange={(e) => setSpotLabel(e.target.value)} placeholder="B-14 or green pillar near elevator" />
-          </div>
-
-          <div>
-            <label className="label">How should the operator access your car?</label>
-            <select className="field" value={accessMethod} onChange={(e) => setAccessMethod(e.target.value)} required>
-              <option value="">Select…</option>
-              <option value="guest_spot">Parked in a guest spot</option>
-              <option value="lockbox">Key in lockbox (you will share the code in app chat)</option>
-              <option value="home">I will be home</option>
-              <option value="doorman">Doorman has the key</option>
-              <option value="instructions">Other instructions (describe below)</option>
-            </select>
+            <label className="label">Phone number</label>
+            <input className="field" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="(555) 123-4567" required />
+            <p className="mt-1 text-xs text-ink-500">So the operator can call you if needed.</p>
           </div>
           <div>
-            <label className="label">Access details <span className="text-ink-500">(optional)</span></label>
-            <textarea className="field min-h-[88px]" value={accessNotes} onChange={(e) => setAccessNotes(e.target.value)} placeholder="Gate code, lockbox location, anything else the crew needs" />
+            <label className="label">Other details <span className="text-ink-500">(optional)</span></label>
+            <textarea className="field min-h-[88px]" value={accessNotes} onChange={(e) => setAccessNotes(e.target.value)} placeholder="Anything else the crew should know" />
           </div>
 
           <div className="card p-4">
@@ -272,6 +253,24 @@ Thanks!`}
                 <input className="field" value={vehiclePhotoUrl} onChange={(e) => setVehiclePhotoUrl(e.target.value)} placeholder="https://…" />
               </div>
             </div>
+          </div>
+
+          <div className="card p-4 space-y-3">
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                className="mt-1 h-4 w-4 shrink-0 accent-gleam"
+                checked={keysAcknowledged}
+                onChange={(e) => setKeysAcknowledged(e.target.checked)}
+              />
+              <span className="text-sm text-ink-200">
+                I understand that I need to leave my keys with the front desk before my scheduled service.
+              </span>
+            </label>
+            <p className="text-xs text-ink-500">
+              If keys are not provided to the front desk prior to your service, the operator will not be
+              able to service your vehicle and a refund will not be given.
+            </p>
           </div>
 
           <div className="flex gap-3">
