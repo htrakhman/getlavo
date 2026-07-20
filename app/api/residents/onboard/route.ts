@@ -5,8 +5,9 @@ import { z } from 'zod';
 
 const Body = z.object({
   buildingId: z.string().uuid(),
-  unitNumber: z.string().min(1),
-  floorNumber: z.number().int(),
+  unitNumber: z.string().min(1).optional(),
+  floorNumber: z.number().int().nullable().optional(),
+  phone: z.string().min(1).max(40).nullable().optional(),
   spotLabel: z.string().nullable().optional(),
   vehicleAccessMethod: z.string().nullable().optional(),
   vehicleAccessNotes: z.string().nullable().optional(),
@@ -26,7 +27,7 @@ export async function POST(req: Request) {
   if (!parsed.success) return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
 
   const {
-    buildingId, unitNumber, floorNumber, spotLabel,
+    buildingId, unitNumber, floorNumber, phone, spotLabel,
     vehicleAccessMethod, vehicleAccessNotes,
     make, model, year, color, plate, photoUrl,
   } = parsed.data;
@@ -44,6 +45,17 @@ export async function POST(req: Request) {
     console.error('[onboard] profile upsert failed:', profileErr.message, profileErr.details);
   }
 
+  // Save the contact number so the operator can reach the resident on service day.
+  if (phone) {
+    const { error: phoneErr } = await admin
+      .from('profiles')
+      .update({ phone })
+      .eq('id', profileId);
+    if (phoneErr) {
+      console.error('[onboard] phone update failed:', phoneErr.message, phoneErr.details);
+    }
+  }
+
   // Upsert resident row — admin client bypasses RLS so this always works
   const { data: existing } = await admin
     .from('residents')
@@ -53,12 +65,15 @@ export async function POST(req: Request) {
 
   const residentPayload: Record<string, unknown> = {
     building_id: buildingId,
-    unit_number: unitNumber,
-    floor_number: floorNumber,
+    floor_number: floorNumber ?? null,
     spot_label: spotLabel ?? null,
     vehicle_access_method: vehicleAccessMethod ?? null,
     vehicle_access_notes: vehicleAccessNotes ?? null,
   };
+
+  // unit_number is NOT NULL in the schema but the intake form no longer asks for it,
+  // so only set it when provided (new rows fall back to 'N/A').
+  if (unitNumber) residentPayload.unit_number = unitNumber;
 
   let residentId: string;
 
@@ -90,7 +105,7 @@ export async function POST(req: Request) {
   } else {
     const { data, error } = await admin
       .from('residents')
-      .insert({ profile_id: profileId, ...residentPayload })
+      .insert({ profile_id: profileId, unit_number: 'N/A', ...residentPayload })
       .select('id')
       .single();
     if (error) {
@@ -98,7 +113,7 @@ export async function POST(req: Request) {
       const { vehicle_access_method: _m, vehicle_access_notes: _n, ...base } = residentPayload;
       const { data: d2, error: e2 } = await admin
         .from('residents')
-        .insert({ profile_id: profileId, ...base })
+        .insert({ profile_id: profileId, unit_number: 'N/A', ...base })
         .select('id')
         .single();
       if (e2) {
