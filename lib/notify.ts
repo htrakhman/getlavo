@@ -8,7 +8,9 @@ type NotificationType =
   | 'payment_failed'
   | 'pilot_signed'
   | 'operator_assigned'
-  | 'waitlist_building_live';
+  | 'waitlist_building_live'
+  | 'coi_expiring'
+  | 'coi_expired';
 
 export async function notify(profileId: string, type: NotificationType, data: Record<string, any>) {
   const sb = supabaseAdmin();
@@ -32,6 +34,8 @@ export async function notify(profileId: string, type: NotificationType, data: Re
     pilot_signed: 'Pilot agreement signed',
     operator_assigned: 'Your car wash crew is set',
     waitlist_building_live: 'Your building is live on Lavo',
+    coi_expiring: 'Your insurance expires soon',
+    coi_expired: 'Your insurance on file has expired',
   };
 
   const body = renderBody(type, data);
@@ -108,7 +112,7 @@ function smsEligible(type: NotificationType) {
 
 function prefRespects(type: NotificationType, prefs: Record<string, boolean>, channel: 'email' | 'sms') {
   // Operational/account messages always go through.
-  const operational: NotificationType[] = ['payment_failed', 'pilot_signed', 'operator_assigned', 'waitlist_building_live'];
+  const operational: NotificationType[] = ['payment_failed', 'pilot_signed', 'operator_assigned', 'waitlist_building_live', 'coi_expiring', 'coi_expired'];
   if (operational.includes(type)) return true;
   const map: Record<string, string> = {
     'wash_reminder:email': 'email_reminder',
@@ -139,6 +143,10 @@ function renderBody(type: NotificationType, data: any) {
       return `Your building's car wash crew has been assigned: ${data.operatorName ?? 'an operator'}.`;
     case 'waitlist_building_live':
       return `${data.buildingName ?? 'Your building'} is live on Lavo. Use code ${data.code ?? ''} for your free first wash.`;
+    case 'coi_expiring':
+      return `Your certificate of insurance expires ${data.expiresAt ?? 'soon'}. Upload a renewed certificate to stay verified.`;
+    case 'coi_expired':
+      return `Your certificate of insurance expired${data.expiresAt ? ` on ${data.expiresAt}` : ''}. Upload a current certificate to get verified again.`;
     default:
       return 'Update from Lavo.';
   }

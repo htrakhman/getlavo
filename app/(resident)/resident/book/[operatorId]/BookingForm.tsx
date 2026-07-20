@@ -32,6 +32,7 @@ export function BookingForm({
   partnershipId,
   initialDate,
   initialTimeSlot,
+  waiverAccepted,
 }: {
   operatorId: string;
   operatorName: string;
@@ -42,6 +43,7 @@ export function BookingForm({
   partnershipId?: string;
   initialDate?: string;
   initialTimeSlot?: string;
+  waiverAccepted: boolean;
 }) {
   const router = useRouter();
   const [bookingType, setBookingType] = useState<'building_day' | 'open_slot'>(
@@ -83,6 +85,8 @@ export function BookingForm({
     if (availableDay && !availableDay.slots.includes(timeSlot)) setTimeSlot(availableDay.slots[0]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [availability, date]);
+  const needsWaiver = !waiverAccepted;
+  const [agreeWaiver, setAgreeWaiver] = useState(false);
   const [recurring, setRecurring] = useState<'none' | 'weekly' | 'biweekly' | 'monthly'>('none');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -114,6 +118,7 @@ export function BookingForm({
         partnershipId: partnershipId ?? undefined,
         recurringCadence: recurring === 'none' ? undefined : recurring,
         promoCode: promoCode.trim() || undefined,
+        waiverAccepted: needsWaiver ? agreeWaiver : undefined,
       }),
     });
     const j = await res.json();
@@ -246,11 +251,35 @@ export function BookingForm({
         </div>
       </div>
 
+      {needsWaiver && (
+        <div className="rounded-xl border border-white/10 bg-ink-800/50 p-4 space-y-2">
+          <label className="flex items-start gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              className="mt-1 h-4 w-4 shrink-0 accent-gleam"
+              checked={agreeWaiver}
+              onChange={(e) => setAgreeWaiver(e.target.checked)}
+            />
+            <span className="text-xs text-ink-300">
+              I get that an independent operator performs this service, that my building and Lavo
+              are not liable for vehicle damage, and that the operator may enter the garage or lot
+              to reach my car.
+            </span>
+          </label>
+          <p className="text-[11px] text-ink-500">
+            One time thing before your first wash. Details in the{' '}
+            <a href="/legal/terms" target="_blank" rel="noreferrer" className="text-gleam underline underline-offset-2">
+              full terms
+            </a>.
+          </p>
+        </div>
+      )}
+
       {err && <div className="text-sm text-red-400">{err}</div>}
 
       <button
         onClick={book}
-        disabled={busy || !vehicleId || !date}
+        disabled={busy || !vehicleId || !date || (needsWaiver && !agreeWaiver)}
         className="btn-primary w-full"
       >
         {busy ? 'Redirecting to payment…' : `Pay ${money(priceCents)}`}

@@ -4,6 +4,7 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
 import { calculateFee } from '@/lib/fee';
 import { applyPromoToBooking, recordPromoRedemption } from '@/lib/promo';
 import { confirmPaidBookingAndNotify } from '@/lib/booking-confirm';
+import { WAIVER_VERSION } from '@/lib/waiver';
 import Stripe from 'stripe';
 import { z } from 'zod';
 
@@ -16,6 +17,7 @@ const Body = z.object({
   partnershipId: z.string().uuid().optional(),
   recurringCadence: z.enum(['weekly', 'biweekly', 'monthly']).optional(),
   promoCode: z.string().optional(),
+  waiverAccepted: z.boolean().optional(),
 });
 
 export async function POST(req: Request) {
@@ -26,7 +28,7 @@ export async function POST(req: Request) {
 
   const body = Body.safeParse(await req.json());
   if (!body.success) return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
-  const { operatorId, vehicleId, scheduledFor, timeSlot, bookingType, partnershipId, recurringCadence, promoCode } =
+  const { operatorId, vehicleId, scheduledFor, timeSlot, bookingType, partnershipId, recurringCadence, promoCode, waiverAccepted } =
     body.data;
 
   const admin = supabaseAdmin();
@@ -38,6 +40,30 @@ export async function POST(req: Request) {
     .eq('profile_id', session.user.id)
     .single();
   if (!resident) return NextResponse.json({ error: 'Resident record not found' }, { status: 404 });
+
+  // One time service acknowledgment: an independent operator does the work,
+  // Lavo and the building are not liable for vehicle damage, and the
+  // operator may enter the garage or lot. Recorded once per waiver version
+  // so it stays provable.
+  const { data: waiver } = await admin
+    .from('waiver_acceptances')
+    .select('id')
+    .eq('profile_id', session.user.id)
+    .eq('waiver_version', WAIVER_VERSION)
+    .maybeSingle();
+  if (!waiver) {
+    if (!waiverAccepted) {
+      return NextResponse.json({ error: 'Please accept the service acknowledgment to book.' }, { status: 400 });
+    }
+    const { error: waiverError } = await admin.from('waiver_acceptances').insert({
+      profile_id: session.user.id,
+      resident_id: resident.id,
+      waiver_version: WAIVER_VERSION,
+    });
+    if (waiverError && waiverError.code !== '23505') {
+      return NextResponse.json({ error: 'Could not record your acknowledgment. Please try again.' }, { status: 500 });
+    }
+  }
 
   const { data: vehicle } = await admin
     .from('vehicles')

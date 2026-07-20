@@ -1,5 +1,6 @@
 import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
+import { insuranceDocViewUrl } from '@/lib/insurance-doc';
 import { InsuranceUploader } from '../profile/InsuranceUploader';
 
 export default async function OperatorCompliancePage() {
@@ -9,11 +10,13 @@ export default async function OperatorCompliancePage() {
   const sb = supabaseServer();
   const { data: op } = await sb
     .from('operators')
-    .select('id, insurance_carrier, insurance_expires_at, insurance_doc_url, insurance_uploaded_at, insurance_review_status, insurance_review_note')
+    .select('id, insurance_carrier, insurance_policy_number, insurance_coverage_amount_cents, insurance_expires_at, insurance_doc_url, insurance_uploaded_at, insurance_review_status, insurance_review_note')
     .eq('owner_id', session.user.id)
     .maybeSingle();
 
   if (!op) redirect('/operator/onboarding');
+
+  const docViewUrl = await insuranceDocViewUrl(op.insurance_doc_url);
 
   return (
     <main className="mx-auto max-w-2xl px-6 py-10 space-y-6">
@@ -25,7 +28,7 @@ export default async function OperatorCompliancePage() {
         </p>
       </div>
       <div className="card p-6">
-        <InsuranceUploader op={op} />
+        <InsuranceUploader op={op} docViewUrl={docViewUrl} />
       </div>
     </main>
   );
