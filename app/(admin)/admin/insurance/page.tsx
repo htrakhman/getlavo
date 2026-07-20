@@ -1,14 +1,19 @@
 import { PageHeader } from '@/components/PortalShell';
 import { supabaseServer } from '@/lib/supabase/server';
+import { insuranceDocViewUrl } from '@/lib/insurance-doc';
 import { ReviewActions } from './ReviewActions';
 
 export default async function InsuranceReviewPage() {
   const sb = supabaseServer();
-  const { data: pending } = await sb
+  const { data: rows } = await sb
     .from('operators')
-    .select('id, name, insurance_carrier, insurance_expires_at, insurance_doc_url, insurance_uploaded_at, insurance_review_status, insurance_review_note')
-    .in('insurance_review_status', ['pending_review', 'rejected'])
+    .select('id, name, insurance_carrier, insurance_policy_number, insurance_coverage_amount_cents, insurance_expires_at, insurance_doc_url, insurance_uploaded_at, insurance_review_status, insurance_review_note')
+    .in('insurance_review_status', ['pending_review', 'rejected', 'expired'])
     .order('insurance_uploaded_at', { ascending: false });
+
+  const pending = await Promise.all(
+    (rows ?? []).map(async (o: any) => ({ ...o, docViewUrl: await insuranceDocViewUrl(o.insurance_doc_url) }))
+  );
 
   return (
     <>
@@ -24,17 +29,21 @@ export default async function InsuranceReviewPage() {
                   <div className="font-display text-lg">{o.name}</div>
                   <div className="mt-1 text-xs text-ink-400">
                     Carrier: {o.insurance_carrier ?? '—'}
+                    {o.insurance_policy_number && <>{' · '}Policy: {o.insurance_policy_number}</>}
+                    {o.insurance_coverage_amount_cents && (
+                      <>{' · '}Coverage: ${Math.round(o.insurance_coverage_amount_cents / 100).toLocaleString()}</>
+                    )}
                     {' · '}Expires: {o.insurance_expires_at ?? '—'}
                     {' · '}Uploaded: {o.insurance_uploaded_at?.slice(0, 10) ?? '—'}
                   </div>
-                  <span className={`chip mt-2 inline-block ${o.insurance_review_status === 'rejected' ? 'text-red-400' : 'text-amber-600'}`}>
+                  <span className={`chip mt-2 inline-block ${['rejected', 'expired'].includes(o.insurance_review_status) ? 'text-red-400' : 'text-amber-600'}`}>
                     {o.insurance_review_status.replace('_', ' ')}
                   </span>
                   {o.insurance_review_note && <p className="mt-1 text-xs text-ink-400">Last note: {o.insurance_review_note}</p>}
                 </div>
                 <div className="flex flex-col items-end gap-2">
-                  {o.insurance_doc_url && (
-                    <a href={o.insurance_doc_url} target="_blank" rel="noreferrer" className="btn-quiet text-sm">View certificate</a>
+                  {o.docViewUrl && (
+                    <a href={o.docViewUrl} target="_blank" rel="noreferrer" className="btn-quiet text-sm">View certificate</a>
                   )}
                   <ReviewActions operatorId={o.id} />
                 </div>

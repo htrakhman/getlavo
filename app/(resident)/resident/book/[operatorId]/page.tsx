@@ -1,6 +1,7 @@
 import { PageHeader } from '@/components/PortalShell';
 import { getSessionUser, supabaseServer, supabaseAdmin } from '@/lib/supabase/server';
 import { money } from '@/lib/format';
+import { WAIVER_VERSION } from '@/lib/waiver';
 import { redirect } from 'next/navigation';
 import { BookingForm } from './BookingForm';
 
@@ -32,11 +33,19 @@ export default async function BookOperator({
 
   if (!resident || !operator) redirect('/resident/book');
 
-  const { data: vehicles } = await admin
-    .from('vehicles')
-    .select('id, make, model, color, license_plate, is_primary')
-    .eq('resident_id', resident.id)
-    .order('is_primary', { ascending: false });
+  const [{ data: vehicles }, { data: waiver }] = await Promise.all([
+    admin
+      .from('vehicles')
+      .select('id, make, model, color, license_plate, is_primary')
+      .eq('resident_id', resident.id)
+      .order('is_primary', { ascending: false }),
+    admin
+      .from('waiver_acceptances')
+      .select('id')
+      .eq('profile_id', session.user.id)
+      .eq('waiver_version', WAIVER_VERSION)
+      .maybeSingle(),
+  ]);
 
   const isPartner = !!searchParams.partnershipId;
   const building = resident.building as any;
@@ -81,6 +90,7 @@ export default async function BookOperator({
           partnershipId={searchParams.partnershipId}
           initialDate={searchParams.date}
           initialTimeSlot={searchParams.time}
+          waiverAccepted={!!waiver}
         />
       </div>
     </>

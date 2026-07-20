@@ -1,5 +1,6 @@
 import { PageHeader } from '@/components/PortalShell';
 import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
+import { insuranceDocViewUrl } from '@/lib/insurance-doc';
 import { redirect } from 'next/navigation';
 import { OperatorProfileEditor } from './OperatorProfileEditor';
 import { PackagesEditor } from './PackagesEditor';
@@ -25,6 +26,8 @@ export default async function OperatorProfilePage() {
     sb.from('crew_members').select('*').eq('operator_id', op.id).order('full_name'),
     sb.from('operator_portfolio_items').select('*').eq('operator_id', op.id).order('display_order'),
   ]);
+
+  const insuranceDocView = await insuranceDocViewUrl(op.insurance_doc_url);
 
   const insuranceExpiringSoon = op.insurance_expires_at
     ? (new Date(op.insurance_expires_at).getTime() - Date.now()) / 86400000 <= 30
@@ -72,7 +75,7 @@ export default async function OperatorProfilePage() {
               <span className="chip text-amber-600">Expiring soon</span>
             )}
           </div>
-          <InsuranceUploader op={op} />
+          <InsuranceUploader op={op} docViewUrl={insuranceDocView} />
         </div>
       </div>
     </>

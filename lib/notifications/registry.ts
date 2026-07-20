@@ -11,4 +11,5 @@ export const notificationMatrix: Record<
   waitlist_building_live: { email: true, sms: true },
   partnership_request: { email: true },
   coi_expiring: { email: true },
+  coi_expired: { email: true },
 };
