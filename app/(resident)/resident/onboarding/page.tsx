@@ -14,7 +14,6 @@ export default function ResidentOnboarding() {
   const [step, setStep] = useState(1);
   const [buildings, setBuildings] = useState<any[]>([]);
   const [buildingId, setBuildingId] = useState('');
-  const [building, setBuilding] = useState<any>(null);
 
   // Step 2 fields
   const [unit, setUnit] = useState('');
@@ -65,11 +64,6 @@ export default function ResidentOnboarding() {
       .then((r) => (r.ok ? localStorage.removeItem('lavo_referral_code') : null))
       .catch(() => {});
   }, []);
-
-  useEffect(() => {
-    if (!buildingId) { setBuilding(null); return; }
-    setBuilding(buildings.find((b) => b.id === buildingId) ?? null);
-  }, [buildingId, buildings]);
 
   const canStep2 = !!buildingId;
   const canFinish = canStep2 && unit && floor !== '' && make && model && year && color && accessMethod;
@@ -199,12 +193,6 @@ Thanks!`}
               </div>
             )}
           </div>
-
-          {building && (
-            <div className="card border-gleam/30 p-4 text-sm text-ink-200">
-              {building.name} · Wash day: {building.wash_day || 'TBD'}
-            </div>
-          )}
 
           <button disabled={!canStep2} onClick={() => setStep(2)} className="btn-primary w-full">
             Next
