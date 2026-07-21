@@ -1,6 +1,5 @@
 'use client';
 import { money } from '@/lib/format';
-import { calculateFee } from '@/lib/fee';
 import { captureEvent } from '@/lib/analytics';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -100,8 +99,6 @@ export function BookingForm({
   const priceCents = bookingType === 'building_day'
     ? basePriceCents
     : (openSlotPriceCents ?? basePriceCents);
-
-  const { fee: feeCents } = calculateFee(priceCents);
 
   async function book() {
     if (!vehicleId || !date) { setErr('Please select a vehicle and date'); return; }
@@ -244,10 +241,6 @@ export function BookingForm({
         <div className="flex items-center justify-between text-sm">
           <span className="text-ink-400">Wash total</span>
           <span>{money(priceCents)}</span>
-        </div>
-        <div className="mt-2 flex items-center justify-between text-xs text-ink-500">
-          <span>Includes platform fee</span>
-          <span>{money(feeCents)} to Lavo · {money(priceCents - feeCents)} to your operator</span>
         </div>
       </div>
 

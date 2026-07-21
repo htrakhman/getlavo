@@ -502,7 +502,7 @@ export const PROCESS_PHASES = [
       {
         who: 'Resident',
         title: 'Pick a time slot & pay',
-        body: 'Choose a building wash day (often lower rate) or an on-demand open slot. Stripe processes payment online; Lavo retains a platform fee and queues the rest for the operator.',
+        body: 'Choose a building wash day (often lower rate) or an on-demand open slot. Stripe processes payment online and the booking is confirmed instantly.',
       },
     ],
   },
