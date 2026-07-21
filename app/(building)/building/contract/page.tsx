@@ -6,6 +6,7 @@ import { ContractDraftSigner } from './ContractDraftSigner';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import Link from 'next/link';
 import { money } from '@/lib/format';
+import { hasApprovedInsurance } from '@/lib/insurance';
 
 export const dynamic = 'force-dynamic';
 
@@ -328,7 +329,7 @@ export default async function ContractPage() {
               <p>
                 Service Provider shall maintain general liability insurance of no less than $1,000,000 per
                 occurrence throughout the term of this Agreement.
-                {op?.insurance_expires_at ? (
+                {hasApprovedInsurance(op) ? (
                   <span className="ml-1 text-gleam">
                     ✓ Current policy on file, expires {op.insurance_expires_at}.
                   </span>

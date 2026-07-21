@@ -4,6 +4,7 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
 import { redirect } from 'next/navigation';
 import { money } from '@/lib/format';
 import { OperatorContractSigner } from './OperatorContractSigner';
+import { hasApprovedInsurance } from '@/lib/insurance';
 
 const BLANK = (label: string) => (
   <span className="inline-block min-w-[120px] border-b border-dashed border-ink-500 text-ink-500 italic px-1">
@@ -214,7 +215,7 @@ export default async function OperatorContractPage({ params }: { params: { id: s
               <p>
                 Service Provider shall maintain general liability insurance of no less than $1,000,000 per
                 occurrence throughout the term of this Agreement.
-                {op.insurance_expires_at ? (
+                {hasApprovedInsurance(op) ? (
                   <span className="ml-1 text-gleam">
                     ✓ Current policy on file, expires {op.insurance_expires_at}.
                   </span>
