@@ -10,6 +10,7 @@ import { IncomingOperatorRequests } from './IncomingOperatorRequests';
 import { parseDateList } from '@/lib/wash-dates';
 import Link from 'next/link';
 import { money } from '@/lib/format';
+import { hasApprovedInsurance } from '@/lib/insurance';
 
 export default async function MyOperator() {
   const session = await getSessionUser();
@@ -69,7 +70,7 @@ export default async function MyOperator() {
   const { data: operators } = !operator
     ? await sb
         .from('operators')
-        .select('id, name, description, rating_avg, rating_count, base_price_cents, open_slot_price_cents, service_radius_miles, insurance_expires_at')
+        .select('id, name, description, rating_avg, rating_count, base_price_cents, open_slot_price_cents, service_radius_miles, insurance_expires_at, insurance_review_status')
         .eq('status', 'approved')
         .order('promoted_listing', { ascending: false })
         .order('rating_avg', { ascending: false })
@@ -160,7 +161,7 @@ export default async function MyOperator() {
                       {op.open_slot_price_cents && (
                         <span className="chip">On-demand {money(op.open_slot_price_cents)}</span>
                       )}
-                      {op.insurance_expires_at && (
+                      {hasApprovedInsurance(op) && (
                         <span className="chip text-gleam/80">✓ Insured</span>
                       )}
                     </div>
@@ -203,9 +204,9 @@ export default async function MyOperator() {
             <div className="card p-5">
               <div className="text-xs uppercase tracking-widest text-ink-400">Insurance</div>
               <div className="mt-1 font-display text-xl">
-                {operator.insurance_expires_at
+                {hasApprovedInsurance(operator)
                   ? `Active · expires ${operator.insurance_expires_at.slice(0, 10)}`
-                  : 'On file'}
+                  : 'Pending verification'}
               </div>
             </div>
             {(operator.contact_email || operator.contact_phone) && (
