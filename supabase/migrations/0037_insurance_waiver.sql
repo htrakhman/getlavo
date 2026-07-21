@@ -58,7 +58,7 @@ create policy insurance_docs_upload
     and exists (
       select 1 from operators o
       where o.owner_id = auth.uid()
-        and (storage.foldername(name))[1] = o.id::text
+        and (storage.foldername(objects.name))[1] = o.id::text
     )
   );
 
@@ -70,7 +70,7 @@ create policy insurance_docs_update
     and exists (
       select 1 from operators o
       where o.owner_id = auth.uid()
-        and (storage.foldername(name))[1] = o.id::text
+        and (storage.foldername(objects.name))[1] = o.id::text
     )
   );
 
@@ -82,6 +82,6 @@ create policy insurance_docs_owner_read
     and exists (
       select 1 from operators o
       where o.owner_id = auth.uid()
-        and (storage.foldername(name))[1] = o.id::text
+        and (storage.foldername(objects.name))[1] = o.id::text
     )
   );
