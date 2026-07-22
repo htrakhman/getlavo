@@ -84,9 +84,11 @@ function AddonForm({ operatorId, addon, onDone, onCancel }: { operatorId: string
   const [type, setType] = useState(addon?.type ?? TYPES[0].value);
   const [price, setPrice] = useState(addon ? (addon.price_cents / 100).toFixed(2) : '');
   const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
 
   async function save() {
     setBusy(true);
+    setErr(null);
     const sb = supabaseBrowser();
     const payload: any = {
       operator_id: operatorId,
@@ -95,15 +97,17 @@ function AddonForm({ operatorId, addon, onDone, onCancel }: { operatorId: string
       price_cents: Math.round(parseFloat(price) * 100),
       active: true,
     };
-    if (addon?.id) {
-      const { data } = await sb.from('operator_addons').update(payload).eq('id', addon.id).select().single();
-      setBusy(false);
-      onDone(data);
-    } else {
-      const { data } = await sb.from('operator_addons').insert(payload).select().single();
-      setBusy(false);
-      onDone(data);
+    const { data, error } = addon?.id
+      ? await sb.from('operator_addons').update(payload).eq('id', addon.id).select().single()
+      : await sb.from('operator_addons').insert(payload).select().single();
+    setBusy(false);
+    // Never hand a null row to onDone — pushing it into the list crashes the
+    // whole page on the next render (reading .active on null).
+    if (error || !data) {
+      setErr(error?.message ?? 'Could not save the add-on — please try again.');
+      return;
     }
+    onDone(data);
   }
 
   return (
@@ -113,8 +117,9 @@ function AddonForm({ operatorId, addon, onDone, onCancel }: { operatorId: string
         {TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
       </select>
       <input className="field md:col-span-2" type="number" step="0.01" placeholder="Price" value={price} onChange={(e) => setPrice(e.target.value)} />
+      {err && <div className="md:col-span-12 text-sm text-red-400">{err}</div>}
       <div className="md:col-span-12 flex gap-2">
-        <button onClick={save} disabled={busy || !label || !price} className="btn-primary text-sm">Save</button>
+        <button onClick={save} disabled={busy || !label || !price} className="btn-primary text-sm">{busy ? 'Saving…' : 'Save'}</button>
         <button onClick={onCancel} className="btn-quiet text-sm">Cancel</button>
       </div>
     </div>
