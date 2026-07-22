@@ -1,9 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
-import Stripe from 'stripe';
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? '', { apiVersion: '2024-06-20' });
+import { stripeClient, connectConfigError, ensureConnectedAccount } from '@/lib/stripe/connect';
 
 export async function GET() {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
@@ -13,6 +11,18 @@ export async function GET() {
       return NextResponse.redirect(`${appUrl}/login`);
     }
 
+    // Never send an operator to Stripe's test sandbox from a live deployment.
+    const configError = connectConfigError();
+    if (configError) {
+      console.error('stripe connect onboard blocked:', configError, {
+        nodeEnv: process.env.NODE_ENV,
+        testKey: (process.env.STRIPE_SECRET_KEY ?? '').startsWith('sk_test_'),
+      });
+      const encoded = encodeURIComponent(configError.slice(0, 200));
+      return NextResponse.redirect(`${appUrl}/operator?stripe_error=1&stripe_msg=${encoded}`);
+    }
+
+    const stripe = stripeClient();
     const sb = supabaseServer();
     const admin = supabaseAdmin();
 
@@ -23,25 +33,9 @@ export async function GET() {
       .single();
     if (!operator) return NextResponse.json({ error: 'Operator not found' }, { status: 404 });
 
-    let accountId = operator.stripe_account_id;
-
-    // Create Stripe Express account if not yet created
-    if (!accountId) {
-      const account = await stripe.accounts.create({
-        type: 'express',
-        email: session.profile.email,
-        business_profile: { name: operator.name },
-        capabilities: {
-          card_payments: { requested: true },
-          transfers: { requested: true },
-        },
-      });
-      accountId = account.id;
-      await admin
-        .from('operators')
-        .update({ stripe_account_id: accountId })
-        .eq('id', operator.id);
-    }
+    // Reuse the operator's account if it exists under the current key; a stale
+    // test-mode account (from before live keys were deployed) is recreated.
+    const accountId = await ensureConnectedAccount(stripe, admin, operator, session.profile.email);
 
     const accountLink = await stripe.accountLinks.create({
       account: accountId,

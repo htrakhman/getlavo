@@ -1,9 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
-import Stripe from 'stripe';
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? '', { apiVersion: '2024-06-20' });
+import { stripeClient } from '@/lib/stripe/connect';
 
 export async function GET() {
   const session = await getSessionUser();
@@ -23,12 +21,19 @@ export async function GET() {
     .single();
 
   if (operator?.stripe_account_id) {
-    const account = await stripe.accounts.retrieve(operator.stripe_account_id);
-    if (account.charges_enabled) {
-      await admin
-        .from('operators')
-        .update({ stripe_onboarding_complete: true })
-        .eq('id', operator.id);
+    try {
+      const stripe = stripeClient();
+      const account = await stripe.accounts.retrieve(operator.stripe_account_id);
+      if (account.charges_enabled) {
+        await admin
+          .from('operators')
+          .update({ stripe_onboarding_complete: true })
+          .eq('id', operator.id);
+      }
+    } catch (err) {
+      // Stale/invalid account id (e.g. a test-mode account under a live key)
+      // must not crash the return redirect — onboarding will recreate it.
+      console.error('stripe connect return retrieve failed:', err);
     }
   }
 
