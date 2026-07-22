@@ -1,6 +1,7 @@
 import { supabaseServer } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { money } from '@/lib/format';
+import { parseSizePrices, sizeLabel } from '@/lib/vehicle-sizes';
 import Link from 'next/link';
 import { BuildingAttributor } from '@/app/b/[slug]/BuildingAttributor';
 import { Logo } from '@/components/Logo';
@@ -43,7 +44,7 @@ export default async function BuildingCanonicalPage({ params }: { params: { slug
   if (operator) {
     const { data: pkgs } = await sb
       .from('service_packages')
-      .select('id, name, description, price_cents, est_minutes')
+      .select('id, name, description, price_cents, est_minutes, size_prices')
       .eq('operator_id', operator.id)
       .eq('active', true)
       .order('price_cents', { ascending: true });
@@ -118,18 +119,34 @@ export default async function BuildingCanonicalPage({ params }: { params: { slug
               <div>
                 <div className="text-xs uppercase tracking-widest text-ink-400 mb-3">Available packages</div>
                 <div className="space-y-3">
-                  {packages.map((p) => (
-                    <div key={p.id} className="card p-5">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex-1 min-w-0">
-                          <div className="font-display text-lg">{p.name}</div>
-                          {p.description && <p className="mt-1 text-sm text-ink-300">{p.description}</p>}
-                          {p.est_minutes && <div className="mt-1 text-xs text-ink-500">~{p.est_minutes} min</div>}
+                  {packages.map((p) => {
+                    const sizePrices = parseSizePrices(p.size_prices);
+                    return (
+                      <div key={p.id} className="card p-5">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1 min-w-0">
+                            <div className="font-display text-lg">{p.name}</div>
+                            {p.description && <p className="mt-1 text-sm text-ink-300">{p.description}</p>}
+                            {p.est_minutes && <div className="mt-1 text-xs text-ink-500">~{p.est_minutes} min</div>}
+                            {sizePrices.length > 0 && (
+                              <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-ink-400">
+                                {sizePrices.map((sp) => (
+                                  <span key={sp.size}>
+                                    {sizeLabel(sp.size)}{' '}
+                                    <span className="text-gleam" style={accentText}>{money(sp.price_cents)}</span>
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                          <div className="font-display text-xl text-gleam shrink-0" style={accentText}>
+                            {sizePrices.length > 0 && <span className="text-xs text-ink-400 font-normal">from </span>}
+                            {money(p.price_cents)}
+                          </div>
                         </div>
-                        <div className="font-display text-xl text-gleam shrink-0" style={accentText}>{money(p.price_cents)}</div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
 
