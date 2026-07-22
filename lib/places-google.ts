@@ -15,10 +15,16 @@ export async function placesAutocomplete(input: string, sessionToken?: string): 
   const key = process.env.GOOGLE_PLACES_API_KEY;
   if (!key || !input.trim()) return [];
 
+  // NOTE: do NOT set includedPrimaryTypes here. The Places API (New) rejects a
+  // request that mixes the `establishment` type *collection* with individual
+  // types like `premise`/`street_address` with an INVALID_REQUEST (400) error —
+  // which made every Google autocomplete call fail and silently return [], so no
+  // suggestions ever reached the dropdown. Omitting the filter returns all place
+  // types (addresses + named buildings), which is exactly what a "find your
+  // building" search wants, and Google ranks the relevant matches first.
   const body: Record<string, unknown> = {
     input: input.trim().slice(0, 200),
     includedRegionCodes: ['us'],
-    includedPrimaryTypes: ['establishment', 'premise', 'street_address', 'point_of_interest'],
   };
   if (sessionToken) body.sessionToken = sessionToken;
 
