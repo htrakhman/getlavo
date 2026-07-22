@@ -34,7 +34,7 @@ export default async function ResidentWashes() {
 
   // Admin client for the same RLS reason as above; every query is still scoped
   // to this resident via building_id / resident.id from the row fetched above.
-  const [{ data: nextWashDay }, { data: nextBooking }, { data: history }, { data: skips }, { data: reviews }] = await Promise.all([
+  const [{ data: nextWashDay }, { data: nextBooking }, { data: history }, { data: skips }, { data: reviews }, { data: partnership }] = await Promise.all([
     sbAdmin.from('wash_days')
       .select('id, scheduled_for, operator:operators(name)')
       .eq('building_id', resident.building_id)
@@ -61,7 +61,17 @@ export default async function ResidentWashes() {
     sbAdmin.from('wash_reviews')
       .select('wash_id, rating')
       .eq('resident_id', resident.id),
+    // Same "is there really an operator serving this building?" check that
+    // /resident/book uses, so the two pages can't disagree about coverage.
+    sbAdmin.from('partnerships')
+      .select('operator:operators(status, stripe_onboarding_complete)')
+      .eq('building_id', resident.building_id)
+      .eq('status', 'active')
+      .maybeSingle(),
   ]);
+
+  const partnerOp = (partnership?.operator as any) ?? null;
+  const hasActiveOperator = partnerOp?.status === 'approved' && !!partnerOp?.stripe_onboarding_complete;
 
   const reviewMap = new Map((reviews ?? []).map((r: any) => [r.wash_id, r.rating]));
 
@@ -124,9 +134,9 @@ export default async function ResidentWashes() {
             </>
           ) : (
             <div className="mt-2 text-sm text-ink-400">
-              {building?.wash_day
+              {hasActiveOperator && building?.wash_day
                 ? `Your next wash will be on a ${building.wash_day}.`
-                : 'Not scheduled yet.'}
+                : 'We’re lining up an operator for your building — you’ll be notified once wash days are scheduled.'}
             </div>
           )}
         </div>

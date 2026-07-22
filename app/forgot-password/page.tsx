@@ -1,6 +1,5 @@
 'use client';
 import { Logo } from '@/components/Logo';
-import { supabaseBrowser } from '@/lib/supabase/client';
 import { useState } from 'react';
 
 export default function ForgotPasswordPage() {
@@ -13,12 +12,19 @@ export default function ForgotPasswordPage() {
     e.preventDefault();
     setBusy(true);
     setErr(null);
-    const sb = supabaseBrowser();
-    const { error } = await sb.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
-    });
+    // Server route: the browser-client resetPasswordForEmail silently no-oped
+    // when no auth session was present — which is every user on this page.
+    const res = await fetch('/api/auth/forgot-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    }).catch(() => null);
     setBusy(false);
-    if (error) { setErr(error.message); return; }
+    if (!res?.ok) {
+      const j = await res?.json().catch(() => null);
+      setErr(typeof j?.error === 'string' ? j.error : 'Could not send reset email — please try again.');
+      return;
+    }
     setDone(true);
   }
 
