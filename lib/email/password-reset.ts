@@ -1,5 +1,5 @@
 import { Resend } from 'resend';
-import { wrapEmail, paragraph } from '@/lib/email/template';
+import { wrapEmail, paragraph, escape } from '@/lib/email/template';
 
 const FROM = process.env.RESEND_FROM_EMAIL || 'Lavo <hello@getlavo.io>';
 
@@ -16,10 +16,19 @@ export async function sendPasswordResetEmail({ to, resetUrl }: { to: string; res
   if (!key) throw new Error('RESEND_API_KEY is not set');
   const resend = new Resend(key);
 
+  // The URL carries a query string (?token_hash=…&type=recovery). It MUST be
+  // HTML-escaped before going into the href attribute — the raw `&` separator is
+  // otherwise ambiguous to HTML parsers and to email link-rewriters, which
+  // corrupted the link in transit (the `=` after token_hash arrived as `#`,
+  // pushing the token into the URL fragment so the server never received it).
+  const safeHref = escape(resetUrl);
+
   const content = [
     paragraph('We received a request to reset the password for your Lavo account.'),
     paragraph('Click the button below to choose a new password. This link expires in 1 hour and can only be used once.'),
-    `<p style="margin:24px 0;"><a href="${resetUrl}" style="display:inline-block;padding:12px 20px;border-radius:8px;background:#00e5c8;color:#0a0a0a;font-weight:600;text-decoration:none;">Reset password</a></p>`,
+    `<p style="margin:24px 0;"><a href="${safeHref}" style="display:inline-block;padding:12px 20px;border-radius:8px;background:#00e5c8;color:#0a0a0a;font-weight:600;text-decoration:none;">Reset password</a></p>`,
+    paragraph('Or paste this link into your browser:'),
+    `<p style="margin:0 0 16px 0;word-break:break-all;"><a href="${safeHref}" style="color:#00e5c8;text-decoration:none;">${escape(resetUrl)}</a></p>`,
     paragraph('If you did not request this, you can safely ignore this email — your password will not change.'),
   ].join('');
 
@@ -28,5 +37,8 @@ export async function sendPasswordResetEmail({ to, resetUrl }: { to: string; res
     to,
     subject: 'Reset your Lavo password',
     html: wrapEmail({ preheader: 'Reset your Lavo password', content }),
+    // Plain-text alternative: a raw, unescaped link that is not subject to any
+    // HTML-attribute parsing, as a resilient fallback.
+    text: `Reset your Lavo password by opening this link (expires in 1 hour, single use):\n\n${resetUrl}\n\nIf you did not request this, you can ignore this email — your password will not change.`,
   });
 }
