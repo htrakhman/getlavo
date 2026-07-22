@@ -19,7 +19,7 @@ export default async function AccountPage() {
 
   const { data: resident } = await admin
     .from('residents')
-    .select('id, notification_preferences, stripe_subscription_id, subscription_tier, subscription_state')
+    .select('id, notification_preferences')
     .eq('profile_id', session.user.id)
     .maybeSingle();
 
@@ -29,11 +29,6 @@ export default async function AccountPage() {
       <AccountForm
         profile={profile}
         residentId={resident?.id ?? null}
-        subscription={{
-          stripeSubscriptionId: (resident as any)?.stripe_subscription_id ?? null,
-          tier: (resident as any)?.subscription_tier ?? null,
-          state: (resident as any)?.subscription_state ?? 'active',
-        }}
         prefs={resident?.notification_preferences ?? {
           email_reminder: true, sms_reminder: true,
           email_complete: true, sms_complete: true,
