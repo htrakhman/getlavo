@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseServer } from '@/lib/supabase/server';
 import { rateLimit, clientIp, rateLimitResponse } from '@/lib/rate-limit';
+import { sendPasswordReset } from '@/lib/auth/send-password-reset';
 
 // Public password-reset trigger for logged-out users (the /forgot-password page).
-// Kept server-side for the same reason as the signed-in reset on the account page:
-// the browser-client `resetPasswordForEmail` silently no-oped when no auth session
-// was present — which is exactly the state of every user hitting this flow. Going
-// through a same-origin route guarantees the request actually fires and the email
-// is sent by the server.
+// Delivery goes through Resend (our working email provider) via the shared
+// sendPasswordReset helper, not Supabase's own SMTP — which was not sending the
+// recovery email at all (recovery_sent_at stayed null). Errors from that helper
+// are surfaced as a 500 rather than masked as success, so real failures are
+// visible instead of silently swallowed.
 export async function POST(req: NextRequest) {
   const rl = rateLimit(`forgot-pw:${clientIp(req)}`, { limit: 5, windowMs: 60_000 });
   if (!rl.ok) return rateLimitResponse(rl);
@@ -22,14 +22,9 @@ export async function POST(req: NextRequest) {
   const origin =
     process.env.NEXT_PUBLIC_APP_URL || new URL(req.url).origin || 'https://www.getlavo.io';
 
-  const sb = supabaseServer();
-  const { error } = await sb.auth.resetPasswordForEmail(email, {
-    redirectTo: `${origin}/reset-password`,
-  });
-  // Swallow the specific error (e.g. unknown email) so we don't leak account
-  // existence; a genuine outage still surfaces as a 500 for the client to retry.
-  if (error && !/user|email|not found|invalid/i.test(error.message)) {
-    return NextResponse.json({ error: 'Could not send reset email — please try again.' }, { status: 500 });
+  const result = await sendPasswordReset(email, origin);
+  if (!result.ok) {
+    return NextResponse.json({ error: result.error }, { status: result.status });
   }
 
   return NextResponse.json({ success: true });

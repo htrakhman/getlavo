@@ -50,21 +50,26 @@ function CardForm({ onSaved, buttonLabel }: { onSaved: (id: string) => void | Pr
   const stripe = useStripe();
   const elements = useElements();
   const [busy, setBusy] = useState(false);
-  const [ready, setReady] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+
+  // The button is enabled as soon as Stripe.js and the Elements group have
+  // loaded (the canonical Stripe pattern). We deliberately do NOT gate on the
+  // Payment Element's `onReady` event: that event does not fire reliably in all
+  // browsers/embeds, and gating on it left the button stuck disabled reading
+  // "Loading…" forever, blocking every resident from adding a card. If a click
+  // somehow lands before the element is fully mounted, confirmSetup's
+  // IntegrationError is caught below and shown to the user instead of hanging.
+  const loading = !stripe || !elements;
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    // Guard against submitting before Stripe + the Payment Element are mounted.
-    // confirmSetup throws a synchronous IntegrationError otherwise, which would
-    // otherwise leave the button stuck on "Saving…" with no feedback.
-    if (!stripe || !elements || !ready || busy) return;
+    if (loading || busy) return;
     setBusy(true);
     setErr(null);
 
     try {
-      const { error, setupIntent } = await stripe.confirmSetup({
-        elements,
+      const { error, setupIntent } = await stripe!.confirmSetup({
+        elements: elements!,
         confirmParams: { return_url: window.location.href },
         redirect: 'if_required',
       });
@@ -106,10 +111,10 @@ function CardForm({ onSaved, buttonLabel }: { onSaved: (id: string) => void | Pr
 
   return (
     <form onSubmit={submit} className="space-y-4">
-      <PaymentElement onReady={() => setReady(true)} />
+      <PaymentElement />
       {err && <div className="text-sm text-red-400">{err}</div>}
-      <button type="submit" disabled={!stripe || !ready || busy} className="btn-primary w-full">
-        {busy ? 'Saving…' : ready ? buttonLabel : 'Loading…'}
+      <button type="submit" disabled={loading || busy} className="btn-primary w-full">
+        {busy ? 'Saving…' : loading ? 'Loading…' : buttonLabel}
       </button>
     </form>
   );
