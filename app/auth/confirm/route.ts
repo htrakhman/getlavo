@@ -1,103 +1,19 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr';
-import { NextRequest, NextResponse } from 'next/server';
-import { homePathForSignupRole, normalizeSignupRole, pickLandingPortal, portalForSignupRole } from '@/lib/portal-routing';
-import { notifySignup } from '@/lib/auth/notify-signup';
-import { safeInternalPath } from '@/lib/safe-redirect';
-import { QR_SLUG_COOKIE, logScanEvent } from '@/lib/qr-attribution';
+import { NextRequest } from 'next/server';
+import { confirmOtp } from '@/lib/auth/confirm-otp';
 
+// Query-string confirmation endpoint: /auth/confirm?token_hash=…&type=…
+// This is the target of Supabase-generated signup and invite emails.
+//
+// NOTE: our own password-reset email uses the path form
+// (/auth/confirm/<type>/<token_hash>) instead — a `token_hash=<hex>` query
+// string is mangled in email transit because `=` + two hex digits is a valid
+// quoted-printable escape. See lib/auth/confirm-otp.ts.
 export async function GET(request: NextRequest) {
-  const { searchParams, origin } = new URL(request.url);
-  const token_hash = searchParams.get('token_hash');
-  const type = searchParams.get('type') as 'email' | 'recovery' | 'invite' | null;
-  const role = normalizeSignupRole(searchParams.get('role'));
-  const next = searchParams.get('next');
-
-  if (!token_hash || !type) {
-    return NextResponse.redirect(`${origin}/login?error=missing_token`);
-  }
-
-  const pendingCookies: Array<{ name: string; value: string; options: CookieOptions }> = [];
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() { return request.cookies.getAll(); },
-        setAll(cookiesToSet: { name: string; value: string; options: CookieOptions }[]) {
-          pendingCookies.push(...cookiesToSet);
-        },
-      },
-    }
-  );
-
-  const { error } = await supabase.auth.verifyOtp({ token_hash, type });
-
-  function redirect(url: string) {
-    const response = NextResponse.redirect(url);
-    pendingCookies.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
-    return response;
-  }
-
-  if (error) {
-    return redirect(`${origin}/login?error=${encodeURIComponent(error.message)}`);
-  }
-
-  // Fire signup notification for new email confirmations (not password resets)
-  if (type === 'email' || type === 'invite') {
-    const { data: { user: confirmedUser } } = await supabase.auth.getUser();
-    if (confirmedUser && !confirmedUser.user_metadata?.signup_notified) {
-      await notifySignup({
-        email: confirmedUser.email!,
-        name: confirmedUser.user_metadata?.full_name,
-        role,
-        method: 'email',
-      });
-      await supabase.auth.updateUser({ data: { signup_notified: true } }).catch(() => {});
-
-      // Attribute the completed signup to the building QR that started the flow.
-      const qrSlug = request.cookies.get(QR_SLUG_COOKIE)?.value;
-      if (qrSlug) {
-        await logScanEvent({
-          slug: qrSlug,
-          event: 'signup',
-          profileId: confirmedUser.id,
-          userAgent: request.headers.get('user-agent'),
-        });
-      }
-    }
-  }
-
-  // Password reset — send to the reset page
-  if (type === 'recovery') {
-    return redirect(`${origin}/reset-password`);
-  }
-
-  // If a next= param was passed, honour it (any same-origin path — e.g. the
-  // building QR funnel's /schedule?b={slug} target)
-  const safeNext = safeInternalPath(next);
-  if (safeNext) {
-    return redirect(`${origin}${safeNext}`);
-  }
-
-  // Resolve destination from role
-  if (role) {
-    const dest = homePathForSignupRole(role);
-    return redirect(`${origin}${dest}`);
-  }
-
-  // Fall back: look up profile to find the right portal
-  const { data: { user } } = await supabase.auth.getUser();
-  if (user) {
-    const [{ data: profile }, { data: portalRows }] = await Promise.all([
-      supabase.from('profiles').select('role').eq('id', user.id).maybeSingle(),
-      supabase.from('profile_portals').select('portal').eq('profile_id', user.id),
-    ]);
-    const portals = (portalRows ?? []).map((r: { portal: string }) => r.portal);
-    const landing = pickLandingPortal(portals, profile?.role);
-    if (landing) return redirect(`${origin}/${landing}`);
-    if (profile?.role === 'admin') return redirect(`${origin}/admin`);
-  }
-
-  return redirect(`${origin}/auth/pick-role`);
+  const { searchParams } = new URL(request.url);
+  return confirmOtp(request, {
+    token_hash: searchParams.get('token_hash'),
+    type: searchParams.get('type') as 'email' | 'recovery' | 'invite' | null,
+    role: searchParams.get('role'),
+    next: searchParams.get('next'),
+  });
 }

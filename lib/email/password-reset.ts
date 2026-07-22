@@ -16,11 +16,10 @@ export async function sendPasswordResetEmail({ to, resetUrl }: { to: string; res
   if (!key) throw new Error('RESEND_API_KEY is not set');
   const resend = new Resend(key);
 
-  // The URL carries a query string (?token_hash=…&type=recovery). It MUST be
-  // HTML-escaped before going into the href attribute — the raw `&` separator is
-  // otherwise ambiguous to HTML parsers and to email link-rewriters, which
-  // corrupted the link in transit (the `=` after token_hash arrived as `#`,
-  // pushing the token into the URL fragment so the server never received it).
+  // resetUrl is a path-based link (/auth/confirm/recovery/<token>) with no `=` or
+  // `&`, so it survives quoted-printable email encoding intact — the corruption
+  // that broke the old `?token_hash=<hex>` query form. Still HTML-escape it before
+  // it goes into an href attribute, as defensive hygiene for any future format.
   const safeHref = escape(resetUrl);
 
   const content = [

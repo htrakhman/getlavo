@@ -41,7 +41,12 @@ export async function sendPasswordReset(email: string, origin: string): Promise<
     return { ok: false, status: 500, error: GENERIC_ERROR };
   }
 
-  const resetUrl = `${origin}/auth/confirm?token_hash=${encodeURIComponent(hashedToken)}&type=recovery`;
+  // Carry the token in the URL PATH, not a query string. A `token_hash=<hex>`
+  // query string is corrupted in email transit: `=` immediately followed by two
+  // hex digits is a valid quoted-printable escape, so a mail hop can swallow the
+  // separator into a single (often non-printable) byte, and /auth/confirm then
+  // never receives token_hash. A path form has no `=`/`&` to misread.
+  const resetUrl = `${origin}/auth/confirm/recovery/${encodeURIComponent(hashedToken)}`;
 
   try {
     await sendPasswordResetEmail({ to: email, resetUrl });
