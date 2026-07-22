@@ -50,58 +50,66 @@ function CardForm({ onSaved, buttonLabel }: { onSaved: (id: string) => void | Pr
   const stripe = useStripe();
   const elements = useElements();
   const [busy, setBusy] = useState(false);
+  const [ready, setReady] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!stripe || !elements) return;
+    // Guard against submitting before Stripe + the Payment Element are mounted.
+    // confirmSetup throws a synchronous IntegrationError otherwise, which would
+    // otherwise leave the button stuck on "Saving…" with no feedback.
+    if (!stripe || !elements || !ready || busy) return;
     setBusy(true);
     setErr(null);
 
-    const { error, setupIntent } = await stripe.confirmSetup({
-      elements,
-      confirmParams: { return_url: window.location.href },
-      redirect: 'if_required',
-    });
+    try {
+      const { error, setupIntent } = await stripe.confirmSetup({
+        elements,
+        confirmParams: { return_url: window.location.href },
+        redirect: 'if_required',
+      });
 
-    if (error) {
-      setErr(error.message ?? 'Could not save card');
+      if (error) {
+        setErr(error.message ?? 'Could not save card');
+        return;
+      }
+
+      const pmId = typeof setupIntent?.payment_method === 'string'
+        ? setupIntent.payment_method
+        : setupIntent?.payment_method?.id;
+
+      if (!pmId) {
+        setErr('No payment method returned');
+        return;
+      }
+
+      // Persist on the resident
+      const res = await fetch('/api/stripe/save-payment-method', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ paymentMethodId: pmId }),
+      });
+      if (!res.ok) {
+        setErr('Could not save card on file');
+        return;
+      }
+
+      await onSaved(pmId);
+    } catch (e) {
+      // Any thrown error (Stripe integration errors, network failures, save
+      // callback rejections) lands here so the user always gets feedback.
+      setErr(e instanceof Error ? e.message : 'Something went wrong saving your card. Please try again.');
+    } finally {
       setBusy(false);
-      return;
     }
-
-    const pmId = typeof setupIntent?.payment_method === 'string'
-      ? setupIntent.payment_method
-      : setupIntent?.payment_method?.id;
-
-    if (!pmId) {
-      setErr('No payment method returned');
-      setBusy(false);
-      return;
-    }
-
-    // Persist on the resident
-    const res = await fetch('/api/stripe/save-payment-method', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ paymentMethodId: pmId }),
-    });
-    if (!res.ok) {
-      setErr('Could not save card on file');
-      setBusy(false);
-      return;
-    }
-
-    await onSaved(pmId);
-    setBusy(false);
   }
 
   return (
     <form onSubmit={submit} className="space-y-4">
-      <PaymentElement />
+      <PaymentElement onReady={() => setReady(true)} />
       {err && <div className="text-sm text-red-400">{err}</div>}
-      <button type="submit" disabled={!stripe || busy} className="btn-primary w-full">
-        {busy ? 'Saving…' : buttonLabel}
+      <button type="submit" disabled={!stripe || !ready || busy} className="btn-primary w-full">
+        {busy ? 'Saving…' : ready ? buttonLabel : 'Loading…'}
       </button>
     </form>
   );
