@@ -1,5 +1,6 @@
 import { supabaseServer } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
+import { parseSizePrices, sizeLabel } from '@/lib/vehicle-sizes';
 
 export default async function PublicOperatorPage({ params }: { params: { slug: string } }) {
   const sb = supabaseServer();
@@ -14,7 +15,7 @@ export default async function PublicOperatorPage({ params }: { params: { slug: s
 
   const { data: pkgs } = await sb
     .from('service_packages')
-    .select('name, price_cents, description')
+    .select('name, price_cents, description, size_prices')
     .eq('operator_id', op.id)
     .eq('active', true)
     .order('price_cents', { ascending: true });
@@ -27,15 +28,30 @@ export default async function PublicOperatorPage({ params }: { params: { slug: s
         From {((op.base_price_cents ?? 0) / 100).toFixed(0)} dollars on building wash days when partnered.
       </p>
       <div className="mt-8 space-y-3">
-        {(pkgs ?? []).map((p) => (
-          <div key={p.name} className="card p-4 flex justify-between gap-3">
-            <div>
-              <div className="font-medium">{p.name}</div>
-              {p.description && <div className="text-xs text-ink-500 mt-1">{p.description}</div>}
+        {(pkgs ?? []).map((p) => {
+          const sizePrices = parseSizePrices(p.size_prices);
+          return (
+            <div key={p.name} className="card p-4 flex justify-between gap-3">
+              <div>
+                <div className="font-medium">{p.name}</div>
+                {p.description && <div className="text-xs text-ink-500 mt-1">{p.description}</div>}
+                {sizePrices.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-ink-500">
+                    {sizePrices.map((sp) => (
+                      <span key={sp.size}>
+                        {sizeLabel(sp.size)}{' '}
+                        <span className="text-gleam">${(sp.price_cents / 100).toFixed(0)}</span>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="text-gleam font-display whitespace-nowrap">
+                {sizePrices.length > 0 ? 'from ' : ''}${((p.price_cents ?? 0) / 100).toFixed(0)}
+              </div>
             </div>
-            <div className="text-gleam font-display">${((p.price_cents ?? 0) / 100).toFixed(0)}</div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </main>
   );
