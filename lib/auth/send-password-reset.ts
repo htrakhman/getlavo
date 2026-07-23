@@ -1,5 +1,6 @@
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { sendPasswordResetEmail } from '@/lib/email/password-reset';
+import { buildRecoveryUrl } from '@/lib/auth/recovery-url';
 
 export type PasswordResetResult =
   | { ok: true }
@@ -43,10 +44,12 @@ export async function sendPasswordReset(email: string, origin: string): Promise<
 
   // Carry the token in the URL PATH, not a query string. A `token_hash=<hex>`
   // query string is corrupted in email transit: `=` immediately followed by two
-  // hex digits is a valid quoted-printable escape, so a mail hop can swallow the
-  // separator into a single (often non-printable) byte, and /auth/confirm then
-  // never receives token_hash. A path form has no `=`/`&` to misread.
-  const resetUrl = `${origin}/auth/confirm/recovery/${encodeURIComponent(hashedToken)}`;
+  // hex digits is a valid quoted-printable escape, so a mail hop swallows the
+  // separator (and two token chars) into a single, often non-printable byte, and
+  // /auth/confirm then never receives token_hash. The path form has no `=`/`&`
+  // to misread. See lib/auth/recovery-url.ts (invariant enforced by
+  // scripts/reset-url-test.ts).
+  const resetUrl = buildRecoveryUrl(origin, hashedToken);
 
   try {
     await sendPasswordResetEmail({ to: email, resetUrl });
