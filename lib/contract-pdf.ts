@@ -181,7 +181,7 @@ export async function renderContractPdf(data: ContractPdfData): Promise<Uint8Arr
     ...(data.building?.managerEmail ? [data.building.managerEmail] : []),
   ];
   const opLines = [
-    data.operator.name,
+    data.operator.name || BLANK,
     ...(data.operator.contactEmail ? [data.operator.contactEmail] : []),
     ...(data.operator.contactPhone ? [data.operator.contactPhone] : []),
   ];

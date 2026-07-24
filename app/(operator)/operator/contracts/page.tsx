@@ -4,8 +4,7 @@ import { getAvailableBuildingsForOperator } from '@/lib/operator-available-build
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { SendContractPanel } from './SendContractPanel';
-import { AgreementReadiness } from './AgreementReadiness';
-import { money } from '@/lib/format';
+import { AgreementBuilder } from './AgreementBuilder';
 import { hasApprovedInsurance } from '@/lib/insurance';
 
 const DAY_ORDER = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -51,7 +50,7 @@ export default async function OperatorContractsPage() {
       .select('id, status, created_at, manager_signed_at, operator_signed_at, fully_executed_at, building:buildings(id, name, address_line1, city, region)')
       .eq('operator_id', op.id)
       .order('created_at', { ascending: false }),
-    sb.from('service_packages').select('name, description, price_cents').eq('operator_id', op.id).eq('active', true).order('display_order'),
+    sb.from('service_packages').select('id, name, description, price_cents').eq('operator_id', op.id).eq('active', true).order('display_order'),
     getAvailableBuildingsForOperator(op.id),
   ]);
 
@@ -66,16 +65,17 @@ export default async function OperatorContractsPage() {
   const missing = requirements.filter((r) => !r.done);
   const canSend = missing.length === 0;
 
-  const previewData = {
-    operatorName: op.name ?? '',
+  const initial = {
+    operatorId: op.id,
+    name: op.name ?? '',
     contactEmail: op.contact_email || session.profile.email || null,
-    contactPhone: op.contact_phone || null,
-    washDaysLabel: washDays.length ? washDays.join(', ') : null,
-    basePrice: (op.base_price_cents ?? 0) > 0 ? money(op.base_price_cents) : null,
-    packages: (packages ?? []).map((p: any) => ({ name: p.name, description: p.description, price: money(p.price_cents) })),
+    contactPhone: op.contact_phone ?? '',
+    basePriceCents: op.base_price_cents ?? null,
+    hoursJson: op.hours_json ?? null,
+    washDays,
+    packages: (packages ?? []).map((p: any) => ({ id: p.id, name: p.name, description: p.description ?? '', price_cents: p.price_cents })),
     insuranceApproved: hasApprovedInsurance(op),
     insuranceOnFile: !!op.insurance_doc_url,
-    requirements,
   };
 
   const executed = (contracts ?? []).find((c: any) => c.status === 'executed');
@@ -94,7 +94,7 @@ export default async function OperatorContractsPage() {
     <>
       <PageHeader eyebrow={op.name} title="Service agreements" />
 
-      <AgreementReadiness data={previewData} canSend={canSend} pdfHref="/api/operator/agreement-preview" />
+      <AgreementBuilder initial={initial} pdfHref="/api/operator/agreement-preview" />
 
       {/* Current agreement status */}
       {executed ? (

@@ -50,6 +50,30 @@
   --selection-fg: #ffffff;
 }
 
+/* A service agreement should read like a real legal PDF: white paper with
+   near-black text and light-grey panels, in any theme. `.legal-doc` pins a
+   fixed light palette for everything inside the document container, so the
+   ink/white Tailwind utilities the document already uses resolve to paper
+   colours (crisp near-black text instead of dark navy). */
+.legal-doc {
+  color-scheme: light;
+  --ink-950: 248 249 251;
+  --ink-900: 255 255 255;
+  --ink-800: 241 243 246;
+  --ink-700: 226 232 240;
+  --ink-600: 203 213 225;
+  --ink-500: 100 116 139;
+  --ink-400: 71 85 105;
+  --ink-300: 51 65 85;
+  --ink-200: 30 41 59;
+  --ink-100: 15 23 42;
+  --contrast-rgb: 15 23 42;
+  background-color: #ffffff;
+  color: rgb(51 65 85);
+}
+.legal-doc .bg-white\/5 { background-color: rgb(248 249 251); }
+.legal-doc .border-white\/10 { border-color: rgb(226 232 240); }
+
 .theme-dark {
   color-scheme: dark;
 
