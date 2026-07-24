@@ -4,6 +4,7 @@ import { homePathForPortalKind, normalizeSignupRole, pickLandingPortal, portalFo
 import { notifySignup } from '@/lib/auth/notify-signup';
 import { safeInternalPath } from '@/lib/safe-redirect';
 import { QR_SLUG_COOKIE, logScanEvent } from '@/lib/qr-attribution';
+import { isAdminEmail } from '@/lib/auth/admin-emails';
 
 export type OAuthCallbackOptions = {
   /** Optional segment from `/auth/callback/:signupRole` (legacy / extra allowlist entries). */
@@ -54,6 +55,19 @@ export async function handleOAuthCallback(request: NextRequest, options: OAuthCa
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
     return redirectWithSessionCookies(`${origin}/login?error=no_session`);
+  }
+
+  // Founder / admins (by email) go straight to the admin console on Google SSO,
+  // never into the operator-application flow. Persisting the role is best-effort
+  // here; getSessionUser also forces it via the service role on every load.
+  if (isAdminEmail(user.email)) {
+    const fullName =
+      user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'Admin';
+    await supabase
+      .from('profiles')
+      .upsert({ id: user.id, role: 'admin', full_name: fullName, email: user.email! })
+      .then(() => {}, () => {});
+    return redirectWithSessionCookies(`${origin}/admin`);
   }
 
   const role =

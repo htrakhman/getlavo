@@ -2,6 +2,7 @@ import { createServerClient } from '@supabase/ssr';
 import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import { normalizeSignupRole, portalKindFromProfileRole } from '@/lib/portal-routing';
+import { isAdminEmail } from '@/lib/auth/admin-emails';
 
 export function supabaseServer() {
   const cookieStore = cookies();
@@ -82,9 +83,29 @@ export async function getSessionUser() {
     admin.from('profile_portals').select('portal').eq('profile_id', user.id),
   ]);
 
-  const resolvedProfile: SessionProfile | (typeof profile) | null =
+  let resolvedProfile: SessionProfile | (typeof profile) | null =
     profile ??
     profileFromUserMetadata(user);
+
+  // Admin is granted by email (e.g. the founder via Google SSO): force the
+  // admin role even if the stored profile says otherwise, and create a minimal
+  // profile when the row doesn't exist yet so the account is never bounced to
+  // the operator-application flow.
+  if (isAdminEmail(user.email)) {
+    const base = resolvedProfile ?? {
+      id: user.id,
+      full_name: (user.email?.split('@')[0] ?? 'Admin'),
+      email: user.email ?? '',
+    };
+    resolvedProfile = { ...base, role: 'admin' } as SessionProfile;
+    if ((profile as any)?.role !== 'admin') {
+      // Best-effort: persist so role-based reads elsewhere agree. Never fatal.
+      admin
+        .from('profiles')
+        .upsert({ id: user.id, role: 'admin', email: user.email ?? null }, { onConflict: 'id' })
+        .then(() => {}, () => {});
+    }
+  }
 
   if (!resolvedProfile) return null;
 
