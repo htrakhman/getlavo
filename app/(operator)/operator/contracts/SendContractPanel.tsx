@@ -13,13 +13,22 @@ type Building = {
   preferred_wash_day?: string | null;
 };
 
-export function SendContractPanel({ buildings }: { buildings: Building[] }) {
+export function SendContractPanel({
+  buildings,
+  canSend = true,
+  missingLabels = [],
+}: {
+  buildings: Building[];
+  canSend?: boolean;
+  missingLabels?: string[];
+}) {
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
   const [sent, setSent] = useState<Record<string, boolean>>({});
   const [err, setErr] = useState<string | null>(null);
 
   async function sendContract(buildingId: string) {
+    if (!canSend) return;
     setBusy(buildingId);
     setErr(null);
     const res = await fetch('/api/contracts/send', {
@@ -47,6 +56,12 @@ export function SendContractPanel({ buildings }: { buildings: Building[] }) {
 
   return (
     <div className="space-y-3">
+      {!canSend && (
+        <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm text-amber-600">
+          Complete your agreement before sending{missingLabels.length ? `: ${missingLabels.join(', ')}` : ''}.{' '}
+          <a href="/operator/profile" className="underline underline-offset-2">Go to Profile →</a>
+        </div>
+      )}
       {buildings.map((b) => (
         <div key={b.id} className="card flex items-center justify-between gap-4 p-5">
           <div className="min-w-0">
@@ -66,8 +81,9 @@ export function SendContractPanel({ buildings }: { buildings: Building[] }) {
               <button
                 type="button"
                 onClick={() => sendContract(b.id)}
-                disabled={busy === b.id}
-                className="btn-primary text-sm py-2 px-4"
+                disabled={busy === b.id || !canSend}
+                title={!canSend ? 'Complete the required fields first' : undefined}
+                className="btn-primary text-sm py-2 px-4 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {busy === b.id ? 'Sending…' : 'Send agreement'}
               </button>

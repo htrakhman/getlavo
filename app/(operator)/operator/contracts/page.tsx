@@ -4,6 +4,16 @@ import { getAvailableBuildingsForOperator } from '@/lib/operator-available-build
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { SendContractPanel } from './SendContractPanel';
+import { AgreementReadiness } from './AgreementReadiness';
+import { money } from '@/lib/format';
+import { hasApprovedInsurance } from '@/lib/insurance';
+
+const DAY_ORDER = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+function openWashDays(hours: any): string[] {
+  if (!hours || typeof hours !== 'object') return [];
+  return DAY_ORDER.filter((d) => hours[d] && hours[d].closed !== true);
+}
 
 export const dynamic = 'force-dynamic';
 
@@ -30,19 +40,43 @@ export default async function OperatorContractsPage() {
   const sb = supabaseServer();
   const { data: op } = await sb
     .from('operators')
-    .select('id, name')
+    .select('*')
     .eq('owner_id', session.user.id)
     .maybeSingle();
   if (!op) redirect('/operator/onboarding');
 
-  const [{ data: contracts }, availableData] = await Promise.all([
+  const [{ data: contracts }, { data: packages }, availableData] = await Promise.all([
     sb
       .from('contracts')
       .select('id, status, created_at, manager_signed_at, operator_signed_at, fully_executed_at, building:buildings(id, name, address_line1, city, region)')
       .eq('operator_id', op.id)
       .order('created_at', { ascending: false }),
+    sb.from('service_packages').select('name, description, price_cents').eq('operator_id', op.id).eq('active', true).order('display_order'),
     getAvailableBuildingsForOperator(op.id),
   ]);
+
+  // Required fields the agreement needs before it can be sent to a building.
+  const washDays = openWashDays(op.hours_json);
+  const requirements = [
+    { key: 'name', label: 'Business name', done: !!op.name },
+    { key: 'schedule', label: 'Wash days & hours', done: washDays.length > 0 },
+    { key: 'price', label: 'Base price per wash', done: (op.base_price_cents ?? 0) > 0 },
+    { key: 'packages', label: 'At least one service package', done: (packages?.length ?? 0) > 0 },
+  ];
+  const missing = requirements.filter((r) => !r.done);
+  const canSend = missing.length === 0;
+
+  const previewData = {
+    operatorName: op.name ?? '',
+    contactEmail: op.contact_email || session.profile.email || null,
+    contactPhone: op.contact_phone || null,
+    washDaysLabel: washDays.length ? washDays.join(', ') : null,
+    basePrice: (op.base_price_cents ?? 0) > 0 ? money(op.base_price_cents) : null,
+    packages: (packages ?? []).map((p: any) => ({ name: p.name, description: p.description, price: money(p.price_cents) })),
+    insuranceApproved: hasApprovedInsurance(op),
+    insuranceOnFile: !!op.insurance_doc_url,
+    requirements,
+  };
 
   const executed = (contracts ?? []).find((c: any) => c.status === 'executed');
   const pending = (contracts ?? []).find((c: any) => c.status === 'pending_signatures');
@@ -60,20 +94,7 @@ export default async function OperatorContractsPage() {
     <>
       <PageHeader eyebrow={op.name} title="Service agreements" />
 
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/5 px-5 py-3">
-        <p className="text-sm text-ink-300">
-          Your agreement auto-fills from your profile — name, wash schedule, packages and pricing.
-          Preview the document before you send it to a building.
-        </p>
-        <a
-          href="/api/operator/agreement-preview"
-          target="_blank"
-          rel="noreferrer"
-          className="btn-quiet shrink-0 text-sm"
-        >
-          Preview agreement (PDF) →
-        </a>
-      </div>
+      <AgreementReadiness data={previewData} canSend={canSend} pdfHref="/api/operator/agreement-preview" />
 
       {/* Current agreement status */}
       {executed ? (
@@ -148,7 +169,11 @@ export default async function OperatorContractsPage() {
           Buildings without an operator. Send a service agreement — the building manager is emailed at
           the address they signed up with, asking whether they&rsquo;d like you as their washer.
         </p>
-        <SendContractPanel buildings={offerableBuildings} />
+        <SendContractPanel
+          buildings={offerableBuildings}
+          canSend={canSend}
+          missingLabels={missing.map((m) => m.label)}
+        />
       </section>
     </>
   );
