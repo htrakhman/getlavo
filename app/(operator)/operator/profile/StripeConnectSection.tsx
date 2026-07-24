@@ -72,10 +72,18 @@ export function StripeConnectSection({ initialConnected }: { initialConnected: b
           onClick={() => setModal(null)}
         >
           <div
-            className="flex max-h-[90vh] w-full max-w-md flex-col overflow-y-auto rounded-2xl border border-white/10 bg-ink-900 p-6 shadow-2xl"
+            className="relative flex max-h-[90vh] w-full max-w-md flex-col overflow-y-auto rounded-2xl border-2 border-black bg-ink-900 p-6 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <h4 className="font-display text-lg text-white">Finish your Stripe setup</h4>
+            <button
+              type="button"
+              onClick={() => setModal(null)}
+              aria-label="Close"
+              className="absolute right-4 top-4 flex h-7 w-7 items-center justify-center rounded-full text-ink-300 transition hover:bg-black/10 hover:text-ink-100"
+            >
+              ✕
+            </button>
+            <h4 className="font-display text-lg text-ink-100 pr-8">Finish your Stripe setup</h4>
 
             {modal.error ? (
               <p className="mt-3 text-sm text-ink-300">{modal.error}</p>
