@@ -34,19 +34,31 @@ export default async function OperatorProfilePage() {
     ? (new Date(op.insurance_expires_at).getTime() - Date.now()) / 86400000 <= 30
     : false;
 
+  // Required-setup gaps → red dot on the matching section below (mirrors the
+  // sidebar dots so the operator can see exactly which card needs attention).
+  const activePackages = (packages ?? []).filter((p: any) => p.active);
+  const hasWashDays =
+    !!op.hours_json &&
+    typeof op.hours_json === 'object' &&
+    Object.values(op.hours_json as Record<string, any>).some((d: any) => d && d.closed !== true);
+  const needsBasics = !op.name || !(op.base_price_cents && op.base_price_cents > 0);
+  const needsWashDays = !hasWashDays;
+  const needsStripe = !op.stripe_onboarding_complete;
+  const needsPackages = activePackages.length === 0;
+
   return (
     <>
       <PageHeader eyebrow="Profile" title={op.name} />
       <div className="space-y-6">
-        <OperatorProfileEditor op={op} />
+        <Flagged show={needsBasics}><OperatorProfileEditor op={op} /></Flagged>
 
-        <WorkingDaysEditor op={op} />
+        <Flagged show={needsWashDays}><WorkingDaysEditor op={op} /></Flagged>
 
         <PortfolioEditor operatorId={op.id} initial={portfolio ?? []} />
 
-        <StripeConnectSection initialConnected={!!op.stripe_onboarding_complete} />
+        <Flagged show={needsStripe}><StripeConnectSection initialConnected={!!op.stripe_onboarding_complete} /></Flagged>
 
-        <PackagesEditor operatorId={op.id} initial={packages ?? []} />
+        <Flagged show={needsPackages}><PackagesEditor operatorId={op.id} initial={packages ?? []} /></Flagged>
 
         <AddonsEditor operatorId={op.id} initial={op.operator_addons ?? []} />
 
@@ -63,5 +75,19 @@ export default async function OperatorProfilePage() {
         </div>
       </div>
     </>
+  );
+}
+
+/** Wraps a section card with a red dot when it still has a required gap. */
+function Flagged({ show, children }: { show: boolean; children: React.ReactNode }) {
+  if (!show) return <>{children}</>;
+  return (
+    <div className="relative">
+      <span
+        aria-label="Required fields missing"
+        className="absolute -right-1 -top-1 z-10 h-3 w-3 rounded-full border-2 border-ink-950 bg-red-500"
+      />
+      {children}
+    </div>
   );
 }

@@ -24,9 +24,7 @@ interface Initial {
 }
 
 function Blank({ label }: { label: string }) {
-  return (
-    <span className="rounded bg-red-500/10 px-1.5 py-0.5 text-xs font-medium text-red-500">{label} — fill in below</span>
-  );
+  return <span className="font-medium text-[#c0392b]">[ {label} ]</span>;
 }
 
 export function AgreementBuilder({ initial, pdfHref }: { initial: Initial; pdfHref: string }) {
@@ -164,12 +162,12 @@ export function AgreementBuilder({ initial, pdfHref }: { initial: Initial; pdfHr
               Download ▾
             </button>
             {downloadOpen && (
-              <div className="absolute right-0 top-full z-20 mt-1 w-56 overflow-hidden rounded-xl border-2 border-black bg-white shadow-xl">
-                <a href={pdfHref} target="_blank" rel="noreferrer" onClick={() => setDownloadOpen(false)} className="block px-4 py-3 text-sm text-ink-100 hover:bg-black/5">
+              <div className="card absolute right-0 top-full z-20 mt-1 w-56 overflow-hidden p-0 shadow-xl">
+                <a href={pdfHref} target="_blank" rel="noreferrer" onClick={() => setDownloadOpen(false)} className="block px-4 py-3 text-sm text-ink-100 transition hover:bg-gleam/10">
                   <div className="font-medium">Filled in</div>
                   <div className="text-xs text-ink-400">Your saved details merged in</div>
                 </a>
-                <a href={`${pdfHref}?blank=1`} target="_blank" rel="noreferrer" onClick={() => setDownloadOpen(false)} className="block border-t border-ink-200/20 px-4 py-3 text-sm text-ink-100 hover:bg-black/5">
+                <a href={`${pdfHref}?blank=1`} target="_blank" rel="noreferrer" onClick={() => setDownloadOpen(false)} className="block border-t border-white/10 px-4 py-3 text-sm text-ink-100 transition hover:bg-gleam/10">
                   <div className="font-medium">Blank template</div>
                   <div className="text-xs text-ink-400">Empty agreement to fill by hand</div>
                 </a>
@@ -189,78 +187,128 @@ export function AgreementBuilder({ initial, pdfHref }: { initial: Initial; pdfHr
         </ul>
       </div>
 
-      {/* Live document preview — fixed light "paper" colours so it reads like a
-          real legal PDF in any theme (slate palette does not flip in dark mode). */}
-      <div className="overflow-hidden rounded-lg border border-slate-300 bg-white text-slate-700 shadow-sm">
-        <div className="border-b border-slate-200 px-10 py-8 text-center">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.25em] text-emerald-600">Lavo</div>
-          <h2 className="mt-2 font-display text-2xl font-semibold text-slate-900">Car Wash Service Agreement</h2>
-          <p className="mt-1 text-xs text-slate-400">Live preview · updates as you edit below</p>
-        </div>
-        <div className="space-y-7 px-10 py-8 text-[13px] leading-relaxed text-slate-700">
-          <section>
-            <h3 className="mb-2 text-sm font-bold uppercase tracking-wide text-slate-900">1. Parties</h3>
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-              <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
-                <div className="mb-1 text-[10px] uppercase tracking-widest text-slate-400">Building Manager</div>
-                <div className="text-slate-500">The building you send this to</div>
-              </div>
-              <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
-                <div className="mb-1 text-[10px] uppercase tracking-widest text-slate-400">Service Provider</div>
-                <div className="font-semibold text-slate-900">{name.trim() || <Blank label="Business name" />}</div>
-                {initial.contactEmail && <div className="mt-0.5 text-xs text-slate-500">{initial.contactEmail}</div>}
-                {phone.trim() && <div className="text-xs text-slate-500">{phone}</div>}
-              </div>
-            </div>
-          </section>
+      {/* Live document preview — a real paper document. Uses literal colours
+          (not the theme "white"/"ink" tokens, which remap to a dark contrast
+          colour) and a serif face so it reads like a standard legal PDF. */}
+      <div className="overflow-x-auto rounded-lg border border-[#d9dbe0] bg-[#e9eaee] p-4 shadow-sm sm:p-8">
+        <div
+          className="mx-auto max-w-[720px] bg-[#ffffff] px-8 py-12 text-[#1f2328] shadow-[0_1px_3px_rgba(0,0,0,0.12),0_10px_40px_-12px_rgba(0,0,0,0.25)] sm:px-14"
+          style={{ fontFamily: 'Georgia, "Times New Roman", Times, serif' }}
+        >
+          {/* Letterhead */}
+          <div className="text-center">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#0a7d70]" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>Lavo</div>
+            <h2 className="mt-3 text-[22px] font-bold leading-tight text-[#111418]">Car Wash Service Agreement</h2>
+            <div className="mx-auto mt-4 h-px w-14 bg-[#111418]" />
+          </div>
 
-          <section>
-            <h3 className="mb-2 text-sm font-bold uppercase tracking-wide text-slate-900">2. Services</h3>
-            <ul className="space-y-1.5">
-              <li>
-                <span className="text-slate-500">Scheduled wash days: </span>
-                {orderedDays.length ? <strong className="font-semibold text-slate-900">{orderedDays.join(', ')}</strong> : <Blank label="Wash days" />}
-              </li>
-              <li><span className="text-slate-500">Frequency: </span><strong className="font-semibold text-slate-900">Weekly (or as agreed)</strong></li>
-            </ul>
-            <div className="mt-3">
-              <div className="mb-1 text-slate-500">Service packages:</div>
-              {activePackages.length ? (
-                <div className="space-y-1 rounded-md border border-slate-200 bg-slate-50 p-3">
-                  {activePackages.map((p, i) => (
-                    <div key={p.id ?? `new-${i}`} className="flex items-center justify-between">
-                      <span className="text-slate-700">{p.name}</span>
-                      <span className="text-sm font-semibold text-emerald-600">{money(p.price_cents)}</span>
-                    </div>
-                  ))}
+          <div className="mt-9 space-y-6 text-[14px] leading-7 text-[#26292e]">
+            <p className="text-justify text-[#3a3f45]">
+              This Service Agreement (the &ldquo;Agreement&rdquo;) is entered into as of the effective date by and
+              between the Building Manager and the Service Provider identified below.
+            </p>
+
+            <section>
+              <h3 className="mb-2 text-[15px] font-bold text-[#111418]">1. Parties</h3>
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <div>
+                  <div className="text-[11px] font-semibold uppercase tracking-wider text-[#8a8f98]" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>Building Manager</div>
+                  <div className="mt-1 text-[#555b63]">The building you send this to.</div>
                 </div>
-              ) : (
-                <Blank label="Service packages" />
-              )}
+                <div>
+                  <div className="text-[11px] font-semibold uppercase tracking-wider text-[#8a8f98]" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>Service Provider</div>
+                  <div className="mt-1 font-semibold text-[#111418]">{name.trim() || <Blank label="Business name" />}</div>
+                  {initial.contactEmail && <div className="text-[13px] text-[#555b63]">{initial.contactEmail}</div>}
+                  {phone.trim() && <div className="text-[13px] text-[#555b63]">{phone}</div>}
+                </div>
+              </div>
+            </section>
+
+            <section>
+              <h3 className="mb-2 text-[15px] font-bold text-[#111418]">2. Services</h3>
+              <p className="text-justify">
+                Service Provider shall provide car wash services on a{' '}
+                {orderedDays.length ? <strong className="font-semibold">{orderedDays.join(', ')}</strong> : <Blank label="wash days" />}{' '}
+                schedule, weekly or as otherwise agreed through the Lavo scheduling tool, at the building&rsquo;s
+                designated wash area. Service packages offered to residents:
+              </p>
+              <table className="mt-3 w-full border-collapse text-[13px]">
+                <tbody>
+                  {activePackages.length ? (
+                    activePackages.map((p, i) => (
+                      <tr key={p.id ?? `new-${i}`} className="border-b border-dotted border-[#c9ccd2]">
+                        <td className="py-1.5 pr-4 text-[#26292e]">{p.name}</td>
+                        <td className="py-1.5 text-right font-semibold text-[#111418]">{money(p.price_cents)}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr><td className="py-1.5"><Blank label="service packages" /></td></tr>
+                  )}
+                </tbody>
+              </table>
+            </section>
+
+            <section>
+              <h3 className="mb-2 text-[15px] font-bold text-[#111418]">3. Fees &amp; Payment</h3>
+              <p className="text-justify">
+                Residents pay Service Provider directly per wash via the Lavo platform; the Building Manager
+                incurs no per-wash charge. The standard base price per resident wash is{' '}
+                {basePriceCents > 0 ? <strong className="font-semibold">{money(basePriceCents)}</strong> : <Blank label="base price" />}.
+              </p>
+            </section>
+
+            <section>
+              <h3 className="mb-2 text-[15px] font-bold text-[#111418]">4. Term</h3>
+              <p className="text-justify">
+                This Agreement begins on the effective date and continues for an initial pilot period of ninety
+                (90) days, after which it renews automatically on a month-to-month basis unless either party
+                provides thirty (30) days&rsquo; written notice of termination.
+              </p>
+            </section>
+
+            <section>
+              <h3 className="mb-2 text-[15px] font-bold text-[#111418]">5. Insurance</h3>
+              <p className="text-justify">
+                Service Provider shall maintain general liability insurance of no less than $1,000,000 per
+                occurrence throughout the term.{' '}
+                {initial.insuranceApproved ? (
+                  <span className="font-medium text-[#0a7d70]">A current policy is on file.</span>
+                ) : initial.insuranceOnFile ? (
+                  <span className="font-medium text-[#b26a00]">Certificate uploaded — pending review.</span>
+                ) : (
+                  <span className="italic text-[#555b63]">Proof of insurance to be provided prior to the first service date.</span>
+                )}
+              </p>
+            </section>
+
+            <section>
+              <h3 className="mb-2 text-[15px] font-bold text-[#111418]">6. Limitation of Liability</h3>
+              <p className="text-justify">
+                Service Provider&rsquo;s liability for any single incident is limited to the retail value of the
+                service rendered. Lavo acts as a platform intermediary and is not a party to the service
+                relationship.
+              </p>
+            </section>
+
+            <section>
+              <h3 className="mb-2 text-[15px] font-bold text-[#111418]">7. Governing Law</h3>
+              <p className="text-justify">
+                This Agreement shall be governed by the laws of the State in which the building is located,
+                without regard to its conflict of law principles.
+              </p>
+            </section>
+
+            <div className="grid grid-cols-1 gap-8 border-t border-[#d9dbe0] pt-8 sm:grid-cols-2">
+              <div>
+                <div className="h-8 border-b border-[#111418]" />
+                <div className="mt-1 text-[12px] text-[#555b63]">Building Manager</div>
+              </div>
+              <div>
+                <div className="flex h-8 items-end border-b border-[#111418] pb-1 font-semibold text-[#111418]">{name.trim() || ''}</div>
+                <div className="mt-1 text-[12px] text-[#555b63]">Service Provider</div>
+              </div>
             </div>
-          </section>
-
-          <section>
-            <h3 className="mb-2 text-sm font-bold uppercase tracking-wide text-slate-900">3. Fees &amp; Payment</h3>
-            <p className="text-slate-600">
-              Residents pay per wash via Lavo. Standard base price per resident wash:{' '}
-              {basePriceCents > 0 ? <strong className="font-semibold text-slate-900">{money(basePriceCents)}</strong> : <Blank label="Base price" />}
-            </p>
-          </section>
-
-          <section>
-            <h3 className="mb-2 text-sm font-bold uppercase tracking-wide text-slate-900">4. Insurance</h3>
-            <p className="text-slate-600">
-              General liability of no less than $1,000,000 per occurrence.{' '}
-              {initial.insuranceApproved ? (
-                <span className="font-medium text-emerald-600">✓ Current policy on file.</span>
-              ) : initial.insuranceOnFile ? (
-                <span className="font-medium text-amber-600">Certificate uploaded — pending review.</span>
-              ) : (
-                <span className="text-slate-400">Proof to be provided before first service.</span>
-              )}
-            </p>
-          </section>
+          </div>
         </div>
       </div>
 
