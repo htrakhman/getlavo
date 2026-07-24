@@ -99,6 +99,10 @@ export function StripeConnectSection({ initialConnected }: { initialConnected: b
                     remaining steps.
                   </p>
                 )}
+                <p className="mt-4 rounded-lg bg-white/5 px-3 py-2 text-xs text-ink-400">
+                  You don&rsquo;t enter these here — click <span className="text-ink-200">Finish setup on Stripe</span> and
+                  Stripe&rsquo;s secure page walks you through each one. You&rsquo;ll come back to Lavo automatically when done.
+                </p>
               </>
             )}
 
