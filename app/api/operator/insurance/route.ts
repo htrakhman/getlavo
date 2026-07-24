@@ -55,12 +55,17 @@ export async function PATCH(req: Request) {
     await sendAdminNotification({
       subject: `Insurance certificate awaiting review: ${op.name}`,
       lines: [
-        `${op.name} uploaded a certificate of insurance.`,
+        `${op.name} uploaded a certificate of insurance and it's awaiting your review.`,
         carrier ? `Carrier: ${carrier}` : '',
+        policyNumber ? `Policy #: ${policyNumber}` : '',
+        coverageCents ? `Coverage: $${Math.round(coverageCents / 100).toLocaleString()}` : '',
         expiresAt ? `Expires: ${expiresAt}` : '',
-        `Review it at /admin/insurance`,
+        `Open the review queue below to approve or reject it.`,
       ].filter(Boolean),
-    }).catch(() => {});
+      action: { url: '/admin/insurance', label: 'Review — approve or reject →' },
+    }).catch((e) => {
+      console.error('insurance review admin email failed:', e);
+    });
   }
 
   return NextResponse.json({ success: true });
