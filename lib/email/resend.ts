@@ -182,16 +182,27 @@ export async function sendContractOffer(args: {
   managerName: string;
   buildingName: string;
   operatorName: string;
+  /** The generated service-agreement PDF, attached so the manager can read it directly. */
+  pdfBytes?: Uint8Array | null;
 }) {
+  const reviewUrl = `${APP_URL}/building/contract`;
+  const attachments = args.pdfBytes
+    ? [{
+        filename: `lavo-service-agreement-${args.buildingName.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}.pdf`,
+        content: Buffer.from(args.pdfBytes),
+      }]
+    : undefined;
   return client().emails.send({
     from: FROM,
     to: args.to,
     subject: `${escapeHtml(args.operatorName)} sent you a service agreement for ${escapeHtml(args.buildingName)}`,
+    attachments,
     html: `
       <p>Hi ${escapeHtml(args.managerName)},</p>
       <p><strong>${escapeHtml(args.operatorName)}</strong> would like to be the car wash operator for <strong>${escapeHtml(args.buildingName)}</strong> and has sent you a service agreement on Lavo.</p>
-      <p>Review the agreement and sign if you'd like them washing at your building — or ignore this if you're not interested.</p>
-      <p><a href="${APP_URL}/building/contract" style="display:inline-block;padding:12px 18px;border-radius:8px;background:#00ff88;color:#000;font-weight:600;text-decoration:none">Review agreement</a></p>
+      <p>The full agreement is attached to this email as a PDF. On Lavo you can <strong>view</strong>, <strong>accept</strong>, or <strong>decline</strong> it — once you accept, both you and ${escapeHtml(args.operatorName)} are notified and the partnership moves forward.</p>
+      <p><a href="${reviewUrl}" style="display:inline-block;padding:12px 18px;border-radius:8px;background:#00ff88;color:#000;font-weight:600;text-decoration:none">View, accept or decline →</a></p>
+      <p style="color:#666;font-size:13px">Not interested? You can decline right from that page, or simply ignore this email.</p>
     `,
   });
 }

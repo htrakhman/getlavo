@@ -20,8 +20,11 @@ export async function GET() {
   try {
     const link = await stripe.accounts.createLoginLink(op.stripe_account_id);
     return NextResponse.redirect(link.url);
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 400 });
+  } catch {
+    // Onboarding not finished yet — send the operator back to their profile
+    // where the Stripe section explains what's still missing, instead of
+    // showing a raw Stripe error on a blank page.
+    return NextResponse.redirect(`${appUrl()}/operator/profile?stripe=incomplete`);
   }
 }
 

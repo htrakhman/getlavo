@@ -60,6 +60,21 @@ export default async function OperatorContractsPage() {
     <>
       <PageHeader eyebrow={op.name} title="Service agreements" />
 
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/5 px-5 py-3">
+        <p className="text-sm text-ink-300">
+          Your agreement auto-fills from your profile — name, wash schedule, packages and pricing.
+          Preview the document before you send it to a building.
+        </p>
+        <a
+          href="/api/operator/agreement-preview"
+          target="_blank"
+          rel="noreferrer"
+          className="btn-quiet shrink-0 text-sm"
+        >
+          Preview agreement (PDF) →
+        </a>
+      </div>
+
       {/* Current agreement status */}
       {executed ? (
         <div className="mb-8 flex items-center gap-3 rounded-xl border border-gleam/30 bg-gleam/10 px-5 py-3">

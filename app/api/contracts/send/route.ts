@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { sendAdminNotification, sendContractOffer } from '@/lib/email/resend';
+import { gatherContractPdfData, renderContractPdf } from '@/lib/contract-pdf';
 import { z } from 'zod';
 
 const Body = z.object({
@@ -75,11 +76,21 @@ export async function POST(req: Request) {
       .eq('id', building.manager_id)
       .single();
     if (managerProfile?.email) {
+      // Generate the agreement PDF so it can ride along on the offer email.
+      // A rendering failure must not block the offer, so it's best-effort.
+      let pdfBytes: Uint8Array | null = null;
+      try {
+        const data = await gatherContractPdfData(admin, contract.id);
+        if (data) pdfBytes = await renderContractPdf(data);
+      } catch (e) {
+        console.error('contract offer: pdf generation failed:', e);
+      }
       await sendContractOffer({
         to: managerProfile.email,
         managerName: managerProfile.full_name ?? 'there',
         buildingName: building.name,
         operatorName: operator.name,
+        pdfBytes,
       }).catch(() => {});
     }
   }
