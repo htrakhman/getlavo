@@ -6,17 +6,17 @@ import { redirect } from 'next/navigation';
 // item — it overlapped with "Today"; the overview dashboard still lives at
 // /operator and is reachable from Today.
 const NAV = [
-  { heading: 'Operations' },
-  { href: '/operator/today', label: 'Today' },
-  { href: '/operator/buildings', label: 'Buildings' },
-  { href: '/operator/wash-days', label: 'Wash days' },
+  { heading: 'Account' },
+  { href: '/operator/profile', label: 'Profile' },
+  { href: '/operator/compliance', label: 'Compliance' },
   { heading: 'Business' },
   { href: '/operator/earnings', label: 'Earnings' },
   { href: '/operator/reviews', label: 'Reviews' },
   { href: '/operator/contracts', label: 'Contracts' },
-  { heading: 'Account' },
-  { href: '/operator/compliance', label: 'Compliance' },
-  { href: '/operator/profile', label: 'Profile' },
+  { heading: 'Operations' },
+  { href: '/operator/today', label: 'Today' },
+  { href: '/operator/buildings', label: 'Buildings' },
+  { href: '/operator/wash-days', label: 'Wash days' },
 ];
 
 export default async function OperatorLayout({ children }: { children: React.ReactNode }) {
