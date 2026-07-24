@@ -2,14 +2,19 @@ import { PortalShell } from '@/components/PortalShell';
 import { getSessionUser } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 
+// Grouped into three logical sections. "Overview" was dropped as a separate
+// item — it overlapped with "Today"; the overview dashboard still lives at
+// /operator and is reachable from Today.
 const NAV = [
+  { heading: 'Operations' },
   { href: '/operator/today', label: 'Today' },
-  { href: '/operator', label: 'Overview' },
   { href: '/operator/buildings', label: 'Buildings' },
   { href: '/operator/wash-days', label: 'Wash days' },
+  { heading: 'Business' },
   { href: '/operator/earnings', label: 'Earnings' },
   { href: '/operator/reviews', label: 'Reviews' },
   { href: '/operator/contracts', label: 'Contracts' },
+  { heading: 'Account' },
   { href: '/operator/compliance', label: 'Compliance' },
   { href: '/operator/profile', label: 'Profile' },
 ];

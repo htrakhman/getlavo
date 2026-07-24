@@ -4,7 +4,11 @@ import { DevRoleSwitcher } from './DevRoleSwitcher';
 import { NotificationsBell } from './NotificationsBell';
 import { MobileMenu } from './MobileMenu';
 
-export type NavItem = { href: string; label: string; icon?: React.ReactNode };
+// A nav entry is either a link ({ href, label }) or a section heading
+// ({ heading }). Headings are optional and backward-compatible — a flat list
+// of links renders exactly as before.
+export type NavLink = { href: string; label: string; icon?: React.ReactNode };
+export type NavItem = NavLink | { heading: string };
 
 export function PortalShell({
   nav, user, accent, children, sidebarTop, currentPortal, portals,
@@ -16,12 +20,18 @@ export function PortalShell({
         <div className="mt-2 text-[11px] uppercase tracking-[0.18em] text-gleam">{accent}</div>
         {sidebarTop && <div className="mt-6">{sidebarTop}</div>}
         <nav className="mt-6 flex flex-col gap-1">
-          {nav.map((n) => (
-            <Link key={n.href} href={n.href}
-              className="rounded-lg px-3 py-2 text-sm text-ink-300 transition hover:bg-white/5 hover:text-ink-100">
-              {n.label}
-            </Link>
-          ))}
+          {nav.map((n, i) =>
+            'heading' in n ? (
+              <div key={`h-${i}`} className="px-3 pb-1 pt-4 text-[10px] font-medium uppercase tracking-[0.16em] text-ink-500 first:pt-0">
+                {n.heading}
+              </div>
+            ) : (
+              <Link key={n.href} href={n.href}
+                className="rounded-lg px-3 py-2 text-sm text-ink-300 transition hover:bg-white/5 hover:text-ink-100">
+                {n.label}
+              </Link>
+            ),
+          )}
         </nav>
         <div className="mt-auto flex flex-col gap-3">
           {portals && portals.length > 1 && currentPortal && (

@@ -75,11 +75,17 @@ export default async function OperatorContractPage({ params }: { params: { id: s
               Signed by both parties · {contract.fully_executed_at?.slice(0, 10) || contract.operator_signed_at?.slice(0, 10)}
             </div>
           </div>
-          {contract.pdf_url && (
-            <a href={contract.pdf_url} className="btn-quiet ml-auto text-xs" target="_blank" rel="noreferrer">
-              Download PDF
-            </a>
-          )}
+          <a href={`/api/contracts/${contract.id}/pdf`} className="btn-quiet ml-auto text-xs" target="_blank" rel="noreferrer">
+            Download PDF
+          </a>
+        </div>
+      )}
+
+      {!isFullyExecuted && (
+        <div className="mb-6 flex justify-end">
+          <a href={`/api/contracts/${contract.id}/pdf`} className="btn-quiet text-xs" target="_blank" rel="noreferrer">
+            Download agreement (PDF) →
+          </a>
         </div>
       )}
 

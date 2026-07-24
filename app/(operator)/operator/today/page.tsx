@@ -1,6 +1,7 @@
 import { PageHeader } from '@/components/PortalShell';
 import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
+import Link from 'next/link';
 import { money } from '@/lib/format';
 
 export default async function OperatorTodayPage() {
@@ -22,7 +23,15 @@ export default async function OperatorTodayPage() {
 
   return (
     <>
-      <PageHeader eyebrow="Crew" title={`Today · ${today}`} />
+      <PageHeader
+        eyebrow="Crew"
+        title={`Today · ${today}`}
+        action={
+          <Link href="/operator" className="btn-quiet text-sm">
+            Full overview →
+          </Link>
+        }
+      />
       <div className="space-y-3">
         {(bookings ?? []).length === 0 && <p className="text-sm text-ink-500">No bookings scheduled for today.</p>}
         {(bookings ?? []).map((b: any) => (

@@ -35,16 +35,22 @@ export function MobileMenu({ nav, accent, user }: { nav: NavItem[]; accent: stri
             </div>
             <div className="mt-2 text-[11px] uppercase tracking-[0.18em] text-gleam">{accent}</div>
             <nav className="mt-8 flex flex-col gap-1">
-              {nav.map((n) => (
-                <Link
-                  key={n.href}
-                  href={n.href}
-                  onClick={() => setOpen(false)}
-                  className="rounded-lg px-3 py-2 text-sm text-ink-300 transition hover:bg-white/5 hover:text-ink-100"
-                >
-                  {n.label}
-                </Link>
-              ))}
+              {nav.map((n, i) =>
+                'heading' in n ? (
+                  <div key={`h-${i}`} className="px-3 pb-1 pt-4 text-[10px] font-medium uppercase tracking-[0.16em] text-ink-500 first:pt-0">
+                    {n.heading}
+                  </div>
+                ) : (
+                  <Link
+                    key={n.href}
+                    href={n.href}
+                    onClick={() => setOpen(false)}
+                    className="rounded-lg px-3 py-2 text-sm text-ink-300 transition hover:bg-white/5 hover:text-ink-100"
+                  >
+                    {n.label}
+                  </Link>
+                ),
+              )}
             </nav>
             <div className="mt-auto rounded-xl border border-white/5 bg-white/5 p-3">
               <div className="text-sm font-medium text-ink-100">{user.name}</div>

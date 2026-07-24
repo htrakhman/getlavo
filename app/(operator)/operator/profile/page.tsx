@@ -9,6 +9,7 @@ import { InsuranceUploader } from './InsuranceUploader';
 import { CrewEditor } from './CrewEditor';
 import { PortfolioEditor } from './PortfolioEditor';
 import { WorkingDaysEditor } from './WorkingDaysEditor';
+import { StripeConnectSection } from './StripeConnectSection';
 
 export default async function OperatorProfilePage() {
   const session = await getSessionUser();
@@ -43,24 +44,7 @@ export default async function OperatorProfilePage() {
 
         <PortfolioEditor operatorId={op.id} initial={portfolio ?? []} />
 
-        <div className="card p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-display text-xl">Stripe Connect</h3>
-            {op.stripe_onboarding_complete ? (
-              <span className="chip text-gleam">Connected</span>
-            ) : (
-              <a href="/api/stripe/connect/onboard" className="btn-primary text-sm">Connect bank account →</a>
-            )}
-          </div>
-          {!op.stripe_onboarding_complete ? (
-            <p className="text-sm text-ink-400">Connect your bank account to receive payouts from resident bookings.</p>
-          ) : (
-            <div className="space-y-2 text-sm text-ink-300">
-              <a href="/api/stripe/connect/dashboard" className="text-gleam hover:underline">Open Stripe dashboard →</a>
-              <p className="text-xs text-ink-500">Payouts, account details, tax forms (1099-K) — all live there.</p>
-            </div>
-          )}
-        </div>
+        <StripeConnectSection initialConnected={!!op.stripe_onboarding_complete} />
 
         <PackagesEditor operatorId={op.id} initial={packages ?? []} />
 

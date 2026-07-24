@@ -136,8 +136,8 @@ export default async function ContractPage() {
               Signed by both parties · {contract?.fully_executed_at?.slice(0, 10) || contract?.manager_signed_at?.slice(0, 10)}
             </div>
           </div>
-          {contract?.pdf_url && (
-            <a href={contract.pdf_url} className="btn-quiet ml-auto text-xs" target="_blank" rel="noreferrer">
+          {contract?.id && (
+            <a href={`/api/contracts/${contract.id}/pdf`} className="btn-quiet ml-auto text-xs" target="_blank" rel="noreferrer">
               Download PDF
             </a>
           )}
@@ -147,6 +147,13 @@ export default async function ContractPage() {
       {isSigned && !operatorSigned && !isFullyExecuted && (
         <div className="mb-6 rounded-xl border border-yellow-500/30 bg-yellow-500/10 px-5 py-3 text-sm text-amber-600">
           You've signed. We've notified the operator — awaiting their signature.
+        </div>
+      )}
+
+      {contract?.status === 'cancelled' && (
+        <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-5 py-3 text-sm text-red-400">
+          You declined this agreement. The operator has been notified.
+          {contract?.cancellation_reason ? ` Reason: ${contract.cancellation_reason}` : ''}
         </div>
       )}
 
@@ -393,7 +400,7 @@ export default async function ContractPage() {
                 </div>
               </div>
 
-              {contract && op && !isFullyExecuted && (
+              {contract && op && !isFullyExecuted && contract.status !== 'cancelled' && (
                 <ContractDraftSigner
                   contractId={contract.id}
                   buildingName={building.name}
