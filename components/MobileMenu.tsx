@@ -1,10 +1,12 @@
 'use client';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import type { NavItem } from './PortalShell';
+import { AlertDot, headingsWithAlerts, type NavItem } from './PortalShell';
 
-export function MobileMenu({ nav, accent, user }: { nav: NavItem[]; accent: string; user: { name: string; sub: string } }) {
+export function MobileMenu({ nav, accent, user, alerts }: { nav: NavItem[]; accent: string; user: { name: string; sub: string }; alerts?: string[] }) {
   const [open, setOpen] = useState(false);
+  const alertSet = new Set(alerts ?? []);
+  const flaggedHeadings = headingsWithAlerts(nav, alertSet);
 
   useEffect(() => {
     if (!open) return;
@@ -39,15 +41,17 @@ export function MobileMenu({ nav, accent, user }: { nav: NavItem[]; accent: stri
                 'heading' in n ? (
                   <div key={`h-${i}`} className="px-3 pb-1 pt-4 text-[10px] font-medium uppercase tracking-[0.16em] text-ink-500 first:pt-0">
                     {n.heading}
+                    {flaggedHeadings.has(i) && <AlertDot />}
                   </div>
                 ) : (
                   <Link
                     key={n.href}
                     href={n.href}
                     onClick={() => setOpen(false)}
-                    className="rounded-lg px-3 py-2 text-sm text-ink-300 transition hover:bg-white/5 hover:text-ink-100"
+                    className="flex items-center rounded-lg px-3 py-2 text-sm text-ink-300 transition hover:bg-white/5 hover:text-ink-100"
                   >
                     {n.label}
+                    {alertSet.has(n.href) && <AlertDot />}
                   </Link>
                 ),
               )}

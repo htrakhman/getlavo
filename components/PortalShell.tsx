@@ -10,9 +10,28 @@ import { MobileMenu } from './MobileMenu';
 export type NavLink = { href: string; label: string; icon?: React.ReactNode };
 export type NavItem = NavLink | { heading: string };
 
+/** Which nav hrefs need attention → a red dot, and whether each section heading
+    (by index) has a flagged item beneath it. */
+export function headingsWithAlerts(nav: NavItem[], alerts: Set<string>): Set<number> {
+  const flagged = new Set<number>();
+  let currentHeading = -1;
+  nav.forEach((n, i) => {
+    if ('heading' in n) currentHeading = i;
+    else if (alerts.has(n.href) && currentHeading >= 0) flagged.add(currentHeading);
+  });
+  return flagged;
+}
+
+/** A small red circle marking a required-field gap the user still needs to fill. */
+export function AlertDot() {
+  return <span aria-label="Action needed" className="ml-2 inline-block h-2 w-2 shrink-0 rounded-full bg-red-500 align-middle" />;
+}
+
 export function PortalShell({
-  nav, user, accent, children, sidebarTop, currentPortal, portals,
-}: { nav: NavItem[]; user: { name: string; sub: string; role: string }; accent: string; children: React.ReactNode; sidebarTop?: React.ReactNode; currentPortal?: string; portals?: string[] }) {
+  nav, user, accent, children, sidebarTop, currentPortal, portals, alerts,
+}: { nav: NavItem[]; user: { name: string; sub: string; role: string }; accent: string; children: React.ReactNode; sidebarTop?: React.ReactNode; currentPortal?: string; portals?: string[]; alerts?: string[] }) {
+  const alertSet = new Set(alerts ?? []);
+  const flaggedHeadings = headingsWithAlerts(nav, alertSet);
   return (
     <div className="flex min-h-screen bg-ink-950 text-ink-100">
       <aside className="sticky top-0 hidden h-screen w-64 shrink-0 border-r border-white/5 bg-ink-900/60 px-4 py-6 backdrop-blur md:flex md:flex-col">
@@ -24,11 +43,13 @@ export function PortalShell({
             'heading' in n ? (
               <div key={`h-${i}`} className="px-3 pb-1 pt-4 text-[10px] font-medium uppercase tracking-[0.16em] text-ink-500 first:pt-0">
                 {n.heading}
+                {flaggedHeadings.has(i) && <AlertDot />}
               </div>
             ) : (
               <Link key={n.href} href={n.href}
-                className="rounded-lg px-3 py-2 text-sm text-ink-300 transition hover:bg-white/5 hover:text-ink-100">
+                className="flex items-center rounded-lg px-3 py-2 text-sm text-ink-300 transition hover:bg-white/5 hover:text-ink-100">
                 {n.label}
+                {alertSet.has(n.href) && <AlertDot />}
               </Link>
             ),
           )}
@@ -48,7 +69,7 @@ export function PortalShell({
       </aside>
       <main className="min-w-0 flex-1">
         <header className="flex items-center justify-between gap-2 border-b border-white/5 px-4 py-3 md:px-10">
-          <MobileMenu nav={nav} accent={accent} user={user} />
+          <MobileMenu nav={nav} accent={accent} user={user} alerts={alerts} />
           <div className="ml-auto flex items-center gap-3">
             <NotificationsBell />
             <div className="hidden md:flex items-center gap-3">

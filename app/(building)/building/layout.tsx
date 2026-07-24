@@ -1,5 +1,5 @@
 import { PortalShell } from '@/components/PortalShell';
-import { getSessionUser } from '@/lib/supabase/server';
+import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { getCurrentBuildingForSession } from '@/lib/building';
 import { BuildingSwitcher } from './BuildingSwitcher';
@@ -31,10 +31,27 @@ export default async function BuildingLayout({ children }: { children: React.Rea
 
   const { current, all } = await getCurrentBuildingForSession(session.user.id);
 
+  // Red-dot guidance: flag the Contract tab when an agreement is waiting on
+  // the manager's signature.
+  const alerts: string[] = [];
+  if (current) {
+    const sb = supabaseServer();
+    const { data: pendingContract } = await sb
+      .from('contracts')
+      .select('id')
+      .eq('building_id', current.id)
+      .eq('status', 'pending_signatures')
+      .is('manager_signed_at', null)
+      .limit(1)
+      .maybeSingle();
+    if (pendingContract) alerts.push('/building/contract');
+  }
+
   return (
     <PortalShell
       nav={NAV}
       accent="Building portal"
+      alerts={alerts}
       user={{ name: session.profile.full_name, sub: session.profile.email, role: session.profile.role }}
       sidebarTop={<BuildingSwitcher current={current} all={all} />}
       currentPortal="building"

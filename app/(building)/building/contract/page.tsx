@@ -203,7 +203,7 @@ export default async function ContractPage() {
       )}
 
       <div className="mx-auto max-w-3xl">
-        <div className="legal-doc rounded-2xl border border-slate-300 bg-white shadow-sm">
+        <div className="legal-doc rounded-2xl border border-slate-300 shadow-sm">
           {/* Header */}
           <div className="border-b border-white/10 px-10 py-8 text-center">
             <div className="text-xs uppercase tracking-[0.25em] text-gleam">Lavo</div>
