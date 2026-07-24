@@ -18,7 +18,9 @@ const BLANK = (label: string) => (
 
 export default async function ContractPage() {
   const session = await getSessionUser();
-  if (!session) redirect('/login');
+  // Preserve the destination so a manager arriving from the offer email lands
+  // back on this accept/reject page right after logging in.
+  if (!session) redirect('/login?redirect=/building/contract');
 
   const sb = supabaseServer();
   const admin = supabaseAdmin();
