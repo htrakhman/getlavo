@@ -24,7 +24,32 @@ export async function GET(req: Request) {
   const { data: op } = await sb.from('operators').select('id').eq('owner_id', session.user.id).maybeSingle();
   if (!op) return NextResponse.json({ error: 'operator not found' }, { status: 404 });
 
-  const buildingId = new URL(req.url).searchParams.get('building');
+  const url = new URL(req.url);
+  const blank = url.searchParams.get('blank') === '1';
+
+  // Blank template: a printable, unfilled agreement (no operator data merged in).
+  if (blank) {
+    const { renderContractPdf } = await import('@/lib/contract-pdf');
+    const bytes = await renderContractPdf({
+      effectiveDate: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+      operator: { name: '', insuranceApproved: false },
+      building: null,
+      washDay: null,
+      governingLaw: 'Delaware',
+      packages: [],
+      addons: [],
+      isPreview: true,
+    });
+    return new NextResponse(Buffer.from(bytes), {
+      headers: {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': 'inline; filename="lavo-service-agreement-blank.pdf"',
+        'Cache-Control': 'no-store',
+      },
+    });
+  }
+
+  const buildingId = url.searchParams.get('building');
   let building = null;
   let washDay: string | null = null;
   if (buildingId) {
