@@ -5,6 +5,7 @@ import { supabaseBrowser } from '@/lib/supabase/client';
 import { pickLandingPortal, signupHrefFromPortalPrefer, signupRoleFromPortalPrefer } from '@/lib/portal-routing';
 import type { ReadonlyURLSearchParams } from 'next/navigation';
 import { safeInternalPath } from '@/lib/safe-redirect';
+import { isAdminEmail } from '@/lib/auth/admin-emails';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
@@ -52,6 +53,12 @@ function LoginForm() {
     if (error) { setErr(error.message); setBusy(false); return; }
     const { data: { user } } = await sb.auth.getUser();
     if (!user) { setErr('No session — try again'); setBusy(false); return; }
+    // Admins (by email) always land in the admin console.
+    if (isAdminEmail(user.email ?? email)) {
+      setBusy(false);
+      window.location.href = '/admin';
+      return;
+    }
     const [{ data: p, error: pe }, { data: portalRows }] = await Promise.all([
       sb.from('profiles').select('role').eq('id', user.id).maybeSingle(),
       sb.from('profile_portals').select('portal').eq('profile_id', user.id),
