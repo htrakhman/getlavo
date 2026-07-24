@@ -72,7 +72,7 @@ export function StripeConnectSection({ initialConnected }: { initialConnected: b
           onClick={() => setModal(null)}
         >
           <div
-            className="w-full max-w-md rounded-2xl border border-white/10 bg-ink-900 p-6 shadow-2xl"
+            className="flex max-h-[90vh] w-full max-w-md flex-col overflow-y-auto rounded-2xl border border-white/10 bg-ink-900 p-6 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <h4 className="font-display text-lg text-white">Finish your Stripe setup</h4>
