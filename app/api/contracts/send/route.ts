@@ -30,12 +30,35 @@ export async function POST(req: Request) {
 
   const { data: operator } = await sb
     .from('operators')
-    .select('id, name, owner_id, status')
+    .select('id, name, owner_id, status, base_price_cents, hours_json')
     .eq('owner_id', session.user.id)
     .maybeSingle();
   if (!operator) return NextResponse.json({ error: 'Operator not found' }, { status: 404 });
   if (operator.status !== 'approved') {
     return NextResponse.json({ error: 'Your operator profile must be approved first' }, { status: 403 });
+  }
+
+  // Required-field gate: the agreement can't be sent until the profile has the
+  // fields the document needs. Mirrors the UI check on the contracts page.
+  const { count: packageCount } = await sb
+    .from('service_packages')
+    .select('*', { count: 'exact', head: true })
+    .eq('operator_id', operator.id)
+    .eq('active', true);
+  const hasWashDays =
+    !!operator.hours_json &&
+    typeof operator.hours_json === 'object' &&
+    Object.values(operator.hours_json as Record<string, any>).some((d: any) => d && d.closed !== true);
+  const missing: string[] = [];
+  if (!operator.name) missing.push('Business name');
+  if (!hasWashDays) missing.push('Wash days & hours');
+  if (!(operator.base_price_cents && operator.base_price_cents > 0)) missing.push('Base price per wash');
+  if (!packageCount) missing.push('At least one service package');
+  if (missing.length) {
+    return NextResponse.json(
+      { error: `Complete your agreement before sending: ${missing.join(', ')}` },
+      { status: 400 },
+    );
   }
 
   const { data: building } = await admin
