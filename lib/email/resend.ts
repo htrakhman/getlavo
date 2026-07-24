@@ -233,13 +233,21 @@ export async function sendAdminNotification(args: {
   subject: string;
   lines: string[];
   replyTo?: string;
+  /** Optional call-to-action button. A relative url is prefixed with APP_URL. */
+  action?: { url: string; label: string };
 }) {
+  const body = args.lines.map((l) => `<p>${escapeHtml(l)}</p>`).join('');
+  let button = '';
+  if (args.action) {
+    const href = args.action.url.startsWith('http') ? args.action.url : `${APP_URL}${args.action.url}`;
+    button = `<p><a href="${escapeHtml(href)}" style="display:inline-block;padding:12px 18px;border-radius:8px;background:#00ff88;color:#000;font-weight:600;text-decoration:none">${escapeHtml(args.action.label)}</a></p>`;
+  }
   return client().emails.send({
     from: FROM,
     to: ADMIN_TO,
     replyTo: args.replyTo,
     subject: args.subject,
-    html: args.lines.map((l) => `<p>${escapeHtml(l)}</p>`).join(''),
+    html: body + button,
   });
 }
 
