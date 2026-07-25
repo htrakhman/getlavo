@@ -16,18 +16,42 @@ export function PaymentMethodCapture({
 }) {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
-    fetch('/api/stripe/setup-intent', { method: 'POST' })
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.clientSecret) setClientSecret(d.clientSecret);
-        else setErr(d.error ?? 'Could not initialize payment');
-      })
-      .catch(() => setErr('Network error'));
-  }, []);
+    let cancelled = false;
+    setErr(null);
+    setClientSecret(null);
+    (async () => {
+      let r: Response;
+      try {
+        r = await fetch('/api/stripe/setup-intent', { method: 'POST' });
+      } catch {
+        // fetch() only rejects when the request never completed.
+        if (!cancelled) setErr('Network error — check your connection and try again.');
+        return;
+      }
+      // A crashed server route may answer with a non-JSON body; don't let
+      // that parse failure masquerade as a network problem.
+      const d = await r.json().catch(() => null);
+      if (cancelled) return;
+      if (d?.clientSecret) setClientSecret(d.clientSecret);
+      else if (typeof d?.error === 'string') setErr(d.error);
+      else setErr(`Could not initialize payment (error ${r.status}). Please try again.`);
+    })();
+    return () => { cancelled = true; };
+  }, [attempt]);
 
-  if (err) return <div className="text-sm text-red-400">{err}</div>;
+  if (err) {
+    return (
+      <div className="space-y-3">
+        <div className="text-sm text-red-400">{err}</div>
+        <button type="button" onClick={() => setAttempt((n) => n + 1)} className="btn-quiet text-sm">
+          Try again
+        </button>
+      </div>
+    );
+  }
   if (!clientSecret) return <div className="text-sm text-ink-400">Loading payment form…</div>;
 
   return (

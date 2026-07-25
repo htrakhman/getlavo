@@ -39,7 +39,7 @@ export function SpotEditor({ residentId, spotLabel }: { residentId: string; spot
   return (
     <div className="card p-6">
       <div className="flex items-center justify-between">
-        <h3 className="font-display text-xl">Spot</h3>
+        <h3 className="font-display text-xl">Parking location</h3>
         {!editing && <button onClick={() => setEditing(true)} className="text-xs text-gleam">Edit</button>}
       </div>
       {!editing ? (
@@ -47,7 +47,7 @@ export function SpotEditor({ residentId, spotLabel }: { residentId: string; spot
       ) : (
         <div className="mt-4 space-y-3">
           <div>
-            <label className="label">Parking spot</label>
+            <label className="label">Parking location</label>
             <input className="field" value={s} onChange={(e) => setS(e.target.value)} />
           </div>
           <div className="flex gap-2">
