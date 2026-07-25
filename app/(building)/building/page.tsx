@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { CopyResidentLink } from './CopyResidentLink';
 import { getCurrentBuildingForSession } from '@/lib/building';
+import { RetentionChart } from './RetentionChart';
 
 export default async function BuildingDashboard() {
   const session = await getSessionUser();
@@ -22,6 +23,7 @@ export default async function BuildingDashboard() {
     { count: residentCount },
     { count: monthWashCount },
     { data: upcoming },
+    { data: residentRows },
   ] = await Promise.all([
     admin.from('partnerships')
       .select('id, operator:operators(id, name, slug, rating_avg, rating_count)')
@@ -43,7 +45,43 @@ export default async function BuildingDashboard() {
       .gte('scheduled_for', today)
       .order('scheduled_for')
       .limit(5),
+    sb.from('residents')
+      .select('id, created_at')
+      .eq('building_id', building.id)
+      .order('created_at'),
   ]);
+
+  const residentIds = (residentRows ?? []).map((r) => r.id);
+  const { data: ratings } = residentIds.length
+    ? await sb.from('wash_reviews').select('rating').in('resident_id', residentIds)
+    : { data: [] };
+  const avgRating = ratings?.length
+    ? (ratings.reduce((s, r: any) => s + r.rating, 0) / ratings.length).toFixed(1) + ' ★'
+    : '—';
+
+  // Cumulative signups over the last six months (folded in from the old
+  // Insights page).
+  const byMonth = new Map<string, number>();
+  for (const r of residentRows ?? []) {
+    const m = r.created_at.slice(0, 7);
+    byMonth.set(m, (byMonth.get(m) ?? 0) + 1);
+  }
+  const months: string[] = [];
+  const cur = new Date();
+  cur.setDate(1);
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(cur);
+    d.setMonth(cur.getMonth() - i);
+    months.push(d.toISOString().slice(0, 7));
+  }
+  let cumulative = 0;
+  for (const m of byMonth.keys()) {
+    if (m < months[0]) cumulative += byMonth.get(m) ?? 0;
+  }
+  const series = months.map((m) => {
+    cumulative += byMonth.get(m) ?? 0;
+    return { month: m, value: cumulative };
+  });
 
   const operator = (partnership?.operator as any) ?? null;
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
@@ -57,7 +95,7 @@ export default async function BuildingDashboard() {
         action={buildingUrl ? <CopyResidentLink url={buildingUrl} /> : null}
       />
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <div className="stat">
           <div className="text-xs uppercase tracking-widest text-ink-300">Residents signed up</div>
           <div className="mt-2 font-display text-4xl">{residentCount ?? 0}</div>
@@ -65,6 +103,10 @@ export default async function BuildingDashboard() {
         <div className="stat">
           <div className="text-xs uppercase tracking-widest text-ink-300">Washes this month</div>
           <div className="mt-2 font-display text-4xl">{monthWashCount ?? 0}</div>
+        </div>
+        <div className="stat">
+          <div className="text-xs uppercase tracking-widest text-ink-300">Avg rating</div>
+          <div className="mt-2 font-display text-4xl">{avgRating}</div>
         </div>
         <div className="stat">
           <div className="text-xs uppercase tracking-widest text-ink-300">Car wash partner</div>
@@ -115,6 +157,11 @@ export default async function BuildingDashboard() {
                 : 'Wash days will appear here once your car wash crew is confirmed.'}
             </p>
           )}
+        </div>
+
+        <div className="card p-6 lg:col-span-2">
+          <h3 className="font-display text-xl mb-4">Cumulative residents enrolled</h3>
+          <RetentionChart data={series} />
         </div>
 
         <div className="card p-6 lg:col-span-2">
