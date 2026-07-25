@@ -11,6 +11,7 @@ import { parseDateList } from '@/lib/wash-dates';
 import Link from 'next/link';
 import { money } from '@/lib/format';
 import { hasApprovedInsurance } from '@/lib/insurance';
+import { OperatorTabs } from './OperatorTabs';
 
 export default async function MyOperator() {
   const session = await getSessionUser();
@@ -80,6 +81,7 @@ export default async function MyOperator() {
   return (
     <>
       <PageHeader eyebrow="Operator" title="My operator" />
+      <OperatorTabs active="/building/marketplace" />
 
       {!operator ? (
         <div className="space-y-8">

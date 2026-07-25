@@ -7,6 +7,7 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
 import Link from 'next/link';
 import { money } from '@/lib/format';
 import { hasApprovedInsurance } from '@/lib/insurance';
+import { OperatorTabs } from '../marketplace/OperatorTabs';
 
 export const dynamic = 'force-dynamic';
 
@@ -128,6 +129,7 @@ export default async function ContractPage() {
   return (
     <>
       <PageHeader eyebrow={building.name} title="Service agreement" />
+      <OperatorTabs active="/building/contract" />
 
       {isFullyExecuted && (
         <div className="mb-6 flex items-center gap-3 rounded-xl border border-gleam/30 bg-gleam/10 px-5 py-3">

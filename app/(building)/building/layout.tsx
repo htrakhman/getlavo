@@ -6,15 +6,10 @@ import { BuildingSwitcher } from './BuildingSwitcher';
 
 const NAV = [
   { href: '/building', label: 'Overview' },
-  { href: '/building/comms', label: 'Comms kit' },
-  { href: '/building/broadcast', label: 'Broadcast' },
   { href: '/building/marketplace', label: 'My operator' },
-  { href: '/building/contract', label: 'Contract' },
   { href: '/building/residents', label: 'Residents' },
   { href: '/building/wash-days', label: 'Wash days' },
-  { href: '/building/insights', label: 'Insights' },
   { href: '/building/announcements', label: 'Announcements' },
-  { href: '/building/garage-layout', label: 'Garage layout' },
   { href: '/building/issues', label: 'Issues' },
   { href: '/building/settings', label: 'Settings' },
 ];
@@ -31,8 +26,8 @@ export default async function BuildingLayout({ children }: { children: React.Rea
 
   const { current, all } = await getCurrentBuildingForSession(session.user.id);
 
-  // Red-dot guidance: flag the Contract tab when an agreement is waiting on
-  // the manager's signature.
+  // Red-dot guidance: flag "My operator" (which hosts the Contract tab) when
+  // an agreement is waiting on the manager's signature.
   const alerts: string[] = [];
   if (current) {
     const sb = supabaseServer();
@@ -44,7 +39,7 @@ export default async function BuildingLayout({ children }: { children: React.Rea
       .is('manager_signed_at', null)
       .limit(1)
       .maybeSingle();
-    if (pendingContract) alerts.push('/building/contract');
+    if (pendingContract) alerts.push('/building/marketplace');
   }
 
   return (
