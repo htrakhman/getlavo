@@ -59,9 +59,33 @@ export function PaymentMethodCapture({
       stripe={stripePromise}
       options={{
         clientSecret,
+        // Match the site-wide light palette from globals.css (:root) — the
+        // element renders in an iframe, so theme colors must be repeated here.
+        fonts: [
+          {
+            cssSrc:
+              'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&display=swap',
+          },
+        ],
         appearance: {
-          theme: 'night',
-          variables: { colorPrimary: '#00e5c8', colorBackground: '#0a0a0a', borderRadius: '10px' },
+          theme: 'stripe',
+          variables: {
+            colorPrimary: '#0a9488',
+            colorBackground: '#ffffff',
+            colorText: '#191e2b',
+            colorTextSecondary: '#7c8699',
+            colorTextPlaceholder: '#7c8699',
+            colorDanger: '#dc2626',
+            borderRadius: '10px',
+            fontFamily: '"Plus Jakarta Sans", system-ui, sans-serif',
+          },
+          rules: {
+            '.Input': { border: '1px solid #e3e7ee', boxShadow: 'none' },
+            '.Input:focus': {
+              border: '1px solid #0a9488',
+              boxShadow: '0 0 0 1px rgba(10, 148, 136, 0.18)',
+            },
+          },
         },
       }}
     >
