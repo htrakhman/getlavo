@@ -26,7 +26,7 @@ export default async function VehiclePage() {
 
   return (
     <>
-      <PageHeader eyebrow="Profile" title="Vehicles & spot" />
+      <PageHeader eyebrow="Profile" title="Vehicles & parking location" />
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div className="space-y-6">
           <SpotEditor
