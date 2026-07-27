@@ -26,6 +26,11 @@ export default function ResidentOnboarding() {
   const [accessNotes, setAccessNotes] = useState('');
   const [keysAcknowledged, setKeysAcknowledged] = useState(false);
 
+  // Step 3 fields
+  const [packages, setPackages] = useState<any[]>([]);
+  const [operatorName, setOperatorName] = useState<string | null>(null);
+  const [packageId, setPackageId] = useState('');
+
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [buildingNotFound, setBuildingNotFound] = useState(false);
@@ -63,10 +68,55 @@ export default function ResidentOnboarding() {
       .catch(() => {});
   }, []);
 
+  // Once a building is picked, look up its operator's service packages so we
+  // can offer the plan step. No packages (building not matched yet) → 2 steps.
+  useEffect(() => {
+    if (!buildingId) {
+      setPackages([]);
+      return;
+    }
+    fetch(`/api/residents/package?buildingId=${buildingId}`)
+      .then((r) => (r.ok ? r.json() : { packages: [] }))
+      .then((d) => {
+        setPackages(d.packages ?? []);
+        setOperatorName(d.operatorName ?? null);
+      })
+      .catch(() => setPackages([]));
+  }, [buildingId]);
+
   const canStep2 = !!buildingId;
   const canFinish = canStep2 && spotLabel.trim() && phone.trim() && make && model && year && color && keysAcknowledged;
 
-  const totalSteps = 2;
+  const totalSteps = packages.length > 0 ? 3 : 2;
+
+  function goHome() {
+    if (typeof window !== 'undefined') localStorage.removeItem('lavo_building_slug');
+    // Hard navigation so the browser makes a fresh full-page request with all cookies,
+    // rather than a client-side RSC fetch that can serve a cached redirect.
+    // The QR funnel passes ?redirect= so residents land back in scheduling.
+    const redirectTarget = safeInternalPath(new URLSearchParams(window.location.search).get('redirect'));
+    window.location.href = redirectTarget ?? '/resident/washes';
+  }
+
+  async function choosePlan() {
+    if (!packageId) return;
+    setBusy(true);
+    setErr(null);
+    const res = await fetch('/api/residents/package', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ packageId }),
+    });
+    if (!res.ok) {
+      let detail = '';
+      try { detail = (await res.json()).error ?? ''; } catch {}
+      setErr(`Could not save your plan (${res.status}${detail ? ': ' + detail : ''}) — please try again.`);
+      setBusy(false);
+      return;
+    }
+    setBusy(false);
+    goHome();
+  }
 
   async function finish() {
     setBusy(true);
@@ -97,13 +147,12 @@ export default function ResidentOnboarding() {
       return;
     }
 
-    if (typeof window !== 'undefined') localStorage.removeItem('lavo_building_slug');
     setBusy(false);
-    // Hard navigation so the browser makes a fresh full-page request with all cookies,
-    // rather than a client-side RSC fetch that can serve a cached redirect.
-    // The QR funnel passes ?redirect= so residents land back in scheduling.
-    const redirectTarget = safeInternalPath(new URLSearchParams(window.location.search).get('redirect'));
-    window.location.href = redirectTarget ?? '/resident/washes';
+    if (packages.length > 0) {
+      setStep(3);
+      return;
+    }
+    goHome();
   }
 
   return (
@@ -115,6 +164,7 @@ export default function ResidentOnboarding() {
       <h1 className="mt-2 font-display text-4xl tracking-tight">
         {step === 1 && 'Select your building'}
         {step === 2 && 'Your vehicle, access, and spot'}
+        {step === 3 && 'Choose your wash plan'}
       </h1>
 
       {/* progress dots */}
@@ -270,9 +320,52 @@ Thanks!`}
           <div className="flex gap-3">
             <button onClick={() => setStep(1)} className="btn-quiet flex-1">Back</button>
             <button disabled={!canFinish || busy} onClick={finish} className="btn-primary flex-1">
-              {busy ? 'Saving…' : 'Finish setup'}
+              {busy ? 'Saving…' : packages.length > 0 ? 'Next' : 'Finish setup'}
             </button>
           </div>
+        </div>
+      )}
+
+      {step === 3 && (
+        <div className="mt-8 space-y-5">
+          <p className="text-sm text-ink-300">
+            {operatorName ?? 'Your building’s operator'} washes your car in your spot on scheduled
+            wash days. Pick the plan you want — you’re only charged when your car actually gets washed.
+          </p>
+
+          <div className="space-y-3">
+            {packages.map((p) => (
+              <button
+                type="button"
+                key={p.id}
+                onClick={() => setPackageId(p.id)}
+                className={`card block w-full p-4 text-left transition-colors ${packageId === p.id ? 'border-gleam' : 'hover:border-gleam/40'}`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="font-display text-lg">{p.name}</div>
+                    {p.description && <p className="mt-1 text-sm text-ink-300">{p.description}</p>}
+                    {p.est_minutes && <div className="mt-1 text-xs text-ink-500">~{p.est_minutes} min</div>}
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <div className="font-display text-xl text-gleam">
+                      {(p.size_prices?.length ? 'from ' : '') + `$${(p.price_cents / 100).toFixed(0)}`}
+                    </div>
+                    <div className="text-xs text-ink-400">per wash</div>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+
+          <div className="flex gap-3">
+            <button disabled={!packageId || busy} onClick={choosePlan} className="btn-primary flex-1">
+              {busy ? 'Saving…' : 'Confirm plan'}
+            </button>
+          </div>
+          <button type="button" onClick={goHome} className="w-full text-center text-xs text-ink-400 underline underline-offset-2 hover:text-ink-200">
+            Choose later — skip for now
+          </button>
         </div>
       )}
     </main>

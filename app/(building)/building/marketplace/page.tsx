@@ -9,7 +9,7 @@ import { RequestedWashDatesForm } from './RequestedWashDatesForm';
 import { IncomingOperatorRequests } from './IncomingOperatorRequests';
 import { parseDateList } from '@/lib/wash-dates';
 import Link from 'next/link';
-import { money } from '@/lib/format';
+import { money, dateShort } from '@/lib/format';
 import { hasApprovedInsurance } from '@/lib/insurance';
 import { OperatorTabs } from './OperatorTabs';
 
@@ -66,6 +66,18 @@ export default async function MyOperator() {
     const op = Array.isArray(p.operator) ? p.operator[0] : p.operator;
     return op && p.requested_by === op.owner_id;
   });
+
+  // Operator-proposed wash days waiting on this manager's confirmation.
+  const { data: pendingProposals } = building && operator
+    ? await admin
+        .from('wash_days')
+        .select('id, scheduled_for')
+        .eq('building_id', building.id)
+        .eq('confirmation', 'pending')
+        .is('completed_at', null)
+        .gte('scheduled_for', new Date().toISOString().slice(0, 10))
+        .order('scheduled_for', { ascending: true })
+    : { data: null };
 
   // Load marketplace operators when no partner assigned
   const { data: operators } = !operator
@@ -221,6 +233,29 @@ export default async function MyOperator() {
               </div>
             )}
           </div>
+
+          {(pendingProposals ?? []).length > 0 && (
+            <div className="card border-gleam/40 p-6">
+              <h3 className="font-display text-lg">
+                {operator.name} proposed {pendingProposals!.length === 1 ? 'a wash day' : 'wash days'}
+              </h3>
+              <p className="mt-1 text-xs text-ink-400">
+                Confirm or decline — the date only lands on the calendar once you approve it.
+              </p>
+              <div className="mt-3 space-y-2">
+                {pendingProposals!.map((p: any) => (
+                  <Link
+                    key={p.id}
+                    href={`/building/wash-days/${p.id}`}
+                    className="flex items-center justify-between rounded-xl border border-white/10 p-3 text-sm hover:border-gleam/40"
+                  >
+                    <span>{dateShort(p.scheduled_for)}</span>
+                    <span className="text-xs text-gleam">Review &amp; confirm →</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="card p-6">
             <h3 className="font-display text-lg">Choose wash dates</h3>
