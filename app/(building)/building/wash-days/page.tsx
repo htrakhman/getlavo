@@ -19,7 +19,7 @@ export default async function BuildingWashDaysPage() {
   const [{ data: days }, { data: activePartnership }] = await Promise.all([
     sb
       .from('wash_days')
-      .select('id, scheduled_for, started_at, completed_at, operator:operators(name)')
+      .select('id, scheduled_for, started_at, completed_at, confirmation, operator:operators(name)')
       .eq('building_id', building.id)
       .order('scheduled_for', { ascending: false })
       .limit(50),
@@ -34,12 +34,42 @@ export default async function BuildingWashDaysPage() {
   const hasOperator = !!activePartnership;
 
   const today = new Date().toISOString().slice(0, 10);
-  const upcoming = (days ?? []).filter((d: any) => !d.completed_at && d.scheduled_for >= today);
+  // Operator-proposed dates awaiting the manager's decision come first — they
+  // need action, not just awareness.
+  const pendingProposals = (days ?? []).filter(
+    (d: any) => d.confirmation === 'pending' && !d.completed_at && d.scheduled_for >= today,
+  );
+  const upcoming = (days ?? []).filter(
+    (d: any) => !d.completed_at && d.scheduled_for >= today && d.confirmation !== 'pending' && d.confirmation !== 'declined',
+  );
   const past = (days ?? []).filter((d: any) => d.completed_at || d.scheduled_for < today);
 
   return (
     <>
       <PageHeader eyebrow={building.name} title="Wash days" />
+
+      {pendingProposals.length > 0 && (
+        <>
+          <h2 className="text-xs uppercase tracking-widest text-gleam mb-3">Awaiting your confirmation</h2>
+          <div className="card divide-y divide-white/5 mb-8 border-gleam/40">
+            {pendingProposals.map((wd: any) => (
+              <Link
+                key={wd.id}
+                href={`/building/wash-days/${wd.id}`}
+                className="flex items-center justify-between p-5 hover:bg-white/5"
+              >
+                <div>
+                  <div className="font-medium">{dateShort(wd.scheduled_for)}</div>
+                  <div className="text-xs text-ink-400">
+                    Proposed by {wd.operator?.name ?? 'your operator'}
+                  </div>
+                </div>
+                <span className="chip text-gleam">Review &amp; confirm →</span>
+              </Link>
+            ))}
+          </div>
+        </>
+      )}
 
       {upcoming.length > 0 && (
         <>
@@ -78,7 +108,9 @@ export default async function BuildingWashDaysPage() {
                   <div className="font-medium">{dateShort(wd.scheduled_for)}</div>
                   <div className="text-xs text-ink-400">{wd.operator?.name ?? '—'}</div>
                 </div>
-                <span className="chip">{wd.completed_at ? 'completed' : 'missed'}</span>
+                <span className="chip">
+                  {wd.completed_at ? 'completed' : wd.confirmation === 'declined' ? 'declined' : 'missed'}
+                </span>
               </Link>
             ))}
           </div>

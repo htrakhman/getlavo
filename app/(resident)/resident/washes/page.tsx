@@ -39,6 +39,9 @@ export default async function ResidentWashes() {
       .select('id, scheduled_for, operator:operators(name)')
       .eq('building_id', resident.building_id)
       .gte('scheduled_for', today)
+      // Operator proposals the building hasn't confirmed yet aren't the
+      // resident's next wash.
+      .in('confirmation', ['auto', 'confirmed'])
       .order('scheduled_for')
       .limit(1)
       .maybeSingle(),

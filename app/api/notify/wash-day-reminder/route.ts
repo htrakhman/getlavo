@@ -20,7 +20,8 @@ export async function POST(req: Request) {
   const { data: days } = await sb
     .from('wash_days')
     .select('id, building_id, building:buildings(name)')
-    .eq('scheduled_for', tomorrow);
+    .eq('scheduled_for', tomorrow)
+    .in('confirmation', ['auto', 'confirmed']);
 
   let sent = 0;
   for (const d of days ?? []) {

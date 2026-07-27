@@ -119,6 +119,10 @@ export async function POST(req: Request) {
           stripe_payment_intent_id: pi.id,
         })
         .eq('stripe_payment_intent_id', pi.id);
+      await admin
+        .from('charges')
+        .update({ status: 'succeeded', stripe_payment_intent_id: pi.id, failure_reason: null })
+        .eq('wash_id', washId);
     }
   }
 
@@ -126,6 +130,13 @@ export async function POST(req: Request) {
     const pi = event.data.object as Stripe.PaymentIntent;
     const washId = pi.metadata?.wash_id;
     if (washId) {
+      await admin
+        .from('charges')
+        .update({
+          status: 'failed',
+          failure_reason: pi.last_payment_error?.message ?? 'payment failed',
+        })
+        .eq('wash_id', washId);
       const { data: wash } = await admin
         .from('washes')
         .select('resident:residents(profile_id)')
@@ -133,7 +144,7 @@ export async function POST(req: Request) {
         .maybeSingle();
       const profileId = (wash?.resident as any)?.profile_id;
       if (profileId) {
-        await notify(profileId, 'payment_failed', {});
+        await notify(profileId, 'payment_failed', { link: '/resident/payment' });
       }
     }
   }

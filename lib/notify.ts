@@ -8,6 +8,9 @@ type NotificationType =
   | 'payment_failed'
   | 'pilot_signed'
   | 'operator_assigned'
+  | 'wash_day_proposed'
+  | 'wash_day_confirmed'
+  | 'wash_day_declined'
   | 'waitlist_building_live'
   | 'coi_expiring'
   | 'coi_expired';
@@ -33,6 +36,9 @@ export async function notify(profileId: string, type: NotificationType, data: Re
     payment_failed: 'Payment issue — update your card',
     pilot_signed: 'Pilot agreement signed',
     operator_assigned: 'Your car wash crew is set',
+    wash_day_proposed: 'New wash day proposed — confirm the date',
+    wash_day_confirmed: 'Wash day confirmed',
+    wash_day_declined: 'Wash day declined',
     waitlist_building_live: 'Your building is live on Lavo',
     coi_expiring: 'Your insurance expires soon',
     coi_expired: 'Your insurance on file has expired',
@@ -112,7 +118,7 @@ function smsEligible(type: NotificationType) {
 
 function prefRespects(type: NotificationType, prefs: Record<string, boolean>, channel: 'email' | 'sms') {
   // Operational/account messages always go through.
-  const operational: NotificationType[] = ['payment_failed', 'pilot_signed', 'operator_assigned', 'waitlist_building_live', 'coi_expiring', 'coi_expired'];
+  const operational: NotificationType[] = ['payment_failed', 'pilot_signed', 'operator_assigned', 'wash_day_proposed', 'wash_day_confirmed', 'wash_day_declined', 'waitlist_building_live', 'coi_expiring', 'coi_expired'];
   if (operational.includes(type)) return true;
   const map: Record<string, string> = {
     'wash_reminder:email': 'email_reminder',
@@ -141,6 +147,12 @@ function renderBody(type: NotificationType, data: any) {
       return `New pilot signed: ${data.buildingName ?? 'building'}.`;
     case 'operator_assigned':
       return `Your building's car wash crew has been assigned: ${data.operatorName ?? 'an operator'}.`;
+    case 'wash_day_proposed':
+      return `${data.operatorName ?? 'Your operator'} proposed ${data.date ?? 'a new wash day'} for ${data.buildingName ?? 'your building'}. Review and confirm the date.`;
+    case 'wash_day_confirmed':
+      return `${data.buildingName ?? 'The building'} confirmed your proposed wash day${data.date ? ` for ${data.date}` : ''}.`;
+    case 'wash_day_declined':
+      return `${data.buildingName ?? 'The building'} declined your proposed wash day${data.date ? ` for ${data.date}` : ''}. Propose another date.`;
     case 'waitlist_building_live':
       return `${data.buildingName ?? 'Your building'} is live on Lavo. Use code ${data.code ?? ''} for your free first wash.`;
     case 'coi_expiring':

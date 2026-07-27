@@ -1,5 +1,6 @@
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { parseDateList, futureDates } from '@/lib/wash-dates';
+import { syncWashDayRoster } from '@/lib/wash-roster';
 
 /**
  * Materialize the building's requested wash dates onto its active partner's
@@ -41,7 +42,7 @@ export async function syncRequestedDatesToWashDays(buildingId: string): Promise<
   const fresh = dates.filter((d) => !have.has(d));
   if (!fresh.length) return [];
 
-  const { error } = await admin.from('wash_days').insert(
+  const { data: created, error } = await admin.from('wash_days').insert(
     fresh.map((d) => ({
       building_id: buildingId,
       partnership_id: partnership.id,
@@ -51,10 +52,13 @@ export async function syncRequestedDatesToWashDays(buildingId: string): Promise<
       proposed_by: building.manager_id,
       confirmation: 'confirmed',
     })),
-  );
+  ).select('id');
   if (error) {
     console.error('syncRequestedDatesToWashDays: insert failed:', error.message);
     return [];
+  }
+  for (const row of created ?? []) {
+    await syncWashDayRoster(admin, row.id);
   }
   return fresh;
 }

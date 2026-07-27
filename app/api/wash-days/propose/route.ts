@@ -3,6 +3,8 @@ import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { audit } from '@/lib/audit';
 import { notify } from '@/lib/notify';
+import { syncWashDayRoster } from '@/lib/wash-roster';
+import { dateShort } from '@/lib/format';
 
 export async function POST(req: Request) {
   const session = await getSessionUser();
@@ -38,12 +40,18 @@ export async function POST(req: Request) {
   }).select().single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
+  // Put packaged residents on the roster right away so the crew's expected
+  // count is real the moment the date is confirmed.
+  await syncWashDayRoster(admin, row.id);
+
   const managerId = (partnership.building as any)?.manager_id;
   if (managerId) {
-    await notify(managerId, 'operator_assigned', {
+    await notify(managerId, 'wash_day_proposed', {
       operatorName: op.name,
       buildingName: (partnership.building as any)?.name,
-      link: '/building/wash-days',
+      date: dateShort(scheduledFor),
+      link: `/building/wash-days/${row.id}`,
+      cta: 'Review & confirm',
     });
   }
 

@@ -24,8 +24,11 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
     completed_at: new Date().toISOString(),
   }).eq('id', params.id);
 
-  // Best-effort Stripe charge — failure logs to Stripe but does not roll back completion.
-  await chargeWash(admin, params.id).catch(() => {});
+  // Best-effort Stripe charge — failure is recorded in the charges ledger but
+  // does not roll back completion.
+  const charge = await chargeWash(admin, params.id).catch(
+    (e): { ok: false; status: number; error: string } => ({ ok: false, status: 500, error: e?.message ?? 'charge error' })
+  );
 
   const v = wash?.vehicle as any;
   if (check.ctx.residentProfileId) {
@@ -33,6 +36,9 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
       vehicleDesc: v ? `${v.year} ${v.make} ${v.model}` : 'car',
       link: '/resident/washes',
     });
+    if (!charge.ok && charge.error === 'no payment method on file') {
+      await notify(check.ctx.residentProfileId, 'payment_failed', { link: '/resident/payment' });
+    }
   }
 
   return NextResponse.json({ success: true });

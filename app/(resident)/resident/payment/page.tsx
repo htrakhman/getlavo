@@ -4,18 +4,23 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
 import { redirect } from 'next/navigation';
 import Stripe from 'stripe';
 import { PaymentMethodPanel } from './PaymentMethodPanel';
+import { PlanPicker } from './PlanPicker';
+import { getPackagesForBuilding } from '@/lib/service-packages';
 
 export default async function PaymentPage() {
   const session = await getSessionUser();
   if (!session) redirect('/login');
 
   const sb = supabaseServer();
-  const { data: resident } = await supabaseAdmin()
+  const admin = supabaseAdmin();
+  const { data: resident } = await admin
     .from('residents')
-    .select('id, stripe_customer_id, stripe_payment_method_id')
+    .select('id, building_id, package_id, stripe_customer_id, stripe_payment_method_id')
     .eq('profile_id', session.user.id)
     .maybeSingle();
   if (!resident) redirect('/resident/onboarding');
+
+  const { operatorName, packages } = await getPackagesForBuilding(admin, resident.building_id);
 
   let card: { brand: string; last4: string; exp: string } | null = null;
   if (resident.stripe_payment_method_id && process.env.STRIPE_SECRET_KEY) {
@@ -36,8 +41,13 @@ export default async function PaymentPage() {
 
   return (
     <>
-      <PageHeader eyebrow="Account" title="Payment method" />
+      <PageHeader eyebrow="Account" title="Payment & plan" />
       <PaymentMethodPanel card={card} />
+      <PlanPicker
+        packages={packages}
+        currentPackageId={resident.package_id ?? null}
+        operatorName={operatorName}
+      />
     </>
   );
 }

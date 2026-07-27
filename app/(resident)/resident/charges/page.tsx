@@ -9,21 +9,56 @@ export default async function ChargesPage() {
   if (!session) redirect('/login');
   const sb = supabaseServer();
 
-  const { data: resident } = await supabaseAdmin()
+  const admin = supabaseAdmin();
+  const { data: resident } = await admin
     .from('residents')
     .select('id')
     .eq('profile_id', session.user.id)
     .maybeSingle();
   if (!resident) redirect('/resident/onboarding');
 
-  const { data: bookings } = await sb
-    .from('bookings')
-    .select('id, scheduled_for, gross_cents, status, paid_at, stripe_payment_intent_id, building:buildings(name), operator:operators(name)')
-    .eq('resident_id', resident.id)
-    .order('scheduled_for', { ascending: false })
-    .limit(100);
+  const [{ data: bookings }, { data: washCharges }] = await Promise.all([
+    sb
+      .from('bookings')
+      .select('id, scheduled_for, gross_cents, status, paid_at, stripe_payment_intent_id, building:buildings(name), operator:operators(name)')
+      .eq('resident_id', resident.id)
+      .order('scheduled_for', { ascending: false })
+      .limit(100),
+    // Admin client scoped to this resident — same RLS-silent-failure caution as
+    // the other resident pages.
+    admin
+      .from('charges')
+      .select('id, created_at, amount_cents, status, failure_reason, operator:operators(name), wash_day:wash_days(scheduled_for, building:buildings(name))')
+      .eq('resident_id', resident.id)
+      .order('created_at', { ascending: false })
+      .limit(100),
+  ]);
 
-  const total = (bookings ?? []).filter((b: any) => b.paid_at).reduce((s, b: any) => s + (b.gross_cents ?? 0), 0);
+  // One list: resident-booked washes (bookings) + wash-day service charges.
+  const rows = [
+    ...(bookings ?? []).map((b: any) => ({
+      id: `b-${b.id}`,
+      date: b.scheduled_for,
+      building: b.building?.name,
+      operator: b.operator?.name,
+      amount: b.gross_cents,
+      status: b.paid_at ? 'paid' : b.status,
+      paid: !!b.paid_at,
+      note: null as string | null,
+    })),
+    ...(washCharges ?? []).map((c: any) => ({
+      id: `c-${c.id}`,
+      date: c.wash_day?.scheduled_for ?? c.created_at?.slice(0, 10),
+      building: c.wash_day?.building?.name,
+      operator: c.operator?.name,
+      amount: c.amount_cents,
+      status: c.status === 'succeeded' ? 'paid' : c.status,
+      paid: c.status === 'succeeded',
+      note: c.status === 'failed' ? c.failure_reason : null,
+    })),
+  ].sort((a, b) => (b.date ?? '').localeCompare(a.date ?? ''));
+
+  const total = rows.filter((r) => r.paid).reduce((s, r) => s + (r.amount ?? 0), 0);
 
   return (
     <>
@@ -46,20 +81,21 @@ export default async function ChargesPage() {
             </tr>
           </thead>
           <tbody>
-            {(bookings ?? []).map((b: any) => (
-              <tr key={b.id} className="border-t border-white/5">
-                <td className="px-4 py-3">{dateShort(b.scheduled_for)}</td>
-                <td className="px-4 py-3 text-ink-300">{b.building?.name}</td>
-                <td className="px-4 py-3 text-ink-400 text-xs">{b.operator?.name}</td>
-                <td className="px-4 py-3 text-right">{money(b.gross_cents)}</td>
+            {rows.map((r) => (
+              <tr key={r.id} className="border-t border-white/5">
+                <td className="px-4 py-3">{r.date ? dateShort(r.date) : '—'}</td>
+                <td className="px-4 py-3 text-ink-300">{r.building}</td>
+                <td className="px-4 py-3 text-ink-400 text-xs">{r.operator}</td>
+                <td className="px-4 py-3 text-right">{money(r.amount ?? 0)}</td>
                 <td className="px-4 py-3">
-                  <span className={`chip ${b.status === 'completed' || b.paid_at ? 'text-gleam' : ''}`}>
-                    {b.paid_at ? 'paid' : b.status}
+                  <span className={`chip ${r.paid ? 'text-gleam' : r.status === 'failed' ? 'text-amber-600' : ''}`}>
+                    {r.status}
                   </span>
+                  {r.note && <div className="mt-1 text-[10px] text-amber-600">{r.note}</div>}
                 </td>
               </tr>
             ))}
-            {!bookings?.length && (
+            {!rows.length && (
               <tr><td colSpan={5} className="px-4 py-10 text-center text-ink-400">No charges yet.</td></tr>
             )}
           </tbody>
