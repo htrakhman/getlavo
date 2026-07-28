@@ -97,7 +97,7 @@ export default async function SchedulePage({
 
         <div className="card mt-12 p-6 text-center">
           <div className="text-xs font-semibold uppercase tracking-[0.25em] text-gleam">
-            Your wash is scheduled for
+            Your selected wash time
           </div>
           <div className="mt-3 font-display text-2xl font-bold tracking-tight">{longDate}</div>
           <div className="mt-1 font-display text-xl text-gleam">{time}</div>
@@ -122,10 +122,11 @@ export default async function SchedulePage({
 
           <div className="mt-6 border-t border-white/10 pt-5">
             <a href={paymentHref} className="btn-primary w-full py-3.5 text-base">
-              Continue to payment
+              Confirm & pay
             </a>
             <p className="mt-3 text-xs text-ink-500">
-              Remember to drop your keys at the front desk before your appointment.
+              Your slot isn&apos;t booked until payment is complete. Remember to drop your keys at
+              the front desk before your appointment.
             </p>
           </div>
         </div>

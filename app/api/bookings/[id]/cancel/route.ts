@@ -19,7 +19,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
   const { data: booking } = await admin
     .from('bookings')
-    .select('id, status, stripe_payment_intent_id, gross_cents, scheduled_for, resident_id')
+    .select('id, status, stripe_payment_intent_id, gross_cents, scheduled_for, resident_id, wash_day_id')
     .eq('id', params.id)
     .eq('resident_id', resident.id)
     .maybeSingle();
@@ -52,6 +52,25 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     .update({ status: 'cancelled' })
     .eq('id', booking.id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  // The booking put this resident on the wash-day roster; take them off
+  // again unless a service package independently keeps them there. Only
+  // untouched roster rows are removed — a wash that already started stays.
+  if (booking.wash_day_id) {
+    const { data: res } = await admin
+      .from('residents')
+      .select('package_id')
+      .eq('id', resident.id)
+      .maybeSingle();
+    if (!res?.package_id) {
+      await admin
+        .from('washes')
+        .delete()
+        .eq('wash_day_id', booking.wash_day_id)
+        .eq('resident_id', resident.id)
+        .eq('status', 'scheduled');
+    }
+  }
 
   return NextResponse.json({ ok: true, refunded });
 }

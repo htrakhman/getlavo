@@ -78,8 +78,12 @@ export default function ResidentOnboarding() {
     fetch(`/api/residents/package?buildingId=${buildingId}`)
       .then((r) => (r.ok ? r.json() : { packages: [] }))
       .then((d) => {
-        setPackages(d.packages ?? []);
+        const list = d.packages ?? [];
+        setPackages(list);
         setOperatorName(d.operatorName ?? null);
+        // Most buildings have a single plan — preselect it so "Confirm plan"
+        // works without the extra card tap; reset on building change.
+        setPackageId(list.length === 1 ? list[0].id : '');
       })
       .catch(() => setPackages([]));
   }, [buildingId]);
