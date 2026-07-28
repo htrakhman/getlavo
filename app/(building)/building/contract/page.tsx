@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { money } from '@/lib/format';
 import { hasApprovedInsurance } from '@/lib/insurance';
 import { OperatorTabs } from '../marketplace/OperatorTabs';
+import { resolveGoverningLaw } from '@/lib/governing-law';
 
 export const dynamic = 'force-dynamic';
 
@@ -96,7 +97,7 @@ export default async function ContractPage() {
       operator_id: op.id,
       status: 'pending_signatures',
       service_day: washDay,
-      governing_law: bFull?.region || 'Delaware',
+      governing_law: resolveGoverningLaw(bFull?.region),
       price_per_wash_cents: op.base_price_cents,
     }).select().single();
     contract = newContract;
@@ -120,7 +121,7 @@ export default async function ContractPage() {
   const address = bFull
     ? `${bFull.address_line1}, ${bFull.city}, ${bFull.region} ${bFull.postal_code}`
     : null;
-  const governingLaw = bFull?.region || contract?.governing_law || 'Delaware';
+  const governingLaw = resolveGoverningLaw(bFull?.region, contract?.governing_law);
 
   const isSigned = !!contract?.manager_signed_at;
   const operatorSigned = !!contract?.operator_signed_at;

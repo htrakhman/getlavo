@@ -1,6 +1,12 @@
 import Stripe from 'stripe';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { calculateFee } from '@/lib/fee';
+import {
+  recurringAddonsForWash,
+  recordWashAddonOrders,
+  settleWashAddonOrders,
+  unpaidWashAddons,
+} from '@/lib/addons';
 
 export type ChargeWashResult =
   | { ok: true; paymentIntentId: string; status: Stripe.PaymentIntent.Status }
@@ -33,8 +39,15 @@ export async function chargeWash(
   const resident = wash.resident as any;
   const operator = (wash.wash_day as any)?.operator;
   const operatorId = (wash.wash_day as any)?.operator_id ?? null;
-  const grossCents: number | null = resident?.package?.price_cents ?? null;
-  const { fee } = calculateFee(grossCents ?? 0);
+  const packageCents: number | null = resident?.package?.price_cents ?? null;
+
+  // Add-ons the resident asked for on every wash. Until now that choice was
+  // stored and then ignored — never billed, never shown to the crew. Resolved
+  // below, after the prepaid check: a wash a booking already paid for takes
+  // its add-ons from that booking, not from the standing list.
+  let addonCents = 0;
+  let grossCents: number | null = packageCents;
+  let fee = calculateFee(grossCents ?? 0).fee;
 
   /**
    * Write the ledger row for this wash. Called on every path — the row is the
@@ -130,6 +143,21 @@ export async function chargeWash(
     }
   }
 
+  // Nothing prepaid this wash, so it's billed against the package. The add-on
+  // rows are normally written when the roster is built; make sure they exist,
+  // then bill exactly the unpaid ones — which is what the crew was told to do.
+  if (resident?.id) {
+    const recurringAddons = await recurringAddonsForWash(admin, resident.id, operatorId);
+    await recordWashAddonOrders(admin, { washId: washRecordId, residentId: resident.id, addons: recurringAddons });
+
+    const billableAddons = await unpaidWashAddons(admin, washRecordId);
+    addonCents = billableAddons.reduce((sum, a) => sum + (a.amount_cents ?? 0), 0);
+    if (packageCents != null) {
+      grossCents = packageCents + addonCents;
+      fee = calculateFee(grossCents).fee;
+    }
+  }
+
   if (!grossCents) {
     await recordCharge({ status: 'failed', failure_reason: 'no service package price on file' });
     return { ok: false, status: 400, error: 'no package price' };
@@ -162,13 +190,20 @@ export async function chargeWash(
         transfer_data: { destination: operator.stripe_account_id },
         metadata: { wash_id: washRecordId },
       },
-      { idempotencyKey: `wash:${washRecordId}` }
+      // The amount is part of the key: a retry after the resident added an
+      // add-on is a different charge, and Stripe rejects a reused key whose
+      // params changed. Double-charging is prevented by the charges lookup
+      // above, which returns before this point once a charge has landed.
+      { idempotencyKey: `wash:${washRecordId}:${grossCents}` }
     );
     await recordCharge({
       status: intent.status === 'succeeded' ? 'succeeded' : 'pending',
       stripe_payment_intent_id: intent.id,
       failure_reason: null,
     });
+    if (intent.status === 'succeeded') {
+      await settleWashAddonOrders(admin, washRecordId, intent.id);
+    }
     return { ok: true, paymentIntentId: intent.id, status: intent.status };
   } catch (e: any) {
     await recordCharge({ status: 'failed', failure_reason: e?.message ?? 'stripe error' });

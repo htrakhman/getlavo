@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { sendBookingConfirmation, sendBookingNotification } from '@/lib/email/resend';
 import { buildIcs } from '@/lib/ics';
+import { settleBookingAddonOrders } from '@/lib/addons';
 
 /**
  * After payment (or a fully discounted checkout), mark paid and notify resident + operator.
@@ -47,6 +48,7 @@ export async function confirmPaidBookingAndNotify(
   // A paid building-day booking puts the resident on the operator's crew
   // roster for that wash day — this is what makes them visible on the
   // prep list and crew tool. Idempotent per (wash_day, resident).
+  let washId: string | null = null;
   if (booking.wash_day_id && booking.resident_id && booking.vehicle_id) {
     const { error: rosterError } = await admin.from('washes').upsert(
       {
@@ -64,7 +66,21 @@ export async function confirmPaidBookingAndNotify(
         message: rosterError.message,
       });
     }
+
+    // An ignoreDuplicates upsert returns nothing when the roster row already
+    // existed, so read the wash back rather than relying on the insert result.
+    const { data: washRow } = await admin
+      .from('washes')
+      .select('id')
+      .eq('wash_day_id', booking.wash_day_id)
+      .eq('resident_id', booking.resident_id)
+      .maybeSingle();
+    washId = washRow?.id ?? null;
   }
+
+  // Paid add-ons become the crew's instructions: the crew tool reads them off
+  // the wash, so point them at the roster row now that it exists.
+  await settleBookingAddonOrders(admin, { bookingId, washId, paymentIntentId: stripePaymentIntentId });
 
   const resident = (booking.resident as any)?.profile;
   const operator = booking.operator as any;

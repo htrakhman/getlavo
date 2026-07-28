@@ -1,6 +1,7 @@
 import { PDFDocument, PDFFont, PDFPage, StandardFonts, rgb } from 'pdf-lib';
 import { money } from '@/lib/format';
 import { hasApprovedInsurance } from '@/lib/insurance';
+import { DEFAULT_GOVERNING_LAW, resolveGoverningLaw } from '@/lib/governing-law';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 // pdf-lib StandardFonts are WinAnsi (Latin-1) only — normalise smart quotes /
@@ -347,7 +348,7 @@ export async function gatherContractPdfData(admin: SupabaseClient, contractId: s
       managerEmail: manager?.email,
     },
     washDay,
-    governingLaw: building?.region || contract.governing_law || 'Delaware',
+    governingLaw: resolveGoverningLaw(building?.region, contract.governing_law),
     packages,
     addons,
     managerSignedName: contract.manager_signed_name,
@@ -358,7 +359,7 @@ export async function gatherContractPdfData(admin: SupabaseClient, contractId: s
 }
 
 /** Assemble a preview from the operator's own profile, before any building is chosen. */
-export async function gatherOperatorPreviewData(admin: SupabaseClient, operatorId: string, building?: ContractPdfData['building'], washDay?: string | null): Promise<ContractPdfData | null> {
+export async function gatherOperatorPreviewData(admin: SupabaseClient, operatorId: string, building?: ContractPdfData['building'], washDay?: string | null, buildingRegion?: string | null): Promise<ContractPdfData | null> {
   const { data: op } = await admin.from('operators').select('*').eq('id', operatorId).maybeSingle();
   if (!op) return null;
   const { packages, addons } = await loadPackagesAndAddons(admin, op.id);
@@ -367,7 +368,9 @@ export async function gatherOperatorPreviewData(admin: SupabaseClient, operatorI
     operator: operatorPdfShape(op),
     building: building ?? null,
     washDay: washDay ?? null,
-    governingLaw: 'Delaware',
+    // A preview scoped to a building shows that building's state, so the
+    // operator reads the same clause the manager will be asked to sign.
+    governingLaw: resolveGoverningLaw(buildingRegion),
     packages,
     addons,
     isPreview: true,
