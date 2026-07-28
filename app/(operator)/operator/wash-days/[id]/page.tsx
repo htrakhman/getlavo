@@ -39,7 +39,11 @@ export default async function WashDayPage({ params }: { params: { id: string } }
   const { data: skips } = await sb.from('wash_skips').select('resident_id').eq('wash_day_id', wd.id);
   const skippedIds = new Set((skips ?? []).map((s) => s.resident_id));
 
-  const active = floors.map(([label, items]) => [label, items.filter((w: any) => !skippedIds.has(w.resident?.id))] as [string, any[]]);
+  // Drop floors that are left empty once skips are removed, so the crew doesn't
+  // see a "Floor 3 · 0/0" heading with nothing under it.
+  const active = floors
+    .map(([label, items]) => [label, items.filter((w: any) => !skippedIds.has(w.resident?.id))] as [string, any[]])
+    .filter(([, items]) => items.length > 0);
   const skipped = (washes ?? []).filter((w: any) => skippedIds.has(w.resident?.id));
 
   return (
