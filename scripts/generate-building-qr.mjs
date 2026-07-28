@@ -5,8 +5,10 @@
  * Usage:
  *   node scripts/generate-building-qr.mjs
  *
- * Output: public/qr/{slug}.png — 2048×2048px, error-correction level H
- * (survives lobby-poster print sizes and moderate wear/branding overlays).
+ * Output: public/qr/{Building Name}.png — 2048×2048px, error-correction
+ * level H (survives lobby-poster print sizes and moderate wear/branding
+ * overlays). Files are named after the building (not the slug) so a
+ * downloaded QR is identifiable when attaching it to that building's flyer.
  */
 
 import QRCode from 'qrcode';
@@ -24,14 +26,15 @@ mkdirSync(outDir, { recursive: true });
 
 for (const b of buildings) {
   const url = `${BASE_URL}/b/${b.slug}`;
-  const file = path.join(outDir, `${b.slug}.png`);
+  const fileName = `${b.name.replace(/[\\/:*?"<>|]/g, '-')}.png`;
+  const file = path.join(outDir, fileName);
   await QRCode.toFile(file, url, {
     width: 2048,
     margin: 4,
     errorCorrectionLevel: 'H',
     color: { dark: '#000000', light: '#ffffff' },
   });
-  console.log(`✓ ${b.slug}.png → ${url}`);
+  console.log(`✓ ${fileName} → ${url}`);
 }
 
 console.log(`\n${buildings.length} QR codes written to public/qr/`);
