@@ -9,6 +9,7 @@
     "lint": "next lint",
     "validate:nj-cities": "tsx scripts/nj-cities-slug-test.ts && tsx scripts/nj-cities-validate.ts",
     "validate:reset-url": "tsx scripts/reset-url-test.ts",
+    "validate:governing-law": "tsx scripts/governing-law-test.ts",
     "db:push": "supabase db push"
   },
   "dependencies": {

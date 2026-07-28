@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { gatherOperatorPreviewData, renderContractPdf } from '@/lib/contract-pdf';
+import { DEFAULT_GOVERNING_LAW } from '@/lib/governing-law';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -35,7 +36,7 @@ export async function GET(req: Request) {
       operator: { name: '', insuranceApproved: false },
       building: null,
       washDay: null,
-      governingLaw: 'Delaware',
+      governingLaw: DEFAULT_GOVERNING_LAW,
       packages: [],
       addons: [],
       isPreview: true,
@@ -52,6 +53,7 @@ export async function GET(req: Request) {
   const buildingId = url.searchParams.get('building');
   let building = null;
   let washDay: string | null = null;
+  let buildingRegion: string | null = null;
   if (buildingId) {
     const { data: b } = await admin
       .from('buildings')
@@ -67,10 +69,11 @@ export async function GET(req: Request) {
         managerEmail: manager?.email,
       };
       washDay = b.wash_day || b.preferred_wash_day || null;
+      buildingRegion = b.region ?? null;
     }
   }
 
-  const data = await gatherOperatorPreviewData(admin, op.id, building, washDay);
+  const data = await gatherOperatorPreviewData(admin, op.id, building, washDay, buildingRegion);
   if (!data) return NextResponse.json({ error: 'could not build preview' }, { status: 500 });
 
   const bytes = await renderContractPdf(data);

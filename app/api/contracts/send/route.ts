@@ -3,6 +3,7 @@ import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { sendAdminNotification, sendContractOffer } from '@/lib/email/resend';
 import { gatherContractPdfData, renderContractPdf } from '@/lib/contract-pdf';
+import { resolveGoverningLaw } from '@/lib/governing-law';
 import { z } from 'zod';
 
 const Body = z.object({
@@ -63,7 +64,7 @@ export async function POST(req: Request) {
 
   const { data: building } = await admin
     .from('buildings')
-    .select('id, name, manager_id, status')
+    .select('id, name, manager_id, status, region, wash_day, preferred_wash_day')
     .eq('id', buildingId)
     .in('status', ['prospect', 'pilot', 'active'])
     .single();
@@ -79,12 +80,18 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'You already have an agreement with this building' }, { status: 409 });
   }
 
+  // Same shape the building-side auto-create writes, so an agreement means the
+  // same thing whichever side started it. Without governing_law the column
+  // default ("Delaware") stood in for the building's real state.
   const { data: contract, error } = await admin
     .from('contracts')
     .insert({
       building_id: buildingId,
       operator_id: operator.id,
       status: 'pending_signatures',
+      service_day: building.wash_day || building.preferred_wash_day || null,
+      governing_law: resolveGoverningLaw(building.region),
+      price_per_wash_cents: operator.base_price_cents,
     })
     .select('id')
     .single();
