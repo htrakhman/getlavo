@@ -4,6 +4,7 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
 import { calculateFee } from '@/lib/fee';
 import { applyPromoToBooking, recordPromoRedemption } from '@/lib/promo';
 import { confirmPaidBookingAndNotify } from '@/lib/booking-confirm';
+import { priceAddonSelection, recordBookingAddonOrders, releaseBookingAddonOrders } from '@/lib/addons';
 import { syncWashDayRoster } from '@/lib/wash-roster';
 import { WAIVER_VERSION } from '@/lib/waiver';
 import Stripe from 'stripe';
@@ -17,6 +18,7 @@ const Body = z.object({
   bookingType: z.enum(['building_day', 'open_slot']).default('open_slot'),
   partnershipId: z.string().uuid().optional(),
   recurringCadence: z.enum(['weekly', 'biweekly', 'monthly']).optional(),
+  addonIds: z.array(z.string().uuid()).max(10).optional(),
   promoCode: z.string().optional(),
   waiverAccepted: z.boolean().optional(),
 });
@@ -81,7 +83,7 @@ async function createBooking(req: Request) {
   }
   const body = Body.safeParse(raw);
   if (!body.success) return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
-  const { operatorId, vehicleId, scheduledFor, timeSlot, bookingType, partnershipId, recurringCadence, promoCode, waiverAccepted } =
+  const { operatorId, vehicleId, scheduledFor, timeSlot, bookingType, partnershipId, recurringCadence, addonIds, promoCode, waiverAccepted } =
     body.data;
 
   const admin = supabaseAdmin();
@@ -158,7 +160,15 @@ async function createBooking(req: Request) {
     return NextResponse.json({ error: promoResult.error }, { status: 400 });
   }
 
-  const grossCents = promoResult.finalGrossCents;
+  // Add-ons are priced from the operator's live catalogue, never from the
+  // client, and sit outside the promo: "free first wash" covers the wash.
+  const addonResult = await priceAddonSelection(admin, operatorId, addonIds);
+  if (!addonResult.ok) {
+    return NextResponse.json({ error: addonResult.error }, { status: 400 });
+  }
+  const { addons, totalCents: addonTotalCents } = addonResult;
+
+  const grossCents = promoResult.finalGrossCents + addonTotalCents;
   const promoDiscountCents = promoResult.discountCents;
   const promoRow = promoResult.promo;
   const { fee: feeCents, net: netCents } = calculateFee(grossCents);
@@ -251,6 +261,17 @@ async function createBooking(req: Request) {
     return NextResponse.json({ error: bookingError?.message ?? 'Failed to create booking' }, { status: 500 });
   }
 
+  // Record the add-ons before taking any money. If they can't be recorded the
+  // crew would never be told to do the work, so cancel rather than charge for
+  // a service nobody would perform.
+  if (!(await recordBookingAddonOrders(admin, { bookingId: booking.id, residentId: resident.id, addons }))) {
+    await admin.from('bookings').update({ status: 'cancelled' }).eq('id', booking.id);
+    return NextResponse.json(
+      { error: 'We couldn’t add those extras right now. Your card was not charged — please try again.' },
+      { status: 500 },
+    );
+  }
+
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
   const building = resident.building as any;
   const buildingName = building?.name ?? operator.name ?? 'your building';
@@ -274,6 +295,7 @@ async function createBooking(req: Request) {
   // created, release it rather than leaving a pending_payment row the resident
   // can never pay for — a retry then starts clean instead of stacking rows.
   async function releaseBooking(bookingId: string) {
+    await releaseBookingAddonOrders(admin, bookingId);
     const { error } = await admin.from('bookings').update({ status: 'cancelled' }).eq('id', bookingId);
     if (error) {
       console.error('[bookings/create] failed to release unpaid booking', {
@@ -283,25 +305,46 @@ async function createBooking(req: Request) {
     }
   }
 
+  // The wash and each add-on are separate line items so the resident sees the
+  // same breakdown on Stripe that they ticked on the booking form. A promo
+  // that zeroes the wash drops its line rather than sending Stripe a $0 item.
+  const taxBehavior = process.env.STRIPE_TAX_ENABLED === '1' ? { tax_behavior: 'exclusive' as const } : {};
+  const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [];
+  if (promoResult.finalGrossCents > 0) {
+    lineItems.push({
+      price_data: {
+        currency: 'usd',
+        unit_amount: promoResult.finalGrossCents,
+        ...taxBehavior,
+        product_data: {
+          name: `Car wash — ${buildingName}`,
+          description: `${scheduledFor}${timeSlot ? ` at ${timeSlot}` : ''} · ${vehicleDesc}`,
+        },
+      },
+      quantity: 1,
+    });
+  }
+  for (const a of addons) {
+    lineItems.push({
+      price_data: {
+        currency: 'usd',
+        unit_amount: a.price_cents,
+        ...taxBehavior,
+        product_data: {
+          name: `${a.label} — add-on`,
+          description: `${scheduledFor}${timeSlot ? ` at ${timeSlot}` : ''} · ${vehicleDesc}`,
+        },
+      },
+      quantity: 1,
+    });
+  }
+
   let checkoutSession: Stripe.Checkout.Session;
   try {
     checkoutSession = await stripe.checkout.sessions.create({
       mode: 'payment',
       ...(process.env.STRIPE_TAX_ENABLED === '1' ? { automatic_tax: { enabled: true } } : {}),
-      line_items: [
-        {
-          price_data: {
-            currency: 'usd',
-            unit_amount: grossCents,
-            ...(process.env.STRIPE_TAX_ENABLED === '1' ? { tax_behavior: 'exclusive' as const } : {}),
-            product_data: {
-              name: `Car wash — ${buildingName}`,
-              description: `${scheduledFor}${timeSlot ? ` at ${timeSlot}` : ''} · ${vehicleDesc}`,
-            },
-          },
-          quantity: 1,
-        },
-      ],
+      line_items: lineItems,
       payment_intent_data: operator.stripe_account_id
         ? {
             transfer_data: {

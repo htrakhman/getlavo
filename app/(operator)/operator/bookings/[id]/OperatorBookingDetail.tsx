@@ -17,12 +17,17 @@ export function OperatorBookingDetail({
     building: { name: string } | null;
     resident: { profile: { full_name: string | null } | null } | null;
     vehicle: { make: string; model: string; color: string; license_plate: string } | null;
+    addon_orders?:
+      | { id: string; amount_cents: number; paid_at: string | null; operator_addon: { label: string } | null }[]
+      | null;
   };
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
+  // Only paid add-ons are work to do — an unpaid row is an abandoned checkout.
+  const addons = (booking.addon_orders ?? []).filter((a) => a.paid_at);
   const pre = Array.isArray(booking.pre_wash_photo_urls) ? booking.pre_wash_photo_urls : [];
   const post = Array.isArray(booking.post_wash_photo_urls) ? booking.post_wash_photo_urls : [];
 
@@ -73,6 +78,19 @@ export function OperatorBookingDetail({
               }`
             : ''}
         </p>
+        {addons.length > 0 && (
+          <div className="mt-4 rounded-xl border border-gleam/30 bg-gleam/5 p-3">
+            <div className="text-xs uppercase tracking-widest text-gleam">Paid add-ons</div>
+            <ul className="mt-2 space-y-1 text-sm text-ink-200">
+              {addons.map((a) => (
+                <li key={a.id} className="flex items-center justify-between gap-4">
+                  <span>{a.operator_addon?.label ?? 'Add-on'}</span>
+                  <span className="text-ink-400">{money(a.amount_cents)}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
 
       <div className="card p-6 space-y-4">

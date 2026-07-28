@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { syncWashDayAddonOrders } from '@/lib/addons';
 
 /**
  * Roster generation: materialize washes rows for a wash day from the
@@ -35,6 +36,11 @@ export async function syncWashDayRoster(admin: SupabaseClient, washDayId: string
     .eq('wash_day_id', washDayId);
   const have = new Set((existing ?? []).map((r: any) => r.resident_id as string));
 
+  // Standing add-ons ride along with the roster so the crew sees them on the
+  // day. Runs for every rostered wash, not just the new ones, since a resident
+  // can pick an add-on after they're already on the list.
+  const syncAddons = () => syncWashDayAddonOrders(admin, washDayId);
+
   const rows = (residents ?? [])
     .filter((r: any) => !have.has(r.id))
     .map((r: any) => {
@@ -49,7 +55,10 @@ export async function syncWashDayRoster(admin: SupabaseClient, washDayId: string
       };
     })
     .filter(Boolean) as Record<string, unknown>[];
-  if (!rows.length) return 0;
+  if (!rows.length) {
+    await syncAddons();
+    return 0;
+  }
 
   const { error } = await admin
     .from('washes')
@@ -58,6 +67,7 @@ export async function syncWashDayRoster(admin: SupabaseClient, washDayId: string
     console.error('syncWashDayRoster: insert failed:', error.message);
     return 0;
   }
+  await syncAddons();
   return rows.length;
 }
 

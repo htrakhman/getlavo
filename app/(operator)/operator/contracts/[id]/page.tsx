@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { money } from '@/lib/format';
 import { OperatorContractSigner } from './OperatorContractSigner';
 import { hasApprovedInsurance } from '@/lib/insurance';
+import { resolveGoverningLaw } from '@/lib/governing-law';
 
 const BLANK = (label: string) => (
   <span className="inline-block min-w-[120px] border-b border-dashed border-ink-500 text-ink-500 italic px-1">
@@ -55,7 +56,7 @@ export default async function OperatorContractPage({ params }: { params: { id: s
     ? `${building.address_line1}, ${building.city}, ${building.region} ${building.postal_code}`
     : null;
   const washDay = building?.wash_day || building?.preferred_wash_day || contract.service_day || null;
-  const governingLaw = building?.region || contract.governing_law || 'Delaware';
+  const governingLaw = resolveGoverningLaw(building?.region, contract.governing_law);
   const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
   const managerSigned = !!contract.manager_signed_at;

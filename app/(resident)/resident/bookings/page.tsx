@@ -23,6 +23,14 @@ const STATUS_COLOR: Record<string, string> = {
   cancelled: 'text-red-400',
 };
 
+/** Add-ons the resident actually paid for on a booking — the total includes them. */
+function addonLabels(booking: any): string[] {
+  return (booking.addon_orders ?? [])
+    .filter((a: any) => a.paid_at)
+    .map((a: any) => a.operator_addon?.label)
+    .filter(Boolean);
+}
+
 export default async function ResidentBookings({
   searchParams,
 }: {
@@ -58,13 +66,13 @@ export default async function ResidentBookings({
 
   const [{ data: upcoming, error: upcomingError }, { data: past }] = await Promise.all([
     admin.from('bookings')
-      .select('id, scheduled_for, time_slot, status, gross_cents, booking_type, operator:operators(name)')
+      .select('id, scheduled_for, time_slot, status, gross_cents, booking_type, operator:operators(name), addon_orders(id, paid_at, operator_addon:operator_addons(label))')
       .eq('resident_id', resident.id)
       .gte('scheduled_for', today)
       .in('status', ['confirmed', 'in_progress', 'pending_payment'])
       .order('scheduled_for'),
     admin.from('bookings')
-      .select('id, scheduled_for, time_slot, status, gross_cents, booking_type, operator:operators(name)')
+      .select('id, scheduled_for, time_slot, status, gross_cents, booking_type, operator:operators(name), addon_orders(id, paid_at, operator_addon:operator_addons(label))')
       .eq('resident_id', resident.id)
       .or(`scheduled_for.lt.${today},status.in.(completed,cancelled)`)
       .order('scheduled_for', { ascending: false })
@@ -109,6 +117,9 @@ export default async function ResidentBookings({
                         {b.booking_type === 'building_day' ? '· Building day' : '· On-demand'}
                       </span>
                     </div>
+                    {addonLabels(b).length > 0 && (
+                      <div className="mt-1 text-xs text-gleam">Add-ons: {addonLabels(b).join(', ')}</div>
+                    )}
                   </div>
                   <div className="text-right">
                     <div className={`text-sm font-medium ${STATUS_COLOR[b.status] ?? 'text-ink-300'}`}>

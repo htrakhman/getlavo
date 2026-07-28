@@ -32,6 +32,8 @@ export function BookingForm({
   initialDate,
   initialTimeSlot,
   waiverAccepted,
+  addons,
+  initialAddonIds,
 }: {
   operatorId: string;
   operatorName: string;
@@ -43,6 +45,8 @@ export function BookingForm({
   initialDate?: string;
   initialTimeSlot?: string;
   waiverAccepted: boolean;
+  addons: { id: string; label: string; price_cents: number }[];
+  initialAddonIds: string[];
 }) {
   const router = useRouter();
   const [bookingType, setBookingType] = useState<'building_day' | 'open_slot'>(
@@ -90,15 +94,54 @@ export function BookingForm({
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [promoCode, setPromoCode] = useState('');
+  // Anything the resident already asked for on every wash starts ticked.
+  const [addonIds, setAddonIds] = useState<string[]>(initialAddonIds);
 
   useEffect(() => {
     const stored = typeof window !== 'undefined' ? localStorage.getItem('lavo_promo_code') : null;
     if (stored) setPromoCode(stored);
   }, []);
 
-  const priceCents = bookingType === 'building_day'
+  const washCents = bookingType === 'building_day'
     ? basePriceCents
     : (openSlotPriceCents ?? basePriceCents);
+
+  const selectedAddons = addons.filter((a) => addonIds.includes(a.id));
+  const addonCents = selectedAddons.reduce((sum, a) => sum + a.price_cents, 0);
+
+  // The promo is priced by the server against the same rules checkout uses, so
+  // what's on screen is what gets charged. Entering a code no longer leaves the
+  // total at full price all the way to the Stripe redirect.
+  const [promo, setPromo] = useState<{ discountCents: number; reason?: string } | null>(null);
+  const [promoChecking, setPromoChecking] = useState(false);
+
+  useEffect(() => {
+    const code = promoCode.trim();
+    if (!code) { setPromo(null); setPromoChecking(false); return; }
+
+    let cancelled = false;
+    setPromoChecking(true);
+    const timer = setTimeout(() => {
+      fetch('/api/promo/preview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, operatorId, bookingType }),
+      })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((j) => {
+          if (cancelled) return;
+          if (!j) { setPromo(null); return; }
+          setPromo(j.valid ? { discountCents: j.discountCents ?? 0 } : { discountCents: 0, reason: j.reason });
+        })
+        .catch(() => { if (!cancelled) setPromo(null); })
+        .finally(() => { if (!cancelled) setPromoChecking(false); });
+    }, 400);
+
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [promoCode, operatorId, bookingType]);
+
+  const discountCents = Math.min(promo?.reason ? 0 : (promo?.discountCents ?? 0), washCents);
+  const priceCents = Math.max(0, washCents - discountCents) + addonCents;
 
   async function book() {
     if (!vehicleId || !date) { setErr('Please select a vehicle and date'); return; }
@@ -115,6 +158,7 @@ export function BookingForm({
           bookingType,
           partnershipId: partnershipId ?? undefined,
           recurringCadence: recurring === 'none' ? undefined : recurring,
+          addonIds,
           promoCode: promoCode.trim() || undefined,
           waiverAccepted: needsWaiver ? agreeWaiver : undefined,
         }),
@@ -204,6 +248,45 @@ export function BookingForm({
         <div className="text-sm text-red-400">Please add a vehicle in your profile first.</div>
       )}
 
+      {addons.length > 0 && (
+        <div>
+          <label className="label">Add-ons (optional)</label>
+          <div className="space-y-2">
+            {addons.map((a) => {
+              const checked = addonIds.includes(a.id);
+              return (
+                <label
+                  key={a.id}
+                  className={`flex w-full cursor-pointer items-center justify-between gap-3 rounded-xl border px-4 py-3 transition ${
+                    checked ? 'border-gleam/60 bg-gleam/5' : 'border-white/10 hover:border-white/20'
+                  }`}
+                >
+                  <span className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 shrink-0 accent-gleam"
+                      checked={checked}
+                      onChange={(e) =>
+                        setAddonIds((prev) =>
+                          e.target.checked ? [...prev, a.id] : prev.filter((id) => id !== a.id)
+                        )
+                      }
+                    />
+                    <span className="text-sm font-medium">{a.label}</span>
+                  </span>
+                  <span className="font-display text-sm">+{money(a.price_cents)}</span>
+                </label>
+              );
+            })}
+          </div>
+          {initialAddonIds.length > 0 && (
+            <p className="mt-1 text-xs text-ink-500">
+              Your “on every wash” add-ons are pre-selected. Untick to skip them this time.
+            </p>
+          )}
+        </div>
+      )}
+
       <div>
         <label className="label">Revisit cadence</label>
         <select className="field" value={recurring} onChange={(e) => setRecurring(e.target.value as typeof recurring)}>
@@ -224,6 +307,11 @@ export function BookingForm({
           placeholder="FIRSTWASH"
           autoCapitalize="characters"
         />
+        {promoChecking && <p className="mt-1 text-xs text-ink-500">Checking code…</p>}
+        {!promoChecking && promo?.reason && <p className="mt-1 text-xs text-red-400">{promo.reason}</p>}
+        {!promoChecking && !promo?.reason && discountCents > 0 && (
+          <p className="mt-1 text-xs text-gleam">Code applied — {money(discountCents)} off this wash.</p>
+        )}
       </div>
 
       <div>
@@ -260,9 +348,25 @@ export function BookingForm({
         </select>
       </div>
 
-      <div className="rounded-xl border border-white/10 bg-ink-800/50 p-4">
+      <div className="rounded-xl border border-white/10 bg-ink-800/50 p-4 space-y-2">
         <div className="flex items-center justify-between text-sm">
-          <span className="text-ink-400">Wash total</span>
+          <span className="text-ink-400">Wash</span>
+          <span>{money(washCents)}</span>
+        </div>
+        {selectedAddons.map((a) => (
+          <div key={a.id} className="flex items-center justify-between text-sm">
+            <span className="text-ink-400">{a.label}</span>
+            <span>{money(a.price_cents)}</span>
+          </div>
+        ))}
+        {discountCents > 0 && (
+          <div className="flex items-center justify-between text-sm text-gleam">
+            <span>Promo {promoCode.trim()}</span>
+            <span>−{money(discountCents)}</span>
+          </div>
+        )}
+        <div className="flex items-center justify-between border-t border-white/10 pt-2 text-sm font-medium">
+          <span>Total</span>
           <span>{money(priceCents)}</span>
         </div>
       </div>
@@ -298,7 +402,9 @@ export function BookingForm({
         disabled={busy || !vehicleId || !date || (needsWaiver && !agreeWaiver)}
         className="btn-primary w-full"
       >
-        {busy ? 'Redirecting to payment…' : `Pay ${money(priceCents)}`}
+        {busy
+          ? (priceCents > 0 ? 'Redirecting to payment…' : 'Booking…')
+          : (priceCents > 0 ? `Pay ${money(priceCents)}` : 'Book free wash')}
       </button>
       <p className="text-[11px] text-ink-400 text-center">Secure payment via Stripe. Cancellation available up to 24h before.</p>
     </div>
