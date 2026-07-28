@@ -29,6 +29,9 @@ export async function POST(req: Request) {
       refund_application_fee: true,
     });
     await admin.from('bookings').update({ status: 'cancelled' }).eq('id', bookingId);
+    // Keep the ledger honest: a refunded booking's mirrored charge is no
+    // longer money the operator earned.
+    await admin.from('charges').update({ status: 'refunded' }).eq('booking_id', bookingId);
     await audit({
       actorId: session.user.id,
       actorRole: 'admin',
