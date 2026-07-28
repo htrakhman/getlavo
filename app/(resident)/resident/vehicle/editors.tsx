@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { plateLabel } from '@/lib/format';
 
 const COLORS = ['White', 'Black', 'Silver', 'Gray', 'Red', 'Blue', 'Green', 'Other'];
 
@@ -114,7 +115,10 @@ export function VehiclesList({ residentId, vehicles }: { residentId: string; veh
                     <div className="font-display text-lg">{v.year} {v.make} {v.model}</div>
                     {v.is_primary && <span className="chip text-gleam !py-0.5 !px-2 text-[10px]">primary</span>}
                   </div>
-                  <div className="mt-1 text-xs text-ink-400">{v.color} · <span className="font-mono">{v.license_plate}</span></div>
+                  <div className="mt-1 text-xs text-ink-400">
+                    {v.color}
+                    {plateLabel(v.license_plate) && <> · <span className="font-mono">{plateLabel(v.license_plate)}</span></>}
+                  </div>
                 </div>
                 <div className="flex flex-col gap-1 text-right">
                   <button onClick={() => setEditing(v.id)} className="text-xs text-gleam">Edit</button>
@@ -157,7 +161,9 @@ function VehicleForm({ residentId, vehicle, onDone, onCancel, isFirst }: {
   const [model, setModel] = useState(vehicle?.model ?? '');
   const [year, setYear] = useState(vehicle?.year ? String(vehicle.year) : '');
   const [color, setColor] = useState(vehicle?.color ?? 'White');
-  const [plate, setPlate] = useState(vehicle?.license_plate ?? '');
+  // Legacy rows may still hold the 'UNKNOWN' sentinel; never seed it into the
+  // input or the resident has to delete it before typing a real plate.
+  const [plate, setPlate] = useState(plateLabel(vehicle?.license_plate) ?? '');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 

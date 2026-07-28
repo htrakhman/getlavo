@@ -1,6 +1,7 @@
 import { PageHeader } from '@/components/PortalShell';
 import { getSessionUser, supabaseServer, supabaseAdmin } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
+import { plateLabel } from '@/lib/format';
 import { InviteResidents } from './InviteResidents';
 
 export default async function Residents() {
@@ -54,7 +55,7 @@ export default async function Residents() {
                 <td className="px-5 py-3">{r.profile?.full_name || r.profile?.email || '—'}</td>
                 <td className="px-5 py-3">{r.spot_label ?? '—'}</td>
                 <td className="px-5 py-3">{r.vehicles?.[0] ? `${r.vehicles[0].color} ${r.vehicles[0].make} ${r.vehicles[0].model}` : '—'}</td>
-                <td className="px-5 py-3 font-mono text-xs">{r.vehicles?.[0]?.license_plate ?? '—'}</td>
+                <td className="px-5 py-3 font-mono text-xs">{plateLabel(r.vehicles?.[0]?.license_plate) ?? '—'}</td>
               </tr>
             ))}
             {!residents?.length && (

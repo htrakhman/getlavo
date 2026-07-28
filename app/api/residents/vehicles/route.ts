@@ -60,7 +60,7 @@ export async function POST(req: Request) {
     model: b.model,
     year: b.year ?? null,
     color: b.color ?? 'White',
-    license_plate: b.plate || 'UNKNOWN',
+    license_plate: b.plate?.trim() || null,
     is_primary: !!b.isPrimary,
   });
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -107,7 +107,7 @@ export async function PATCH(req: Request) {
   if (b.model !== undefined) patch.model = b.model;
   if (b.year !== undefined) patch.year = b.year;
   if (b.color !== undefined) patch.color = b.color;
-  if (b.plate !== undefined) patch.license_plate = b.plate || 'UNKNOWN';
+  if (b.plate !== undefined) patch.license_plate = b.plate?.trim() || null;
   if (!Object.keys(patch).length) return NextResponse.json({ error: 'Nothing to update' }, { status: 400 });
 
   const { error } = await admin.from('vehicles').update(patch).eq('id', b.id);

@@ -58,6 +58,19 @@ export function OperatorProfileEditor({ op }: { op: any }) {
   const [description, setDescription] = useState(op.description ?? '');
   const [yearsExp, setYearsExp] = useState(op.years_experience ? String(op.years_experience) : '');
   const [specialties, setSpecialties] = useState<string[]>(op.specialties ?? []);
+  // 56 preset options rendered at once is a wall of chips to scroll past on the
+  // way to the rest of the profile. Each group collapses to a single row with a
+  // count, and groups the operator already uses open on load so existing
+  // selections stay visible without hunting for them.
+  const [openGroups, setOpenGroups] = useState<string[]>(() =>
+    SPECIALTY_GROUPS.filter((g) => g.options.some((o) => (op.specialties ?? []).includes(o))).map(
+      (g) => g.label,
+    ),
+  );
+
+  function toggleGroup(label: string) {
+    setOpenGroups((prev) => (prev.includes(label) ? prev.filter((l) => l !== label) : [...prev, label]));
+  }
   const [customTagInput, setCustomTagInput] = useState('');
   const [rateCents, setRateCents] = useState(op.base_price_cents);
   const [radius, setRadius] = useState(op.service_radius_miles ?? 15);
@@ -209,27 +222,49 @@ export function OperatorProfileEditor({ op }: { op: any }) {
         <label className="label">Specialties & services</label>
         <p className="text-xs text-ink-500 mb-3">Select everything you offer — residents filter by these. Add your own at the bottom.</p>
         <div className="space-y-4">
-          {SPECIALTY_GROUPS.map((group) => (
-            <div key={group.label}>
-              <div className="text-xs font-semibold uppercase tracking-wider text-ink-500 mb-2">{group.label}</div>
-              <div className="flex flex-wrap gap-2">
-                {group.options.map((s) => (
-                  <button
-                    key={s}
-                    type="button"
-                    onClick={() => toggleSpecialty(s)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
-                      specialties.includes(s)
-                        ? 'bg-gleam/20 border-gleam text-gleam'
-                        : 'bg-ink-800 border-ink-600 text-ink-400 hover:border-ink-400'
-                    }`}
-                  >
-                    {specialties.includes(s) && '✓ '}{s}
-                  </button>
-                ))}
+          {SPECIALTY_GROUPS.map((group) => {
+            const open = openGroups.includes(group.label);
+            const chosen = group.options.filter((o) => specialties.includes(o)).length;
+            return (
+              <div key={group.label}>
+                <button
+                  type="button"
+                  onClick={() => toggleGroup(group.label)}
+                  aria-expanded={open}
+                  className="flex w-full items-center gap-2 text-left text-xs font-semibold uppercase tracking-wider text-ink-500 hover:text-ink-300 transition-colors"
+                >
+                  <span className={`transition-transform ${open ? 'rotate-90' : ''}`}>›</span>
+                  <span>{group.label}</span>
+                  {chosen > 0 && (
+                    <span className="rounded-full bg-gleam/20 px-2 py-0.5 text-[10px] text-gleam normal-case tracking-normal">
+                      {chosen}
+                    </span>
+                  )}
+                  <span className="ml-auto text-[10px] font-normal normal-case tracking-normal text-ink-600">
+                    {open ? 'Hide' : `${group.options.length} options`}
+                  </span>
+                </button>
+                {open && (
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {group.options.map((s) => (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => toggleSpecialty(s)}
+                        className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                          specialties.includes(s)
+                            ? 'bg-gleam/20 border-gleam text-gleam'
+                            : 'bg-ink-800 border-ink-600 text-ink-400 hover:border-ink-400'
+                        }`}
+                      >
+                        {specialties.includes(s) && '✓ '}{s}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
 
           {/* Custom tags */}
           <div>

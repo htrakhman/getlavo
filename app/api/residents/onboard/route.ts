@@ -128,7 +128,7 @@ export async function POST(req: Request) {
 
   const vehiclePayload: Record<string, unknown> = {
     resident_id: residentId,
-    license_plate: plate || 'UNKNOWN',
+    license_plate: plate?.trim() || null,
     make,
     model,
     year,

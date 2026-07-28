@@ -1,6 +1,6 @@
 import { PageHeader } from '@/components/PortalShell';
 import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
-import { dateShort } from '@/lib/format';
+import { dateShort, plateLabel } from '@/lib/format';
 import Link from 'next/link';
 import { PrintButton } from './PrintButton';
 import { RescheduleButton } from './RescheduleButton';
@@ -117,7 +117,7 @@ export default async function PrepPage({ params }: { params: { id: string } }) {
                           <td className="px-4 py-2 font-mono text-xs">{w.spot_label ?? '—'}</td>
                           <td className="px-4 py-2">{w.resident?.profile?.full_name ?? '—'}</td>
                           <td className="px-4 py-2">{w.vehicle?.year} {w.vehicle?.make} {w.vehicle?.model} <span className="text-xs text-ink-500">· {w.vehicle?.color}</span></td>
-                          <td className="px-4 py-2 font-mono text-xs">{w.vehicle?.license_plate}</td>
+                          <td className="px-4 py-2 font-mono text-xs">{plateLabel(w.vehicle?.license_plate) ?? '—'}</td>
                           <td className="px-4 py-2 text-xs">{w.resident?.package?.name ?? '—'}</td>
                         </tr>
                       );

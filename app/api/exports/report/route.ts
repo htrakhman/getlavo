@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getSessionUser, supabaseAdmin } from '@/lib/supabase/server';
+import { plateLabel } from '@/lib/format';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -57,7 +58,7 @@ export async function GET(req: Request) {
     w.wash_day?.scheduled_for ?? '',
     w.resident?.profile?.full_name ?? '',
     `${w.vehicle?.make ?? ''} ${w.vehicle?.model ?? ''}`.trim(),
-    w.vehicle?.license_plate ?? '',
+    plateLabel(w.vehicle?.license_plate) ?? '',
     w.wash_day?.operator?.name ?? '',
     w.status,
     w.flag_reason ?? '',
