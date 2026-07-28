@@ -2,7 +2,7 @@ import { PageHeader } from '@/components/PortalShell';
 import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { money } from '@/lib/format';
+import { money, plateLabel } from '@/lib/format';
 
 export default async function OperatorTodayPage() {
   const session = await getSessionUser();
@@ -40,7 +40,8 @@ export default async function OperatorTodayPage() {
               <div>
                 <div className="font-medium">{b.building?.name}</div>
                 <div className="text-xs text-ink-500 mt-1">
-                  {b.vehicle?.color} {b.vehicle?.make} {b.vehicle?.model} · {b.vehicle?.license_plate}
+                  {b.vehicle?.color} {b.vehicle?.make} {b.vehicle?.model}
+                  {plateLabel(b.vehicle?.license_plate) && ` · ${plateLabel(b.vehicle?.license_plate)}`}
                 </div>
                 <div className="text-xs text-ink-500">Spot: {b.resident?.spot_label ?? '—'}</div>
                 <div className="text-xs text-ink-500">Access: {b.resident?.vehicle_access_method ?? '—'}</div>

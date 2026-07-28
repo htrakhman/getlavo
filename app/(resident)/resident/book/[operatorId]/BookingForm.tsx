@@ -1,5 +1,5 @@
 'use client';
-import { money } from '@/lib/format';
+import { money, plateLabel } from '@/lib/format';
 import { captureEvent } from '@/lib/analytics';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -195,7 +195,7 @@ export function BookingForm({
           <select className="field" value={vehicleId} onChange={(e) => setVehicleId(e.target.value)}>
             {vehicles.map((v) => (
               <option key={v.id} value={v.id}>
-                {v.color} {v.make} {v.model} · {v.license_plate}
+                {v.color} {v.make} {v.model}{plateLabel(v.license_plate) ? ` · ${plateLabel(v.license_plate)}` : ''}
               </option>
             ))}
           </select>

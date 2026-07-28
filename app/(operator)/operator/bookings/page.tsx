@@ -1,7 +1,7 @@
 import { PageHeader } from '@/components/PortalShell';
 import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
-import { dateShort, money } from '@/lib/format';
+import { dateShort, money, plateLabel } from '@/lib/format';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
@@ -87,7 +87,9 @@ export default async function OperatorBookings() {
                         <div className="mt-0.5 text-sm text-ink-300">
                           {resident?.full_name} · {vehicle?.color} {vehicle?.make} {vehicle?.model}
                         </div>
-                        <div className="mt-0.5 text-xs text-ink-400 font-mono">{vehicle?.license_plate}</div>
+                        {plateLabel(vehicle?.license_plate) && (
+                          <div className="mt-0.5 text-xs text-ink-400 font-mono">{plateLabel(vehicle?.license_plate)}</div>
+                        )}
                         <div className="mt-1 text-sm text-ink-400">
                           {dateShort(b.scheduled_for)}{b.time_slot ? ` at ${b.time_slot}` : ''}
                           <span className="ml-2 text-xs">

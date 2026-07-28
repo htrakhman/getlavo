@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { money, dateShort } from '@/lib/format';
+import { money, dateShort, plateLabel } from '@/lib/format';
 
 export function OperatorBookingDetail({
   booking,
@@ -68,7 +68,9 @@ export function OperatorBookingDetail({
         <p className="text-sm text-ink-300 mt-3">
           {booking.resident?.profile?.full_name ?? 'Resident'}
           {booking.vehicle
-            ? ` · ${booking.vehicle.color} ${booking.vehicle.make} ${booking.vehicle.model} (${booking.vehicle.license_plate})`
+            ? ` · ${booking.vehicle.color} ${booking.vehicle.make} ${booking.vehicle.model}${
+                plateLabel(booking.vehicle.license_plate) ? ` (${plateLabel(booking.vehicle.license_plate)})` : ''
+              }`
             : ''}
         </p>
       </div>

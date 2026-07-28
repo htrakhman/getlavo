@@ -1,6 +1,7 @@
 'use client';
 import { useRouter } from 'next/navigation';
 import { useState, useRef } from 'react';
+import { plateLabel } from '@/lib/format';
 
 const FLAG_REASONS = [
   'Car not in spot',
@@ -264,7 +265,9 @@ function VehicleCard({ w, busy, onStart, onDone, onFlag }: { w: any; busy: boole
         <div className="mt-1 text-sm text-ink-200">
           {w.vehicle?.year} {w.vehicle?.make} {w.vehicle?.model} · {w.vehicle?.color}
         </div>
-        <div className="mt-1 text-xs font-mono text-ink-400">{w.vehicle?.license_plate}</div>
+        {plateLabel(w.vehicle?.license_plate) && (
+          <div className="mt-1 text-xs font-mono text-ink-400">{plateLabel(w.vehicle?.license_plate)}</div>
+        )}
         {w.resident?.package?.name && (
           <div className="mt-1 text-xs text-ink-300">Package: {w.resident.package.name}</div>
         )}
