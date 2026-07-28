@@ -93,7 +93,9 @@ export function CrewTool({
   const total = allItems.length;
   const completed = allItems.filter((w) => w.status === 'completed').length;
   const remaining = allItems.filter((w) => w.status !== 'completed' && w.status !== 'flagged').length;
-  const allDone = total > 0 && remaining === 0;
+  // A day where every resident skipped has no active vehicles, but it still has
+  // to be wrappable — otherwise the crew is stuck on a day with nothing to wash.
+  const allDone = remaining === 0 && (total > 0 || skipped.length > 0);
 
   // Average time per completed wash (rolling, capped at 60 min) — used to estimate remaining
   const completedWithTimes = allItems.filter((w) => w.status === 'completed' && w.completed_at && startedAt);
@@ -141,7 +143,7 @@ export function CrewTool({
         </div>
         {crewErr && <div className="mt-1 text-xs text-red-400">{crewErr}</div>}
         <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/5">
-          <div className="h-full bg-gleam transition-all" style={{ width: `${total ? (completed / total) * 100 : 0}%` }} />
+          <div className="h-full bg-gleam transition-all" style={{ width: `${total ? (completed / total) * 100 : (allDone ? 100 : 0)}%` }} />
         </div>
       </header>
 
