@@ -4,6 +4,7 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
 import { calculateFee } from '@/lib/fee';
 import { applyPromoToBooking, recordPromoRedemption } from '@/lib/promo';
 import { confirmPaidBookingAndNotify } from '@/lib/booking-confirm';
+import { syncWashDayRoster } from '@/lib/wash-roster';
 import { WAIVER_VERSION } from '@/lib/waiver';
 import Stripe from 'stripe';
 import { z } from 'zod';
@@ -121,6 +122,57 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'No capacity available on this date' }, { status: 409 });
   }
 
+  // Building-day bookings belong to the building's wash day: link the row so
+  // the crew roster and prep views can count this resident. Availability can
+  // offer manager-set weekly days that have no wash_days row yet, so
+  // materialize one against the active partnership when needed.
+  let washDayId: string | null = null;
+  if (bookingType === 'building_day' && resident.building_id) {
+    const { data: existingDay } = await admin
+      .from('wash_days')
+      .select('id')
+      .eq('building_id', resident.building_id)
+      .eq('scheduled_for', scheduledFor)
+      .neq('confirmation', 'declined')
+      .limit(1)
+      .maybeSingle();
+    washDayId = existingDay?.id ?? null;
+
+    if (!washDayId) {
+      const { data: partnership } = await admin
+        .from('partnerships')
+        .select('id')
+        .eq('building_id', resident.building_id)
+        .eq('operator_id', operatorId)
+        .eq('status', 'active')
+        .maybeSingle();
+      if (partnership) {
+        const { data: newDay, error: dayError } = await admin
+          .from('wash_days')
+          .insert({
+            building_id: resident.building_id,
+            operator_id: operatorId,
+            partnership_id: partnership.id,
+            scheduled_for: scheduledFor,
+            confirmation: 'auto',
+          })
+          .select('id')
+          .single();
+        if (dayError || !newDay) {
+          console.error('[bookings/create] failed to create wash day', {
+            buildingId: resident.building_id,
+            scheduledFor,
+            message: dayError?.message,
+          });
+        } else {
+          washDayId = newDay.id;
+          // Packaged residents join every new wash day, same as the propose flow.
+          await syncWashDayRoster(admin, newDay.id);
+        }
+      }
+    }
+  }
+
   const { data: booking, error: bookingError } = await admin
     .from('bookings')
     .insert({
@@ -129,6 +181,7 @@ export async function POST(req: Request) {
       building_id: resident.building_id,
       vehicle_id: vehicleId,
       partnership_id: partnershipId ?? null,
+      wash_day_id: washDayId,
       booking_type: bookingType,
       scheduled_for: scheduledFor,
       time_slot: timeSlot ?? null,

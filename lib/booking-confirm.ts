@@ -33,8 +33,8 @@ export async function confirmPaidBookingAndNotify(
   const { data: booking } = await admin
     .from('bookings')
     .select(`
-        id, scheduled_for, time_slot, gross_cents,
-        resident:residents(profile:profiles(email, full_name)),
+        id, scheduled_for, time_slot, gross_cents, wash_day_id, resident_id, vehicle_id,
+        resident:residents(spot_label, profile:profiles(email, full_name)),
         operator:operators(name, owner_id, profiles:profiles!operators_owner_id_fkey(email, full_name)),
         building:buildings(name, address_line1, city, region),
         vehicle:vehicles(make, model, color)
@@ -43,6 +43,28 @@ export async function confirmPaidBookingAndNotify(
     .single();
 
   if (!booking) return;
+
+  // A paid building-day booking puts the resident on the operator's crew
+  // roster for that wash day — this is what makes them visible on the
+  // prep list and crew tool. Idempotent per (wash_day, resident).
+  if (booking.wash_day_id && booking.resident_id && booking.vehicle_id) {
+    const { error: rosterError } = await admin.from('washes').upsert(
+      {
+        wash_day_id: booking.wash_day_id,
+        resident_id: booking.resident_id,
+        vehicle_id: booking.vehicle_id,
+        spot_label: (booking.resident as any)?.spot_label ?? null,
+      },
+      { onConflict: 'wash_day_id,resident_id', ignoreDuplicates: true }
+    );
+    if (rosterError) {
+      console.error('[booking-confirm] failed to add booking to wash-day roster', {
+        bookingId,
+        washDayId: booking.wash_day_id,
+        message: rosterError.message,
+      });
+    }
+  }
 
   const resident = (booking.resident as any)?.profile;
   const operator = booking.operator as any;
