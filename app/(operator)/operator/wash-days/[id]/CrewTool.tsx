@@ -175,11 +175,15 @@ export function CrewTool({
         {skipped.length > 0 && (
           <details className="mt-8">
             <summary className="cursor-pointer text-xs uppercase tracking-widest text-ink-400">
-              Skipped ({skipped.length})
+              Skipped by resident ({skipped.length})
             </summary>
+            <p className="mt-2 text-xs text-ink-500">
+              These residents opted out of this wash day. Don’t wash them — they aren’t counted above
+              and can’t be marked complete.
+            </p>
             <div className="mt-3 space-y-2">
               {skipped.map((w) => (
-                <div key={w.id} className="card p-3 text-sm text-ink-400">
+                <div key={w.id} className="card p-3 text-sm text-ink-400 opacity-60">
                   Spot {w.spot_label ?? '—'} · {w.vehicle?.year} {w.vehicle?.make} {w.vehicle?.model}
                 </div>
               ))}

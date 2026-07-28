@@ -15,9 +15,27 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
 
   const { data: wash } = await admin
     .from('washes')
-    .select('id, vehicle:vehicles(make, model, year)')
+    .select('id, resident_id, wash_day_id, vehicle:vehicles(make, model, year)')
     .eq('id', params.id)
     .maybeSingle();
+
+  // The resident opted out of this wash day. Completing anyway would charge
+  // them for a wash they declined, so refuse regardless of what the roster UI
+  // showed the crew — the skip is the resident's decision, not a display hint.
+  if (wash?.resident_id && wash?.wash_day_id) {
+    const { data: skip } = await admin
+      .from('wash_skips')
+      .select('resident_id')
+      .eq('wash_day_id', wash.wash_day_id)
+      .eq('resident_id', wash.resident_id)
+      .maybeSingle();
+    if (skip) {
+      return NextResponse.json(
+        { error: 'This resident skipped this wash day — nothing to complete.' },
+        { status: 409 },
+      );
+    }
+  }
 
   await admin.from('washes').update({
     status: 'completed',
