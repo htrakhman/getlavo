@@ -42,18 +42,12 @@ export async function chargeWash(
   const packageCents: number | null = resident?.package?.price_cents ?? null;
 
   // Add-ons the resident asked for on every wash. Until now that choice was
-  // stored and then ignored — never billed, never shown to the crew. The rows
-  // are normally written when the roster is built; ensure they exist, then
-  // bill exactly the unpaid ones, which is what the crew was told to do.
-  if (resident?.id) {
-    const recurringAddons = await recurringAddonsForWash(admin, resident.id, operatorId);
-    await recordWashAddonOrders(admin, { washId: washRecordId, residentId: resident.id, addons: recurringAddons });
-  }
-  const billableAddons = await unpaidWashAddons(admin, washRecordId);
-  const addonCents = billableAddons.reduce((sum, a) => sum + (a.amount_cents ?? 0), 0);
-
-  const grossCents: number | null = packageCents == null ? null : packageCents + addonCents;
-  const { fee } = calculateFee(grossCents ?? 0);
+  // stored and then ignored — never billed, never shown to the crew. Resolved
+  // below, after the prepaid check: a wash a booking already paid for takes
+  // its add-ons from that booking, not from the standing list.
+  let addonCents = 0;
+  let grossCents: number | null = packageCents;
+  let fee = calculateFee(grossCents ?? 0).fee;
 
   /**
    * Write the ledger row for this wash. Called on every path — the row is the
@@ -146,6 +140,21 @@ export async function chargeWash(
         paymentIntentId: paidBooking.stripe_payment_intent_id ?? '',
         status: 'succeeded',
       };
+    }
+  }
+
+  // Nothing prepaid this wash, so it's billed against the package. The add-on
+  // rows are normally written when the roster is built; make sure they exist,
+  // then bill exactly the unpaid ones — which is what the crew was told to do.
+  if (resident?.id) {
+    const recurringAddons = await recurringAddonsForWash(admin, resident.id, operatorId);
+    await recordWashAddonOrders(admin, { washId: washRecordId, residentId: resident.id, addons: recurringAddons });
+
+    const billableAddons = await unpaidWashAddons(admin, washRecordId);
+    addonCents = billableAddons.reduce((sum, a) => sum + (a.amount_cents ?? 0), 0);
+    if (packageCents != null) {
+      grossCents = packageCents + addonCents;
+      fee = calculateFee(grossCents).fee;
     }
   }
 

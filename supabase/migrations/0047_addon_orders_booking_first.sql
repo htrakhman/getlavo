@@ -32,11 +32,32 @@ create index if not exists addon_orders_wash_idx on addon_orders (wash_id);
 -- ============================================================
 -- Backfill: agreements created by the operator's "Send agreement" flow
 -- never set governing_law, so the column default ("Delaware") stood in
--- for the building's actual state. Point existing rows at the building.
+-- for the building's actual state. Point existing rows at the building,
+-- spelling the state out the way lib/governing-law.ts does — the clause
+-- reads "the laws of the State of X".
+--
+-- Safe on signed agreements: the building and operator pages have always
+-- rendered the clause from the building's region, so this aligns the
+-- stored row with the document both parties actually read.
 -- ============================================================
+with states (code, full_name) as (values
+  ('AL','Alabama'),('AK','Alaska'),('AZ','Arizona'),('AR','Arkansas'),('CA','California'),
+  ('CO','Colorado'),('CT','Connecticut'),('DE','Delaware'),('FL','Florida'),('GA','Georgia'),
+  ('HI','Hawaii'),('ID','Idaho'),('IL','Illinois'),('IN','Indiana'),('IA','Iowa'),
+  ('KS','Kansas'),('KY','Kentucky'),('LA','Louisiana'),('ME','Maine'),('MD','Maryland'),
+  ('MA','Massachusetts'),('MI','Michigan'),('MN','Minnesota'),('MS','Mississippi'),
+  ('MO','Missouri'),('MT','Montana'),('NE','Nebraska'),('NV','Nevada'),('NH','New Hampshire'),
+  ('NJ','New Jersey'),('NM','New Mexico'),('NY','New York'),('NC','North Carolina'),
+  ('ND','North Dakota'),('OH','Ohio'),('OK','Oklahoma'),('OR','Oregon'),('PA','Pennsylvania'),
+  ('RI','Rhode Island'),('SC','South Carolina'),('SD','South Dakota'),('TN','Tennessee'),
+  ('TX','Texas'),('UT','Utah'),('VT','Vermont'),('VA','Virginia'),('WA','Washington'),
+  ('WV','West Virginia'),('WI','Wisconsin'),('WY','Wyoming'),
+  ('DC','District of Columbia'),('PR','Puerto Rico')
+)
 update contracts c
-set governing_law = b.region
+set governing_law = coalesce(s.full_name, btrim(b.region))
 from buildings b
+left join states s on s.code = upper(btrim(b.region))
 where c.building_id = b.id
   and b.region is not null
   and btrim(b.region) <> ''
