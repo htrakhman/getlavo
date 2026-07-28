@@ -53,8 +53,13 @@ export default async function WashDays() {
   const buildings = (partnerships ?? []).map((p: any) => p.building).filter(Boolean);
 
   const today = new Date().toISOString().slice(0, 10);
-  const upcoming = (days ?? []).filter((d: any) => !d.completed_at && d.scheduled_for >= today);
-  const past = (days ?? []).filter((d: any) => d.completed_at || d.scheduled_for < today);
+  // A declined day is not on the schedule, so it belongs in neither Upcoming
+  // (it has no prep or crew work) nor Past (it wasn't completed or missed — the
+  // building turned it down). It gets its own section instead.
+  const declined = (days ?? []).filter((d: any) => d.confirmation === 'declined');
+  const active = (days ?? []).filter((d: any) => d.confirmation !== 'declined');
+  const upcoming = active.filter((d: any) => !d.completed_at && d.scheduled_for >= today);
+  const past = active.filter((d: any) => d.completed_at || d.scheduled_for < today);
   const isEmpty = !days?.length;
 
   return (
@@ -78,9 +83,6 @@ export default async function WashDays() {
                     {wd.confirmation === 'pending' && (
                       <span className="ml-2 text-amber-600">· awaiting building confirmation</span>
                     )}
-                    {wd.confirmation === 'declined' && (
-                      <span className="ml-2 text-red-400">· declined</span>
-                    )}
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -91,6 +93,23 @@ export default async function WashDays() {
                     {wd.started_at ? 'Resume →' : 'Open →'}
                   </Link>
                 </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {declined.length > 0 && (
+        <>
+          <h2 className="text-xs uppercase tracking-widest text-ink-400 mb-3">Declined by building</h2>
+          <div className="card divide-y divide-white/5 mb-8">
+            {declined.map((wd: any) => (
+              <div key={wd.id} className="flex items-center justify-between p-5 opacity-60">
+                <div>
+                  <div className="font-medium">{wd.building?.name}</div>
+                  <div className="text-xs text-ink-400">{dateShort(wd.scheduled_for)}</div>
+                </div>
+                <span className="chip text-red-400">declined</span>
               </div>
             ))}
           </div>

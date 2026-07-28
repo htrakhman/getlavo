@@ -46,10 +46,22 @@ export default async function BuildingWashDayDetail({ params }: { params: { id: 
           ? <span className="chip text-gleam">Completed</span>
           : wd.started_at
             ? <span className="chip text-amber-600 animate-pulse">Live · refreshing</span>
-            : wd.confirmation === 'pending'
-              ? <ConfirmProposal washDayId={wd.id} />
-              : <span className="chip">Scheduled</span>}
+            : wd.confirmation === 'declined'
+              ? <span className="chip text-red-400">Declined</span>
+              : wd.confirmation === 'pending'
+                ? <ConfirmProposal washDayId={wd.id} />
+                : <span className="chip">Scheduled</span>}
       />
+
+      {wd.confirmation === 'declined' && (
+        <div className="card border-red-400/30 bg-red-400/5 p-5 mb-8">
+          <div className="font-medium text-red-400">You declined this date</div>
+          <p className="mt-1 text-sm text-ink-400">
+            {(wd.operator as any)?.name ?? 'The operator'} has been notified and this wash day is not
+            going ahead. Nothing below is scheduled.
+          </p>
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4 mb-8">
         <Stat label="Total" value={total} />
