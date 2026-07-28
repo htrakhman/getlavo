@@ -16,7 +16,6 @@ export default async function Earnings() {
     .maybeSingle();
   if (!op) return <p className="p-10 text-ink-400">Operator profile not found.</p>;
 
-  const monthStart = new Date().toISOString().slice(0, 8) + '01';
   const last30 = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
 
   const [{ data: payouts }, { data: bookings, error: bookingsError }, { data: washCharges }] = await Promise.all([
@@ -81,13 +80,12 @@ export default async function Earnings() {
     })),
   ].sort((a, b) => (b.date ?? '').localeCompare(a.date ?? ''));
 
-  // Stats and table read the same rows, so the summary can't contradict what's
-  // listed below it. The 30-day window always covers the month to date.
-  const thisMonth = recent.filter((r) => (r.date ?? '') >= monthStart);
+  // Stats and table read the same rows over the same window, so the summary
+  // can't contradict the list directly below it.
   const lifetimeNet = (payouts ?? []).reduce((s, p) => s + (p.net_cents ?? 0), 0);
   const pending = (payouts ?? []).filter((p) => p.status === 'pending').reduce((s, p) => s + (p.net_cents ?? 0), 0);
-  const monthGross = thisMonth.filter((r) => r.paid).reduce((s, r) => s + r.gross, 0);
-  const monthWashCount = thisMonth.length;
+  const windowGross = recent.filter((r) => r.paid).reduce((s, r) => s + r.gross, 0);
+  const windowWashCount = recent.length;
 
   return (
     <>
@@ -95,8 +93,8 @@ export default async function Earnings() {
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4 mb-8">
         <Stat label="Lifetime net" value={money(lifetimeNet)} />
         <Stat label="Pending payout" value={money(pending)} />
-        <Stat label="This month gross" value={money(monthGross)} />
-        <Stat label="Washes this month" value={String(monthWashCount)} />
+        <Stat label="Gross (last 30 days)" value={money(windowGross)} />
+        <Stat label="Washes (last 30 days)" value={String(windowWashCount)} />
       </div>
 
       <h2 className="mb-3 text-xs uppercase tracking-widest text-ink-400">Recent washes (last 30 days)</h2>
