@@ -103,28 +103,51 @@ export function BookingForm({
   async function book() {
     if (!vehicleId || !date) { setErr('Please select a vehicle and date'); return; }
     setBusy(true); setErr(null);
-    const res = await fetch('/api/bookings/create', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        operatorId,
-        vehicleId,
-        scheduledFor: date,
-        timeSlot,
-        bookingType,
-        partnershipId: partnershipId ?? undefined,
-        recurringCadence: recurring === 'none' ? undefined : recurring,
-        promoCode: promoCode.trim() || undefined,
-        waiverAccepted: needsWaiver ? agreeWaiver : undefined,
-      }),
-    });
-    const j = await res.json();
-    if (!res.ok) { setErr(j.error ?? 'Booking failed'); setBusy(false); return; }
-    captureEvent('booking_checkout_started', { operatorId, free: !j.checkoutUrl });
-    if (j.checkoutUrl) {
-      window.location.href = j.checkoutUrl;
-    } else {
-      router.push('/resident/bookings');
+    try {
+      const res = await fetch('/api/bookings/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          operatorId,
+          vehicleId,
+          scheduledFor: date,
+          timeSlot,
+          bookingType,
+          partnershipId: partnershipId ?? undefined,
+          recurringCadence: recurring === 'none' ? undefined : recurring,
+          promoCode: promoCode.trim() || undefined,
+          waiverAccepted: needsWaiver ? agreeWaiver : undefined,
+        }),
+      });
+
+      // A server error can come back with an empty or non-JSON body; parsing
+      // that unguarded used to throw and leave the button stuck on
+      // "Redirecting to payment…" forever with nothing shown to the resident.
+      const text = await res.text();
+      let j: any = null;
+      try { j = text ? JSON.parse(text) : null; } catch { j = null; }
+
+      if (!res.ok) {
+        setErr(j?.error ?? 'We couldn’t start checkout. Please try again.');
+        setBusy(false);
+        return;
+      }
+      if (!j || (!j.checkoutUrl && !j.freeBooking)) {
+        setErr('We couldn’t start checkout. Please try again.');
+        setBusy(false);
+        return;
+      }
+
+      captureEvent('booking_checkout_started', { operatorId, free: !j.checkoutUrl });
+      if (j.checkoutUrl) {
+        window.location.href = j.checkoutUrl;
+      } else {
+        router.push('/resident/bookings');
+      }
+    } catch (e: any) {
+      // Network drop, offline, aborted request — still give a way back.
+      setErr('We couldn’t reach the payment service. Please check your connection and try again.');
+      setBusy(false);
     }
   }
 
