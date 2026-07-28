@@ -33,6 +33,7 @@ export function CrewTool({
   const [photoFor, setPhotoFor] = useState<string | null>(null);
   const [wrappingUp, setWrappingUp] = useState(false);
   const [crewErr, setCrewErr] = useState<string | null>(null);
+  const [payWarn, setPayWarn] = useState<string | null>(null);
 
   async function start(washId: string) {
     setBusyId(washId);
@@ -48,6 +49,7 @@ export function CrewTool({
   async function done(washId: string, photoFile: File | null) {
     setBusyId(washId);
     setCrewErr(null);
+    setPayWarn(null);
     try {
       if (photoFile) {
         const fd = new FormData();
@@ -56,6 +58,14 @@ export function CrewTool({
       }
       const res = await fetch(`/api/wash-records/${washId}/complete`, { method: 'POST' });
       if (!res.ok) { setCrewErr('Could not mark complete. Try again.'); setBusyId(null); return; }
+      // The wash is done; payment is a separate outcome. Say so plainly rather
+      // than letting the crew assume a completed wash was a paid one.
+      const body = await res.json().catch(() => null);
+      setPayWarn(
+        body?.charge?.status === 'failed'
+          ? `Wash marked done, but payment did not go through (${body.charge.error}). We'll follow up with the resident.`
+          : null
+      );
     } catch { setCrewErr('Network error. Check connection.'); setBusyId(null); return; }
     setBusyId(null);
     setPhotoFor(null);
@@ -140,6 +150,7 @@ export function CrewTool({
           </div>
         </div>
         {crewErr && <div className="mt-1 text-xs text-red-400">{crewErr}</div>}
+        {payWarn && <div className="mt-1 text-xs text-amber-400">{payWarn}</div>}
         <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/5">
           <div className="h-full bg-gleam transition-all" style={{ width: `${total ? (completed / total) * 100 : 0}%` }} />
         </div>

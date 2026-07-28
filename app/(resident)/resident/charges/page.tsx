@@ -28,24 +28,38 @@ export default async function ChargesPage() {
     // the other resident pages.
     admin
       .from('charges')
-      .select('id, created_at, amount_cents, status, failure_reason, operator:operators(name), wash_day:wash_days(scheduled_for, building:buildings(name))')
+      .select('id, created_at, amount_cents, status, failure_reason, booking_id, operator:operators(name), wash_day:wash_days(scheduled_for, building:buildings(name))')
       .eq('resident_id', resident.id)
       .order('created_at', { ascending: false })
       .limit(100),
   ]);
 
+  // A charge that mirrors a prepaid booking is the same money as the booking
+  // row — show the ledger entry and drop the booking so it isn't listed twice.
+  const chargedBookingIds = new Set(
+    (washCharges ?? []).map((c: any) => c.booking_id).filter(Boolean)
+  );
+
   // One list: resident-booked washes (bookings) + wash-day service charges.
   const rows = [
-    ...(bookings ?? []).map((b: any) => ({
-      id: `b-${b.id}`,
-      date: b.scheduled_for,
-      building: b.building?.name,
-      operator: b.operator?.name,
-      amount: b.gross_cents,
-      status: b.paid_at ? 'paid' : b.status,
-      paid: !!b.paid_at,
-      note: null as string | null,
-    })),
+    ...(bookings ?? [])
+      .filter((b: any) => !chargedBookingIds.has(b.id))
+      .map((b: any) => {
+        // "Paid" means money actually moved: a payment intent (or a booking
+        // that cost nothing). A booking row by itself — even a confirmed one —
+        // is not evidence of payment, and must never be shown as though it is.
+        const paid = !!b.paid_at && (!!b.stripe_payment_intent_id || (b.gross_cents ?? 0) <= 0);
+        return {
+          id: `b-${b.id}`,
+          date: b.scheduled_for,
+          building: b.building?.name,
+          operator: b.operator?.name,
+          amount: b.gross_cents,
+          status: paid ? 'paid' : b.status === 'confirmed' ? 'payment pending' : b.status,
+          paid,
+          note: null as string | null,
+        };
+      }),
     ...(washCharges ?? []).map((c: any) => ({
       id: `c-${c.id}`,
       date: c.wash_day?.scheduled_for ?? c.created_at?.slice(0, 10),

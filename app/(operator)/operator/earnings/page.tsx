@@ -19,21 +19,21 @@ export default async function Earnings() {
   const monthStart = new Date().toISOString().slice(0, 8) + '01';
   const last30 = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
 
-  const [{ data: payouts }, { data: bookings, error: bookingsError }, { count: completedThisMonth }, { data: washCharges }] = await Promise.all([
+  const [{ data: payouts }, { data: bookings, error: bookingsError }, { data: washCharges }] = await Promise.all([
     admin.from('payouts').select('*').eq('operator_id', op.id).order('period_end', { ascending: false }),
     admin.from('bookings')
-      .select('id, scheduled_for, gross_cents, fee_cents, net_cents, status, building:buildings(name), resident:residents(profile:profiles(full_name))')
+      .select('id, scheduled_for, gross_cents, fee_cents, net_cents, status, paid_at, stripe_payment_intent_id, building:buildings(name), resident:residents(profile:profiles(full_name))')
       .eq('operator_id', op.id)
       .gte('scheduled_for', last30)
       .order('scheduled_for', { ascending: false })
       .limit(30),
-    admin.from('bookings').select('*', { count: 'exact', head: true }).eq('operator_id', op.id).gte('completed_at', monthStart),
     // Wash-day service charges (per-wash package billing) count as earnings
-    // alongside resident-booked one-offs.
+    // alongside resident-booked one-offs. Every status is fetched, not just
+    // succeeded: a wash whose charge failed still happened, and the operator
+    // needs to see that it didn't get paid rather than have it disappear.
     admin.from('charges')
-      .select('id, created_at, amount_cents, fee_cents, status, wash_day:wash_days(scheduled_for, building:buildings(name)), resident:residents(profile:profiles(full_name))')
+      .select('id, created_at, amount_cents, fee_cents, status, booking_id, wash_day:wash_days(scheduled_for, building:buildings(name)), resident:residents(profile:profiles(full_name))')
       .eq('operator_id', op.id)
-      .eq('status', 'succeeded')
       .gte('created_at', last30)
       .order('created_at', { ascending: false })
       .limit(60),
@@ -42,18 +42,32 @@ export default async function Earnings() {
     console.error('[operator/earnings] bookings query failed', { message: bookingsError.message });
   }
 
+  // A charge mirroring a prepaid booking is the same money — keep the ledger
+  // row and drop the booking so the wash isn't counted (or paid out) twice.
+  const chargedBookingIds = new Set(
+    (washCharges ?? []).map((c: any) => c.booking_id).filter(Boolean)
+  );
+
   // Normalize both revenue sources into the "recent washes" table shape.
+  // `paid` is what the money stats are built from — a row can be listed
+  // without having been paid, but it never counts toward earnings.
   const recent = [
-    ...(bookings ?? []).map((b: any) => ({
-      id: `b-${b.id}`,
-      date: b.scheduled_for,
-      building: b.building?.name,
-      resident: b.resident?.profile?.full_name,
-      gross: b.gross_cents ?? 0,
-      fee: b.fee_cents ?? 0,
-      net: b.net_cents ?? 0,
-      status: b.status,
-    })),
+    ...(bookings ?? [])
+      .filter((b: any) => !chargedBookingIds.has(b.id))
+      .map((b: any) => {
+        const paid = !!b.paid_at && (!!b.stripe_payment_intent_id || (b.gross_cents ?? 0) <= 0);
+        return {
+          id: `b-${b.id}`,
+          date: b.scheduled_for,
+          building: b.building?.name,
+          resident: b.resident?.profile?.full_name,
+          gross: b.gross_cents ?? 0,
+          fee: b.fee_cents ?? 0,
+          net: b.net_cents ?? 0,
+          status: paid ? b.status : b.status === 'confirmed' ? 'payment pending' : b.status,
+          paid,
+        };
+      }),
     ...(washCharges ?? []).map((c: any) => ({
       id: `c-${c.id}`,
       date: c.wash_day?.scheduled_for ?? c.created_at?.slice(0, 10),
@@ -62,15 +76,18 @@ export default async function Earnings() {
       gross: c.amount_cents ?? 0,
       fee: c.fee_cents ?? 0,
       net: (c.amount_cents ?? 0) - (c.fee_cents ?? 0),
-      status: 'paid',
+      status: c.status === 'succeeded' ? 'paid' : c.status,
+      paid: c.status === 'succeeded',
     })),
   ].sort((a, b) => (b.date ?? '').localeCompare(a.date ?? ''));
 
+  // Stats and table read the same rows, so the summary can't contradict what's
+  // listed below it. The 30-day window always covers the month to date.
+  const thisMonth = recent.filter((r) => (r.date ?? '') >= monthStart);
   const lifetimeNet = (payouts ?? []).reduce((s, p) => s + (p.net_cents ?? 0), 0);
   const pending = (payouts ?? []).filter((p) => p.status === 'pending').reduce((s, p) => s + (p.net_cents ?? 0), 0);
-  const monthGross = recent.reduce((s, r) => s + r.gross, 0);
-  const monthNet = recent.reduce((s, r) => s + r.net, 0);
-  const monthWashCount = (completedThisMonth ?? 0) + (washCharges ?? []).filter((c: any) => (c.created_at ?? '') >= monthStart).length;
+  const monthGross = thisMonth.filter((r) => r.paid).reduce((s, r) => s + r.gross, 0);
+  const monthWashCount = thisMonth.length;
 
   return (
     <>
@@ -104,8 +121,8 @@ export default async function Earnings() {
                 <td className="px-4 py-3 text-xs text-ink-400">{r.resident ?? '—'}</td>
                 <td className="px-4 py-3 text-right">{money(r.gross)}</td>
                 <td className="px-4 py-3 text-right text-ink-400">{money(r.fee)}</td>
-                <td className="px-4 py-3 text-right text-gleam">{money(r.net)}</td>
-                <td className="px-4 py-3"><span className="chip">{r.status}</span></td>
+                <td className={`px-4 py-3 text-right ${r.paid ? 'text-gleam' : 'text-ink-400'}`}>{money(r.net)}</td>
+                <td className="px-4 py-3"><span className={`chip ${r.paid ? '' : 'text-amber-600'}`}>{r.status}</span></td>
               </tr>
             ))}
             {!recent.length && (

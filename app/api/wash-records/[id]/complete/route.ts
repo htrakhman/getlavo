@@ -59,5 +59,11 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
     }
   }
 
-  return NextResponse.json({ success: true });
+  // Report the payment outcome alongside completion — the wash is done either
+  // way, but "done" and "paid" are separate facts and the caller shouldn't
+  // have to assume the second from the first.
+  return NextResponse.json({
+    success: true,
+    charge: charge.ok ? { status: 'succeeded' } : { status: 'failed', error: charge.error },
+  });
 }
