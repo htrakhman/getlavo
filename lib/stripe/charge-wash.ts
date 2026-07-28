@@ -49,6 +49,23 @@ export async function chargeWash(
     return { ok: true, paymentIntentId: existing.stripe_payment_intent_id, status: 'succeeded' };
   }
 
+  // A booking paid up front (the QR-funnel checkout) already covers this
+  // resident on this wash day — booking confirmation is what put them on the
+  // roster. Their payment record lives in bookings, so skip the package charge.
+  if (resident?.id && (wash as any).wash_day_id) {
+    const { data: paidBooking } = await admin
+      .from('bookings')
+      .select('id, stripe_payment_intent_id')
+      .eq('resident_id', resident.id)
+      .eq('wash_day_id', (wash as any).wash_day_id)
+      .in('status', ['confirmed', 'in_progress', 'completed'])
+      .limit(1)
+      .maybeSingle();
+    if (paidBooking) {
+      return { ok: true, paymentIntentId: paidBooking.stripe_payment_intent_id ?? '', status: 'succeeded' };
+    }
+  }
+
   async function recordCharge(fields: Record<string, unknown>) {
     if (!resident?.id || !grossCents) return; // nothing chargeable to record
     const { error } = await admin.from('charges').upsert(
