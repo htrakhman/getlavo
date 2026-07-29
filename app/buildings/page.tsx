@@ -3,7 +3,7 @@ import { MarketingNav } from '@/components/MarketingNav';
 import { RelatedLinks } from '@/components/marketing/RelatedLinks';
 import { EnterpriseLeadForm } from '@/components/EnterpriseLeadForm';
 import { JsonLd } from '@/components/seo/JsonLd';
-import { breadcrumbSchema, serviceSchema } from '@/lib/seo/schema';
+import { breadcrumbSchema, faqPageSchema, serviceSchema } from '@/lib/seo/schema';
 import { createPageMetadata } from '@/lib/seo/site';
 
 export const metadata = createPageMetadata({
@@ -15,6 +15,7 @@ export const metadata = createPageMetadata({
 
 const BUILDINGS_RELATED = [
   { href: '/how-it-works', label: 'How it works' },
+  { href: '/services', label: 'Wash services' },
   { href: '/safety', label: 'Safety' },
   { href: '/contact', label: 'Contact' },
   { href: '/residents', label: 'For residents' },
@@ -23,6 +24,31 @@ const BUILDINGS_RELATED = [
   { href: '/resources/car-wash-amenity-for-property-managers', label: 'Car wash amenity for property managers' },
   { href: '/resources/car-wash-amenity-insurance-damage', label: 'Insurance and damage handling' },
   { href: '/cities/new-jersey', label: 'New Jersey' },
+];
+
+const BUILDINGS_FAQ = [
+  {
+    question: 'Does Lavo cost the building anything?',
+    answer:
+      'No. Buildings pay nothing now and nothing ever. Lavo is funded entirely by a 15–20% transaction fee on resident bookings.',
+  },
+  {
+    question: 'Do I need to manage the car wash relationship?',
+    answer:
+      'No. You select a car wash once. If you ever want to switch, just request a new partner from the marketplace.',
+  },
+  {
+    question: 'What if residents have issues with a wash?',
+    answer: 'Residents contact the operator directly through the platform.',
+  },
+  {
+    question: 'How many buildings can I manage?',
+    answer: 'As many as you like. Each building gets its own dashboard, link, and QR code.',
+  },
+  {
+    question: 'Is there a minimum unit count?',
+    answer: 'No minimum. A building with 10 units and one with 300 get the same free service.',
+  },
 ];
 
 export default function BuildingsPage() {
@@ -42,6 +68,7 @@ export default function BuildingsPage() {
             { name: 'Home', path: '/' },
             { name: 'For properties', path: '/buildings' },
           ]),
+          faqPageSchema('/buildings', BUILDINGS_FAQ),
         ]}
       />
       <div className="absolute inset-x-0 top-0 h-[500px] bg-gleam-fade" />
@@ -142,20 +169,14 @@ export default function BuildingsPage() {
       {/* FAQ */}
       <section className="mx-auto max-w-3xl px-6 py-20">
         <h2 className="font-display text-4xl mb-10 text-center">Common questions</h2>
-        <div className="space-y-6">
-          {[
-            ['Does Lavo cost the building anything?', 'No. Buildings pay nothing now and nothing ever. Lavo is funded entirely by a 15–20% transaction fee on resident bookings.'],
-            ['Do I need to manage the car wash relationship?', 'No. You select a car wash once. If you ever want to switch, just request a new partner from the marketplace.'],
-            ['What if residents have issues with a wash?', 'Residents contact the operator directly through the platform.'],
-            ['How many buildings can I manage?', 'As many as you like. Each building gets its own dashboard, link, and QR code.'],
-            ['Is there a minimum unit count?', 'No minimum. A building with 10 units and one with 300 get the same free service.'],
-          ].map(([q, a]) => (
-            <div key={String(q)} className="card p-6">
-              <div className="font-medium">{q}</div>
-              <p className="mt-2 text-sm text-ink-300">{a}</p>
+        <dl className="space-y-6">
+          {BUILDINGS_FAQ.map((item) => (
+            <div key={item.question} className="card p-6">
+              <dt className="font-medium">{item.question}</dt>
+              <dd className="mt-2 text-sm text-ink-300">{item.answer}</dd>
             </div>
           ))}
-        </div>
+        </dl>
       </section>
 
       <section className="mx-auto max-w-3xl px-6 pb-8">

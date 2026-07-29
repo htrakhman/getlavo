@@ -14,6 +14,7 @@ export const metadata = createPageMetadata({
 
 const OPERATORS_RELATED = [
   { href: '/how-it-works', label: 'How it works' },
+  { href: '/services', label: 'Wash services' },
   { href: '/contact', label: 'Contact' },
   { href: '/residents', label: 'For residents' },
   { href: '/buildings', label: 'For properties' },
