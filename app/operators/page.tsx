@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { MarketingNav } from '@/components/MarketingNav';
 import { RelatedLinks } from '@/components/marketing/RelatedLinks';
 import { JsonLd } from '@/components/seo/JsonLd';
-import { breadcrumbSchema, serviceSchema } from '@/lib/seo/schema';
+import { breadcrumbSchema, faqPageSchema, serviceSchema } from '@/lib/seo/schema';
 import { createPageMetadata } from '@/lib/seo/site';
 
 export const metadata = createPageMetadata({
@@ -23,6 +23,49 @@ const OPERATORS_RELATED = [
   { href: '/cities/new-jersey', label: 'New Jersey' },
 ];
 
+const OPERATORS_FAQS = [
+  {
+    question: 'What does Lavo cost an operator?',
+    answer:
+      'Nothing up front. Lavo takes 10% of each booking and transfers the rest to your connected Stripe account automatically. There is no subscription and no lead fee.',
+  },
+  {
+    question: 'How do I get paid?',
+    answer:
+      'Residents pay in the app when they book. Every confirmed booking triggers an automatic payout to the bank account you connect through Stripe. Your earnings dashboard shows gross, Lavo fee, and net per period.',
+  },
+  {
+    question: 'Do I set my own prices?',
+    answer:
+      'Yes. You set your base wash price, your on-demand price, and any add-on packages such as interior detail, wax, or tire shine.',
+  },
+  {
+    question: 'What do I need to apply?',
+    answer:
+      'A licensed and insured mobile detailing or car wash operation, a service radius you can reliably cover, a smartphone for the crew tool, and a Stripe-compatible bank account for payouts.',
+  },
+  {
+    question: 'How do building partnerships start?',
+    answer:
+      'Approved operators appear in the marketplace for buildings inside their service radius. Buildings send you partnership requests, and you accept the ones you want. Each active partnership brings recurring demand at one address.',
+  },
+  {
+    question: 'Do I have to accept every building?',
+    answer:
+      'No. You review each partnership request and decline any building that does not fit your route, schedule, or capacity.',
+  },
+  {
+    question: 'What insurance do I need?',
+    answer:
+      'General liability and commercial auto coverage. You upload a certificate of insurance during onboarding, and Lavo tracks its expiration so partnered buildings always have current documentation on file.',
+  },
+  {
+    question: 'How long does approval take?',
+    answer:
+      'The application takes about five minutes. Once your insurance and Stripe onboarding are complete, Lavo reviews the application and lists you to nearby buildings.',
+  },
+];
+
 export default function OperatorsPage() {
   return (
     <main className="relative">
@@ -40,6 +83,7 @@ export default function OperatorsPage() {
             { name: 'Home', path: '/' },
             { name: 'For operators', path: '/operators' },
           ]),
+          faqPageSchema('/operators', OPERATORS_FAQS),
         ]}
       />
       <div className="absolute inset-x-0 top-0 h-[500px] bg-gleam-fade" />
@@ -156,6 +200,19 @@ export default function OperatorsPage() {
             </div>
           ))}
         </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="mx-auto max-w-3xl px-6 py-20">
+        <h2 className="font-display text-4xl mb-10 text-center">Common questions</h2>
+        <dl className="space-y-6">
+          {OPERATORS_FAQS.map((faq) => (
+            <div key={faq.question} className="card p-6">
+              <dt className="font-medium">{faq.question}</dt>
+              <dd className="mt-2 text-sm text-ink-300 leading-relaxed">{faq.answer}</dd>
+            </div>
+          ))}
+        </dl>
       </section>
 
       {/* CTA */}

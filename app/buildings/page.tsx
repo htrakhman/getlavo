@@ -49,6 +49,16 @@ const BUILDINGS_FAQ = [
     question: 'Is there a minimum unit count?',
     answer: 'No minimum. A building with 10 units and one with 300 get the same free service.',
   },
+  {
+    question: 'Are operators insured?',
+    answer:
+      'Yes. Every operator carries general liability and commercial auto insurance, with a certificate of insurance on file naming your building as additional insured.',
+  },
+  {
+    question: 'How long does it take to launch?',
+    answer:
+      'About five minutes to add the building and get your QR code. Residents can sign up the same day, and washes begin once you connect with a local operator.',
+  },
 ];
 
 export default function BuildingsPage() {

@@ -1,4 +1,10 @@
 import { supabaseAdmin } from '@/lib/supabase/admin';
+import {
+  PUBLIC_BUILDING_STATUSES,
+  PUBLIC_OPERATOR_STATUSES,
+  filterPublicEntities,
+  isPubliclyListable,
+} from '@/lib/seo/public-data';
 import type { NjMunicipality } from './nj-municipalities';
 
 export type CityBuildingRef = {
@@ -24,7 +30,13 @@ function canQuerySupabase(): boolean {
   );
 }
 
-/** Buildings and operators tied to a municipality name (server/build time). */
+/**
+ * Buildings and operators tied to a municipality name (server/build time).
+ *
+ * Every row is passed through the public-data guard before it leaves this
+ * function: QA fixtures share the production database and carry real statuses,
+ * so they would otherwise surface in city page copy and LocalBusiness JSON-LD.
+ */
 export async function fetchCityLiveData(muni: NjMunicipality): Promise<CityLiveData | null> {
   if (!canQuerySupabase()) return null;
 
@@ -32,20 +44,20 @@ export async function fetchCityLiveData(muni: NjMunicipality): Promise<CityLiveD
     const admin = supabaseAdmin();
     const { data: buildings } = await admin
       .from('buildings')
-      .select('id, name, slug, status, city')
+      .select('id, name, slug, status, city, is_seed')
       .ilike('city', muni.name)
-      .in('status', ['prospect', 'pilot', 'active'])
+      .in('status', [...PUBLIC_BUILDING_STATUSES])
       .order('name')
-      .limit(12);
+      .limit(24);
 
-    const buildingRows = buildings ?? [];
+    const buildingRows = filterPublicEntities(buildings ?? []).slice(0, 12);
     const buildingIds = buildingRows.map((b) => b.id);
 
     let operators: CityOperatorRef[] = [];
     if (buildingIds.length > 0) {
       const { data: partnerships } = await admin
         .from('partnerships')
-        .select('operator:operators(id, name, slug, status, live_ok)')
+        .select('operator:operators(id, name, slug, status, live_ok, is_seed)')
         .in('building_id', buildingIds)
         .eq('status', 'active');
 
@@ -58,6 +70,7 @@ export async function fetchCityLiveData(muni: NjMunicipality): Promise<CityLiveD
               slug: string;
               status?: string;
               live_ok?: boolean;
+              is_seed?: boolean;
             }
           | {
               id: string;
@@ -65,11 +78,16 @@ export async function fetchCityLiveData(muni: NjMunicipality): Promise<CityLiveD
               slug: string;
               status?: string;
               live_ok?: boolean;
+              is_seed?: boolean;
             }[]
           | null;
         const op = Array.isArray(raw) ? raw[0] : raw;
         if (!op?.slug || seen.has(op.id)) continue;
-        if (op.status === 'suspended' || op.status === 'rejected') continue;
+        // City copy calls these "approved operators", so anything still in
+        // review, suspended, or rejected stays off the page.
+        if (!PUBLIC_OPERATOR_STATUSES.includes(op.status as 'approved')) continue;
+        if (op.live_ok === false) continue;
+        if (!isPubliclyListable(op)) continue;
         seen.add(op.id);
         operators.push({ name: op.name, slug: op.slug });
       }
@@ -85,7 +103,10 @@ export async function fetchCityLiveData(muni: NjMunicipality): Promise<CityLiveD
         .in('slug', slugs)
         .eq('live_ok', true)
         .not('base_price_cents', 'is', null);
-      const prices = (priceRows ?? []).map((r) => r.base_price_cents as number);
+      // Placeholder prices (0 or a few cents) would render as "from $0".
+      const prices = (priceRows ?? [])
+        .map((r) => r.base_price_cents as number)
+        .filter((cents) => Number.isFinite(cents) && cents > 0);
       if (prices.length) {
         pricingRangeCents = { min: Math.min(...prices), max: Math.max(...prices) };
       }
