@@ -22,9 +22,9 @@ export default async function OperatorOverview({ searchParams }: { searchParams:
       .select('id, building:buildings(name, city)')
       .eq('operator_id', op.id)
       .eq('status', 'active'),
-    // A day the building declined is off the schedule: it must not reach the
-    // "Next wash day" card or the upcoming list, both of which offer the crew
-    // tool. /operator/wash-days already files declined days separately.
+    // Declined days are excluded in the query, not after it, so the limit still
+    // yields 5 real wash days. Matches /operator/wash-days, which files declined
+    // days under their own section rather than Upcoming.
     sb.from('wash_days')
       .select('id, scheduled_for, started_at, completed_at, building:buildings(name)')
       .eq('operator_id', op.id)
