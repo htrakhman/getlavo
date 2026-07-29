@@ -14,6 +14,7 @@ export const FOOTER_COLUMNS: FooterColumn[] = [
       { href: '/residents', label: 'Residents' },
       { href: '/buildings', label: 'Properties' },
       { href: '/operators', label: 'Operators' },
+      { href: '/services', label: 'Services' },
       { href: '/cities', label: 'Check your building' },
     ],
   },

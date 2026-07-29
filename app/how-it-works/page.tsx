@@ -4,7 +4,7 @@ import { ResidentFinalCta } from '@/components/marketing/how-it-works/ResidentFi
 import { RelatedLinks } from '@/components/marketing/RelatedLinks';
 import { VisibleFaq } from '@/components/marketing/VisibleFaq';
 import { JsonLd } from '@/components/seo/JsonLd';
-import { breadcrumbSchema } from '@/lib/seo/schema';
+import { breadcrumbSchema, faqPageSchema } from '@/lib/seo/schema';
 import { createPageMetadata } from '@/lib/seo/site';
 
 export const metadata = createPageMetadata({
@@ -15,6 +15,7 @@ export const metadata = createPageMetadata({
 });
 
 const HOW_IT_WORKS_RELATED = [
+  { href: '/services', label: 'Wash services' },
   { href: '/buildings', label: 'For properties' },
   { href: '/operators', label: 'For operators' },
   { href: '/residents', label: 'For residents' },
@@ -49,10 +50,13 @@ export default function HowItWorksPage() {
   return (
     <main className="relative">
       <JsonLd
-        data={breadcrumbSchema([
-          { name: 'Home', path: '/' },
-          { name: 'How it works', path: '/how-it-works' },
-        ])}
+        data={[
+          breadcrumbSchema([
+            { name: 'Home', path: '/' },
+            { name: 'How it works', path: '/how-it-works' },
+          ]),
+          faqPageSchema('/how-it-works', FAQ),
+        ]}
       />
       <div className="absolute inset-x-0 top-0 h-[500px] bg-gleam-fade" />
       <MarketingNav />

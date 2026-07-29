@@ -15,40 +15,6 @@ export const metadata = createPageMetadata({
     'Lavo connects apartment residents, property managers, and vetted mobile car wash operators so residents can book car washes without leaving home.',
 });
 
-// `answer` is the plain-text version that goes into FAQPage JSON-LD; `body`
-// renders the same answer with inline links. Keep the two in sync.
-const HOME_FAQS: { question: string; answer: string; body?: React.ReactNode }[] = [
-  {
-    question: 'Do I need to be home?',
-    answer:
-      'Usually not. You tell us how to access your garage or spot. Many residents leave keys with concierge or use building protocols your operator already knows.',
-  },
-  {
-    question: 'How do I know the wash happened?',
-    answer:
-      'Operators upload before-and-after photos to your booking. You get a notification when the wash is marked complete.',
-  },
-  {
-    question: 'What if my building is not listed yet?',
-    answer:
-      'Check at the top of this page under Get started and sign up. We track demand by address and notify you when an operator activates your building.',
-    body: (
-      <>
-        Check at the top of this page under{' '}
-        <a href="#get-started" className="font-medium text-gleam hover:text-gleam-300">
-          Get started
-        </a>{' '}
-        and sign up. We track demand by address and notify you when an operator activates your building.
-      </>
-    ),
-  },
-  {
-    question: 'Can I cancel?',
-    answer:
-      'Yes — cancel from your resident portal up to 24 hours before your scheduled slot, per our terms.',
-  },
-];
-
 const AUDIENCES = [
   {
     id: 'residents',
@@ -97,6 +63,41 @@ const AUDIENCES = [
   },
 ] as const;
 
+// `answer` is the plain-text version used for FAQPage schema; `node` renders the
+// same answer with inline links where the visible copy has them.
+const HOME_FAQ: { question: string; answer: string; node?: React.ReactNode }[] = [
+  {
+    question: 'Do I need to be home?',
+    answer:
+      'Usually not. You tell us how to access your garage or spot. Many residents leave keys with concierge or use building protocols your operator already knows.',
+  },
+  {
+    question: 'How do I know the wash happened?',
+    answer:
+      'Operators upload before-and-after photos to your booking. You get a notification when the wash is marked complete.',
+  },
+  {
+    question: 'What if my building is not listed yet?',
+    answer:
+      'Check at the top of this page under Get started and sign up. We track demand by address and notify you when an operator activates your building.',
+    node: (
+      <>
+        Check at the top of this page under{' '}
+        <a href="#get-started" className="font-medium text-gleam hover:text-gleam-300">
+          Get started
+        </a>{' '}
+        and sign up. We track demand by address and notify you when an operator activates your
+        building.
+      </>
+    ),
+  },
+  {
+    question: 'Can I cancel?',
+    answer:
+      'Yes — cancel from your resident portal up to 24 hours before your scheduled slot, per our terms.',
+  },
+];
+
 export default async function Home({
   searchParams,
 }: {
@@ -133,7 +134,7 @@ export default async function Home({
   }
   return (
     <main className="relative">
-      <JsonLd data={[organizationSchema(), websiteSchema(), faqPageSchema('/', HOME_FAQS)]} />
+      <JsonLd data={[organizationSchema(), websiteSchema(), faqPageSchema('/', HOME_FAQ)]} />
       <div className="absolute inset-x-0 top-0 h-[600px] bg-gleam-fade" />
       <MarketingNav />
 
@@ -259,10 +260,10 @@ export default async function Home({
           <h2 className="mt-3 font-display text-4xl font-bold tracking-tight md:text-5xl">FAQ</h2>
         </div>
         <dl className="space-y-4 text-sm text-ink-300">
-          {HOME_FAQS.map((faq) => (
-            <div key={faq.question} className="card p-6">
-              <dt className="font-display text-base font-semibold text-ink-100">{faq.question}</dt>
-              <dd className="mt-2 leading-relaxed">{faq.body ?? faq.answer}</dd>
+          {HOME_FAQ.map((item) => (
+            <div key={item.question} className="card p-6">
+              <dt className="font-display text-base font-semibold text-ink-100">{item.question}</dt>
+              <dd className="mt-2 leading-relaxed">{item.node ?? item.answer}</dd>
             </div>
           ))}
         </dl>

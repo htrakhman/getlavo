@@ -15,6 +15,7 @@ export const metadata = createPageMetadata({
 
 const BUILDINGS_RELATED = [
   { href: '/how-it-works', label: 'How it works' },
+  { href: '/services', label: 'Wash services' },
   { href: '/safety', label: 'Safety' },
   { href: '/contact', label: 'Contact' },
   { href: '/residents', label: 'For residents' },
@@ -25,7 +26,7 @@ const BUILDINGS_RELATED = [
   { href: '/cities/new-jersey', label: 'New Jersey' },
 ];
 
-const BUILDINGS_FAQS = [
+const BUILDINGS_FAQ = [
   {
     question: 'Does Lavo cost the building anything?',
     answer:
@@ -46,8 +47,7 @@ const BUILDINGS_FAQS = [
   },
   {
     question: 'Is there a minimum unit count?',
-    answer:
-      'No minimum. A building with 10 units and one with 300 get the same free service.',
+    answer: 'No minimum. A building with 10 units and one with 300 get the same free service.',
   },
   {
     question: 'Are operators insured?',
@@ -78,7 +78,7 @@ export default function BuildingsPage() {
             { name: 'Home', path: '/' },
             { name: 'For properties', path: '/buildings' },
           ]),
-          faqPageSchema('/buildings', BUILDINGS_FAQS),
+          faqPageSchema('/buildings', BUILDINGS_FAQ),
         ]}
       />
       <div className="absolute inset-x-0 top-0 h-[500px] bg-gleam-fade" />
@@ -180,10 +180,10 @@ export default function BuildingsPage() {
       <section className="mx-auto max-w-3xl px-6 py-20">
         <h2 className="font-display text-4xl mb-10 text-center">Common questions</h2>
         <dl className="space-y-6">
-          {BUILDINGS_FAQS.map((faq) => (
-            <div key={faq.question} className="card p-6">
-              <dt className="font-medium">{faq.question}</dt>
-              <dd className="mt-2 text-sm text-ink-300">{faq.answer}</dd>
+          {BUILDINGS_FAQ.map((item) => (
+            <div key={item.question} className="card p-6">
+              <dt className="font-medium">{item.question}</dt>
+              <dd className="mt-2 text-sm text-ink-300">{item.answer}</dd>
             </div>
           ))}
         </dl>

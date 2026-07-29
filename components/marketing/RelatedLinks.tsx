@@ -38,6 +38,7 @@ function groupRelatedLinks(links: RelatedLink[]): RelatedLinkGroup[] {
       href === '/buildings' ||
       href === '/operators' ||
       href === '/residents' ||
+      href === '/services' ||
       href === '/how-it-works'
     ) {
       platform.push(link);
