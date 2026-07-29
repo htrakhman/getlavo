@@ -245,7 +245,8 @@ export default function HowItWorksPage() {
                 </p>
               </div>
               <p className="text-xs leading-relaxed text-ink-400">
-                Background check required. Stripe Connect onboarding takes under 10 minutes.
+                Application review and a current certificate of insurance are required. Stripe Connect
+                onboarding takes under 10 minutes.
               </p>
             </div>
           </div>

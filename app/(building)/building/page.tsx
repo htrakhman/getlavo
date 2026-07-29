@@ -39,10 +39,14 @@ export default async function BuildingDashboard() {
       .eq('building_id', building.id)
       .in('status', ['confirmed', 'completed', 'in_progress'])
       .gte('scheduled_for', thisMonthStart),
+    // Same rule as the operator overview: a day this manager declined is not
+    // upcoming, and listing it under a "scheduled" chip contradicts the
+    // decline they just made on /building/wash-days.
     sb.from('wash_days')
       .select('id, scheduled_for, operator:operators(name)')
       .eq('building_id', building.id)
       .gte('scheduled_for', today)
+      .neq('confirmation', 'declined')
       .order('scheduled_for')
       .limit(5),
     sb.from('residents')

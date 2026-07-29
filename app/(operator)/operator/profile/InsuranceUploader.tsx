@@ -3,6 +3,14 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabaseBrowser } from '@/lib/supabase/client';
 
+/**
+ * The rejection banner supplies its own sentence-ending period, so an admin
+ * note that already ends in one reads "…tomorrow.. Upload a new certificate."
+ */
+function unpunctuated(note: string | null | undefined): string {
+  return (note ?? '').trim().replace(/[.!?]+$/, '').trim();
+}
+
 export function InsuranceUploader({ op, docViewUrl }: { op: any; docViewUrl?: string | null }) {
   const router = useRouter();
   const [carrier, setCarrier] = useState(op.insurance_carrier ?? '');
@@ -72,7 +80,7 @@ export function InsuranceUploader({ op, docViewUrl }: { op: any; docViewUrl?: st
     <div>
       {op.insurance_review_status === 'rejected' && (
         <div className="card border-red-500/30 bg-red-500/5 mb-3 p-3 text-xs text-red-500">
-          Rejected: {op.insurance_review_note ?? 'see admin notes'}. Upload a new certificate.
+          Rejected: {unpunctuated(op.insurance_review_note) || 'see admin notes'}. Upload a new certificate.
         </div>
       )}
       {op.insurance_review_status === 'expired' && (
