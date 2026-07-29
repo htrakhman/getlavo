@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { plateLabel } from '@/lib/format';
 
 const COLORS = ['White', 'Black', 'Silver', 'Gray', 'Red', 'Blue', 'Green', 'Other'];
@@ -94,6 +95,16 @@ export function VehiclesList({ residentId, vehicles }: { residentId: string; veh
 
       {vehicles.length === 0 && !adding && (
         <p className="text-sm text-ink-400">No vehicle on file.</p>
+      )}
+
+      {/* The building wash day rosters one car per resident — the primary one
+          (lib/wash-roster). Without saying so, a second car looks enrolled and
+          silently never gets washed. */}
+      {vehicles.length > 1 && (
+        <p className="mb-4 rounded-lg border border-white/5 bg-white/[0.02] p-3 text-xs leading-relaxed text-ink-300">
+          Your building's wash day covers your <span className="text-ink-100">primary</span> vehicle only.
+          To get another car washed, <Link href="/resident/book" className="text-gleam">book it separately →</Link>
+        </p>
       )}
 
       {err && <p className="mb-3 text-sm text-red-400">{err}</p>}
