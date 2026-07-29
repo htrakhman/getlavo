@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { MarketingNav } from '@/components/MarketingNav';
 import { FourStepGrid } from '@/components/marketing/how-it-works/FourStepGrid';
 import { JsonLd } from '@/components/seo/JsonLd';
-import { organizationSchema, websiteSchema } from '@/lib/seo/schema';
+import { faqPageSchema, organizationSchema, websiteSchema } from '@/lib/seo/schema';
 import { createPageMetadata } from '@/lib/seo/site';
 import { getSessionUser } from '@/lib/supabase/server';
 import { pickLandingPortal } from '@/lib/portal-routing';
@@ -14,6 +14,40 @@ export const metadata = createPageMetadata({
   description:
     'Lavo connects apartment residents, property managers, and vetted mobile car wash operators so residents can book car washes without leaving home.',
 });
+
+// `answer` is the plain-text version that goes into FAQPage JSON-LD; `body`
+// renders the same answer with inline links. Keep the two in sync.
+const HOME_FAQS: { question: string; answer: string; body?: React.ReactNode }[] = [
+  {
+    question: 'Do I need to be home?',
+    answer:
+      'Usually not. You tell us how to access your garage or spot. Many residents leave keys with concierge or use building protocols your operator already knows.',
+  },
+  {
+    question: 'How do I know the wash happened?',
+    answer:
+      'Operators upload before-and-after photos to your booking. You get a notification when the wash is marked complete.',
+  },
+  {
+    question: 'What if my building is not listed yet?',
+    answer:
+      'Check at the top of this page under Get started and sign up. We track demand by address and notify you when an operator activates your building.',
+    body: (
+      <>
+        Check at the top of this page under{' '}
+        <a href="#get-started" className="font-medium text-gleam hover:text-gleam-300">
+          Get started
+        </a>{' '}
+        and sign up. We track demand by address and notify you when an operator activates your building.
+      </>
+    ),
+  },
+  {
+    question: 'Can I cancel?',
+    answer:
+      'Yes — cancel from your resident portal up to 24 hours before your scheduled slot, per our terms.',
+  },
+];
 
 const AUDIENCES = [
   {
@@ -99,7 +133,7 @@ export default async function Home({
   }
   return (
     <main className="relative">
-      <JsonLd data={[organizationSchema(), websiteSchema()]} />
+      <JsonLd data={[organizationSchema(), websiteSchema(), faqPageSchema('/', HOME_FAQS)]} />
       <div className="absolute inset-x-0 top-0 h-[600px] bg-gleam-fade" />
       <MarketingNav />
 
@@ -225,34 +259,12 @@ export default async function Home({
           <h2 className="mt-3 font-display text-4xl font-bold tracking-tight md:text-5xl">FAQ</h2>
         </div>
         <dl className="space-y-4 text-sm text-ink-300">
-          <div className="card p-6">
-            <dt className="font-display text-base font-semibold text-ink-100">Do I need to be home?</dt>
-            <dd className="mt-2 leading-relaxed">
-              Usually not. You tell us how to access your garage or spot. Many residents leave keys with concierge or use building protocols your operator already knows.
-            </dd>
-          </div>
-          <div className="card p-6">
-            <dt className="font-display text-base font-semibold text-ink-100">How do I know the wash happened?</dt>
-            <dd className="mt-2 leading-relaxed">
-              Operators upload before-and-after photos to your booking. You get a notification when the wash is marked complete.
-            </dd>
-          </div>
-          <div className="card p-6">
-            <dt className="font-display text-base font-semibold text-ink-100">What if my building is not listed yet?</dt>
-            <dd className="mt-2 leading-relaxed">
-              Check at the top of this page under{' '}
-              <a href="#get-started" className="font-medium text-gleam hover:text-gleam-300">
-                Get started
-              </a>{' '}
-              and sign up. We track demand by address and notify you when an operator activates your building.
-            </dd>
-          </div>
-          <div className="card p-6">
-            <dt className="font-display text-base font-semibold text-ink-100">Can I cancel?</dt>
-            <dd className="mt-2 leading-relaxed">
-              Yes — cancel from your resident portal up to 24 hours before your scheduled slot, per our terms.
-            </dd>
-          </div>
+          {HOME_FAQS.map((faq) => (
+            <div key={faq.question} className="card p-6">
+              <dt className="font-display text-base font-semibold text-ink-100">{faq.question}</dt>
+              <dd className="mt-2 leading-relaxed">{faq.body ?? faq.answer}</dd>
+            </div>
+          ))}
         </dl>
       </section>
     </main>

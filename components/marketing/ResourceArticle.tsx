@@ -6,7 +6,7 @@ import { buildResourceRelatedContent } from '@/lib/seo/internal-links';
 import { SeoPageHeader } from '@/components/marketing/SeoPageHeader';
 import { SeoSection } from '@/components/marketing/SeoSection';
 import { VisibleFaq } from '@/components/marketing/VisibleFaq';
-import { articleSchema, breadcrumbSchema } from '@/lib/seo/schema';
+import { articleSchema, breadcrumbSchema, faqPageSchema } from '@/lib/seo/schema';
 import type { ResourcePage } from '@/lib/seo/resources';
 
 export function ResourceArticle({ resource }: { resource: ResourcePage }) {
@@ -18,6 +18,16 @@ export function ResourceArticle({ resource }: { resource: ResourcePage }) {
   ];
   const relatedContent = buildResourceRelatedContent(resource);
 
+  // Articles whose headline is itself a direct question ("Do You Need to Be
+  // Home for a Mobile Car Wash?") lead their FAQ entity list with that
+  // question, answered by the opening paragraph. FAQPage rather than QAPage:
+  // QAPage describes user-submitted questions with community answers, while
+  // every question and answer here is authored by Lavo.
+  const headlineIsQuestion = resource.h1.trim().endsWith('?');
+  const faqs = headlineIsQuestion
+    ? [{ question: resource.h1.trim(), answer: resource.opening }, ...resource.faqs]
+    : resource.faqs;
+
   return (
     <>
       <JsonLd
@@ -28,6 +38,7 @@ export function ResourceArticle({ resource }: { resource: ResourcePage }) {
             description: resource.description,
           }),
           breadcrumbSchema(breadcrumbs),
+          ...(faqs.length ? [faqPageSchema(path, faqs)] : []),
         ]}
       />
       <Breadcrumbs items={breadcrumbs} />
