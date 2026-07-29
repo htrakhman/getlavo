@@ -37,6 +37,11 @@ type AreaServedInput =
       county?: string;
     };
 
+type OfferCatalogInput = {
+  name: string;
+  items: string[];
+};
+
 type ServiceSchemaInput = {
   path: string;
   name: string;
@@ -46,6 +51,12 @@ type ServiceSchemaInput = {
   areaServed?: AreaServedInput;
   price?: number;
   priceCurrency?: string;
+  /**
+   * Category-level menu of what the service covers. Offers are intentionally
+   * price-free — rates are operator-set per building and live only in the
+   * booking flow.
+   */
+  offerCatalog?: OfferCatalogInput;
 };
 
 function normalizeAreaServed(areaServed: AreaServedInput) {
@@ -76,6 +87,7 @@ export function serviceSchema({
   areaServed = 'United States',
   price,
   priceCurrency = 'USD',
+  offerCatalog,
 }: ServiceSchemaInput) {
   const schema: Record<string, unknown> = {
     '@context': 'https://schema.org',
@@ -99,6 +111,20 @@ export function serviceSchema({
       '@type': 'Offer',
       price,
       priceCurrency,
+    };
+  }
+
+  if (offerCatalog) {
+    schema.hasOfferCatalog = {
+      '@type': 'OfferCatalog',
+      name: offerCatalog.name,
+      itemListElement: offerCatalog.items.map((item) => ({
+        '@type': 'Offer',
+        itemOffered: {
+          '@type': 'Service',
+          name: item,
+        },
+      })),
     };
   }
 
