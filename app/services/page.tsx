@@ -1,7 +1,7 @@
 import Link from 'next/link';
+import type { ReactNode } from 'react';
 import { MarketingNav } from '@/components/MarketingNav';
 import { RelatedLinks } from '@/components/marketing/RelatedLinks';
-import { VisibleFaq } from '@/components/marketing/VisibleFaq';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { breadcrumbSchema, faqPageSchema, serviceSchema } from '@/lib/seo/schema';
 import { createPageMetadata } from '@/lib/seo/site';
@@ -20,22 +20,76 @@ const SERVICES_RELATED = [
   { href: '/how-it-works', label: 'How it works' },
 ];
 
-const SERVICES = [
+/* ─── Service icons ──────────────────────────────────────────────────────── */
+
+const DropletIcon = (
+  <svg viewBox="0 0 32 32" className="h-6 w-6" fill="none" aria-hidden>
+    <path
+      d="M16 4.5c4.5 5.6 8 9.8 8 13.4a8 8 0 0 1-16 0c0-3.6 3.5-7.8 8-13.4z"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinejoin="round"
+    />
+    <path d="M12 18.5a4 4 0 0 0 3.2 3.9" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" />
+  </svg>
+);
+
+const ShieldIcon = (
+  <svg viewBox="0 0 32 32" className="h-6 w-6" fill="none" aria-hidden>
+    <path
+      d="M16 4l9.5 3.8V15c0 5.9-3.8 10.1-9.5 12.8C10.3 25.1 6.5 20.9 6.5 15V7.8L16 4z"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinejoin="round"
+    />
+    <path d="M11.8 15.6l3 3 5.4-5.8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+const VacuumIcon = (
+  <svg viewBox="0 0 32 32" className="h-6 w-6" fill="none" aria-hidden>
+    <rect x="14" y="6.5" width="14" height="13.5" rx="3.5" stroke="currentColor" strokeWidth="1.5" />
+    <circle cx="18.5" cy="24" r="3.2" stroke="currentColor" strokeWidth="1.5" />
+    <circle cx="25.5" cy="24" r="3.2" stroke="currentColor" strokeWidth="1.5" />
+    <path d="M14 11.5c-4.4 0-6.9 2.6-6.9 6.6v2.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    <path d="M3.5 27l1-6.4h5.2L9 27H3.5z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+  </svg>
+);
+
+const WheelIcon = (
+  <svg viewBox="0 0 32 32" className="h-6 w-6" fill="none" aria-hidden>
+    <circle cx="16" cy="16" r="11.5" stroke="currentColor" strokeWidth="1.5" />
+    <circle cx="16" cy="16" r="7.5" stroke="currentColor" strokeWidth="1.5" />
+    <circle cx="16" cy="16" r="2.25" stroke="currentColor" strokeWidth="1.5" />
+    <path
+      d="M16 8.5v2.9M16 20.6v2.9M8.5 16h2.9M20.6 16h2.9"
+      stroke="currentColor"
+      strokeWidth="1.25"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
+const SERVICES: { name: string; body: string; icon: ReactNode }[] = [
   {
     name: 'Exterior wash',
     body: 'The base of every Lavo booking. A full exterior wash at your building, either on a scheduled wash day (usually cheaper) or an on demand open slot whenever your operator has capacity.',
+    icon: DropletIcon,
   },
   {
     name: 'Wax and ceramic protection',
     body: 'A protective layer added on top of the exterior wash. Helps your car shed rain, resist road salt and grime, and hold a shine longer between washes.',
+    icon: ShieldIcon,
   },
   {
     name: 'Interior detail',
     body: 'Vacuuming, wipe down, and a deeper clean of the cabin. Good for residents who want more than an exterior refresh without booking a separate detailer.',
+    icon: VacuumIcon,
   },
   {
     name: 'Tire shine',
     body: 'A finishing touch applied to your tires for a clean, uniform look. Usually added on top of a base wash rather than booked on its own.',
+    icon: WheelIcon,
   },
 ];
 
@@ -117,34 +171,80 @@ export default function ServicesPage() {
       <section className="mx-auto max-w-5xl px-6 py-20">
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           {SERVICES.map((service) => (
-            <div key={service.name} className="card p-6">
-              <h2 className="font-display text-xl mb-2">{service.name}</h2>
-              <p className="text-sm text-ink-300 leading-relaxed">{service.body}</p>
-            </div>
+            <article
+              key={service.name}
+              className="card group flex flex-col gap-4 p-6 ring-1 ring-inset ring-white/[0.04] transition-colors duration-300 hover:border-gleam/25 sm:flex-row sm:p-7"
+            >
+              <span
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-gleam/25 bg-gleam/10 text-gleam transition-transform duration-300 group-hover:scale-105"
+                aria-hidden
+              >
+                {service.icon}
+              </span>
+              <div className="min-w-0">
+                <h2 className="font-display text-xl font-semibold leading-snug text-ink-100">
+                  {service.name}
+                </h2>
+                <p className="mt-2 text-sm leading-relaxed text-ink-300">{service.body}</p>
+              </div>
+            </article>
           ))}
         </div>
       </section>
 
       {/* Pricing */}
-      <section className="mx-auto max-w-3xl px-6 py-20">
+      <section className="mx-auto max-w-5xl px-6 py-20">
         <h2 className="font-display text-4xl mb-8 text-center">How pricing works</h2>
-        <div className="card p-8 space-y-5">
-          <p className="text-sm leading-relaxed text-ink-200">
-            Every operator on Lavo sets their own rates and menu. Wash day slots are typically
-            priced lower than on demand bookings, and add-ons like wax or an interior detail cost
-            more than a basic wash alone. You always see the exact price for your building&apos;s
-            operator before you confirm, the same way you do for the base wash.
-          </p>
-          <p className="border-t border-white/10 pt-5 text-sm leading-relaxed text-ink-300">
-            Not every operator offers every add-on. If a service is not available at your building
-            yet, you&apos;ll see that before you book, not after.
-          </p>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <div className="flex flex-col rounded-2xl border border-white/15 bg-ink-900/85 p-8 shadow-card backdrop-blur-xl ring-1 ring-inset ring-white/[0.06]">
+            <div className="text-xs font-medium uppercase tracking-[0.18em] text-gleam">
+              Rates and menu
+            </div>
+            <p className="mt-3 text-sm leading-relaxed text-ink-200">
+              Every operator on Lavo sets their own rates and menu. Wash day slots are typically
+              priced lower than on demand bookings, and add-ons like wax or an interior detail cost
+              more than a basic wash alone.
+            </p>
+          </div>
+          <div className="flex flex-col rounded-2xl border border-white/15 bg-ink-900/85 p-8 shadow-card backdrop-blur-xl ring-1 ring-inset ring-white/[0.06]">
+            <div className="text-xs font-medium uppercase tracking-[0.18em] text-gleam">
+              Shown up front
+            </div>
+            <p className="mt-3 text-sm leading-relaxed text-ink-200">
+              You always see the exact price for your building&apos;s operator before you confirm,
+              the same way you do for the base wash.
+            </p>
+          </div>
         </div>
+        <p className="mt-6 rounded-2xl border border-white/[0.08] bg-gradient-to-b from-white/[0.03] to-transparent px-6 py-5 text-center text-sm leading-relaxed text-ink-400 ring-1 ring-inset ring-white/[0.04]">
+          Not every operator offers every add-on. If a service is not available at your building
+          yet, you&apos;ll see that before you book, not after.
+        </p>
       </section>
 
       {/* FAQ */}
       <section className="mx-auto max-w-3xl px-6 py-20">
-        <VisibleFaq title="Frequently asked questions" items={[...SERVICES_FAQ]} />
+        <h2 className="font-display text-4xl mb-8 text-center">Frequently asked questions</h2>
+        <dl className="space-y-4">
+          {SERVICES_FAQ.map((item) => (
+            <div key={item.question} className="card p-6 ring-1 ring-inset ring-white/[0.04]">
+              <dt className="flex items-start gap-3">
+                <span
+                  className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-gleam/25 bg-gleam/10 font-display text-[11px] font-semibold text-gleam"
+                  aria-hidden
+                >
+                  Q
+                </span>
+                <span className="font-display text-base font-semibold leading-snug text-ink-100">
+                  {item.question}
+                </span>
+              </dt>
+              <dd className="mt-4 border-t border-white/10 pt-4 text-sm leading-relaxed text-ink-300 sm:pl-9">
+                {item.answer}
+              </dd>
+            </div>
+          ))}
+        </dl>
       </section>
 
       <section className="mx-auto max-w-3xl px-6 pb-8">
