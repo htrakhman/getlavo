@@ -2,6 +2,7 @@ import { getSessionUser } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
+import { calculateFee } from '@/lib/fee';
 
 /**
  * "Add to next wash only" — a one-off add-on bought outside a booking.
@@ -96,7 +97,17 @@ export async function POST(req: NextRequest) {
         },
       ],
       payment_intent_data: operator?.stripe_account_id
-        ? { transfer_data: { destination: operator.stripe_account_id }, metadata: { addon_order_id: order.id } }
+        ? {
+            // Same 10% split as a booking or a wash charge: the operator is
+            // transferred the net, the platform keeps the fee. Without the
+            // amount here Stripe forwards the whole add-on price and the
+            // platform take on one-off add-ons was silently zero.
+            transfer_data: {
+              destination: operator.stripe_account_id,
+              amount: calculateFee(addon.price_cents).net,
+            },
+            metadata: { addon_order_id: order.id },
+          }
         : { metadata: { addon_order_id: order.id } },
       success_url: `${url.origin}/resident?addon=success`,
       cancel_url: `${url.origin}/resident/addons`,
