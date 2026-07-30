@@ -2,10 +2,13 @@
 import { Suspense } from 'react';
 import { Logo } from '@/components/Logo';
 import { supabaseBrowser } from '@/lib/supabase/client';
-import { pickLandingPortal, signupHrefFromPortalPrefer, signupRoleFromPortalPrefer } from '@/lib/portal-routing';
+import { landingPathForPortals, signupHrefFromPortalPrefer, signupRoleFromPortalPrefer } from '@/lib/portal-routing';
 import type { ReadonlyURLSearchParams } from 'next/navigation';
 import { safeInternalPath } from '@/lib/safe-redirect';
 import { isAdminEmail } from '@/lib/auth/admin-emails';
+import { hasExpiredSessionMarker } from '@/lib/auth/landing';
+import { useSignedInRedirect } from '@/lib/auth/use-signed-in-redirect';
+import { AuthRedirectNotice } from '@/components/AuthRedirectNotice';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
@@ -41,9 +44,16 @@ function LoginForm() {
   }, [params]);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [err, setErr] = useState<string | null>(params.get('error') ? 'Sign-in failed — please try again.' : null);
+  const [err, setErr] = useState<string | null>(() => {
+    if (params.get('error')) return 'Sign-in failed — please try again.';
+    if (hasExpiredSessionMarker(`?${params.toString()}`)) return 'Your session expired — please log in again.';
+    return null;
+  });
   const [busy, setBusy] = useState(false);
   const contextLabel = loginContextLabel(params);
+  // Same bfcache trap as /signup: a back-navigation must not offer to log in
+  // someone who is already logged in.
+  const redirectingSignedIn = useSignedInRedirect(params.get('redirect') ?? params.get('next'));
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -79,13 +89,7 @@ function LoginForm() {
     }
     const portals = (portalRows ?? []).map((r: { portal: string }) => r.portal);
     const prefer = signupRoleFromPortalPrefer(params.get('prefer'));
-    const landing = pickLandingPortal(portals, prefer ?? p?.role ?? undefined);
-    const dest = landing === 'building' ? '/building'
-               : landing === 'operator' ? '/operator'
-               : landing === 'resident' ? '/resident'
-               : p?.role === 'admin' ? '/admin'
-               : '/auth/pick-role';
-    window.location.href = dest;
+    window.location.href = landingPathForPortals(portals, prefer ?? p?.role ?? null);
   }
 
   async function signInWithGoogle() {
@@ -97,6 +101,10 @@ function LoginForm() {
       provider: 'google',
       options: { redirectTo: callback.toString() },
     });
+  }
+
+  if (redirectingSignedIn) {
+    return <AuthRedirectNotice message="You are already signed in — taking you back to your account…" />;
   }
 
   return (

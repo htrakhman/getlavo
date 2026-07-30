@@ -71,3 +71,17 @@ export function pickLandingPortal(
   if (preferred) return preferred;
   return null;
 }
+
+/**
+ * Where an authenticated user belongs when no explicit destination was requested:
+ * their portal home (which itself forwards to onboarding when setup is incomplete),
+ * the admin console, or pick-role when we cannot tell yet.
+ */
+export function landingPathForPortals(
+  portals: readonly string[],
+  role: string | null | undefined
+): string {
+  const landing = pickLandingPortal(portals, role);
+  if (landing) return homePathForPortalKind(landing);
+  return role === 'admin' ? '/admin' : '/auth/pick-role';
+}

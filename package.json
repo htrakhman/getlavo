@@ -11,6 +11,7 @@
     "validate:reset-url": "tsx scripts/reset-url-test.ts",
     "validate:governing-law": "tsx scripts/governing-law-test.ts",
     "validate:public-data": "tsx --tsconfig tsconfig.scripts.json scripts/public-data-filter-test.ts",
+    "validate:signed-in-redirect": "tsx --tsconfig tsconfig.scripts.json scripts/signed-in-redirect-test.ts",
     "db:push": "supabase db push"
   },
   "dependencies": {
