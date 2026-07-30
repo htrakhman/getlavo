@@ -7,6 +7,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { Turnstile } from '@/components/Turnstile';
 import { homePathForSignupRole, normalizeSignupRole, type SignupRole } from '@/lib/portal-routing';
 import { safeInternalPath } from '@/lib/safe-redirect';
+import { useSignedInRedirect } from '@/lib/auth/use-signed-in-redirect';
+import { AuthRedirectNotice } from '@/components/AuthRedirectNotice';
 
 const ROLES = [
   {
@@ -40,6 +42,9 @@ function SignupForm() {
   const [info, setInfo] = useState<string | null>(null);
   const [inviteToken, setInviteToken] = useState<string | null>(null);
   const [captcha, setCaptcha] = useState<string | null>(null);
+  // A back-navigation can restore this page from the bfcache after the visitor
+  // already signed up; showing them the empty form again reads as lost progress.
+  const redirectingSignedIn = useSignedInRedirect(params.get('redirect'));
 
   const inviteLocked = Boolean(inviteToken);
 
@@ -238,6 +243,10 @@ function SignupForm() {
   }
 
   const roleLabel = role ? ROLES.find((r) => r.id === role)?.label : null;
+
+  if (redirectingSignedIn) {
+    return <AuthRedirectNotice message="You are already signed in — taking you back to your account…" />;
+  }
 
   return (
     <main className="relative mx-auto flex min-h-screen max-w-md flex-col px-6 py-10">
