@@ -3,6 +3,7 @@ import { money, plateLabel } from '@/lib/format';
 import { parseSizePrices } from '@/lib/vehicle-sizes';
 import { SizePriceList } from '@/components/SizePriceList';
 import { BookingCalendar, longLabel } from '@/components/BookingCalendar';
+import { ReadonlyField, EditableField } from '@/components/ResidentField';
 import type { AvailabilityDay } from '@/components/DayTimePicker';
 import { captureEvent } from '@/lib/analytics';
 import { useState, useEffect, useMemo } from 'react';
@@ -177,14 +178,11 @@ export function BookingForm({
   const [recurring, setRecurring] = useState<'none' | 'weekly' | 'biweekly' | 'monthly'>('none');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  const [promoCode, setPromoCode] = useState('');
   // Anything the resident already asked for on every wash starts ticked.
   const [addonIds, setAddonIds] = useState<string[]>(initialAddonIds);
-
-  useEffect(() => {
-    const stored = typeof window !== 'undefined' ? localStorage.getItem('lavo_promo_code') : null;
-    if (stored) setPromoCode(stored);
-  }, []);
+  // Editable in place on this page, so they're state rather than plain props.
+  const [spotLabel, setSpotLabel] = useState<string | null>(resident.spotLabel);
+  const [accessNotes, setAccessNotes] = useState<string | null>(resident.accessNotes);
 
   const washCents = selectedPackage
     ? selectedPackage.price_cents
@@ -201,39 +199,7 @@ export function BookingForm({
   const selectedAddons = addons.filter((a) => addonIds.includes(a.id));
   const addonCents = selectedAddons.reduce((sum, a) => sum + a.price_cents, 0);
 
-  // The promo is priced by the server against the same rules checkout uses, so
-  // what's on screen is what gets charged. Entering a code no longer leaves the
-  // total at full price all the way to the Stripe redirect.
-  const [promo, setPromo] = useState<{ discountCents: number; reason?: string } | null>(null);
-  const [promoChecking, setPromoChecking] = useState(false);
-
-  useEffect(() => {
-    const code = promoCode.trim();
-    if (!code) { setPromo(null); setPromoChecking(false); return; }
-
-    let cancelled = false;
-    setPromoChecking(true);
-    const timer = setTimeout(() => {
-      fetch('/api/promo/preview', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code, operatorId, bookingType }),
-      })
-        .then((r) => (r.ok ? r.json() : null))
-        .then((j) => {
-          if (cancelled) return;
-          if (!j) { setPromo(null); return; }
-          setPromo(j.valid ? { discountCents: j.discountCents ?? 0 } : { discountCents: 0, reason: j.reason });
-        })
-        .catch(() => { if (!cancelled) setPromo(null); })
-        .finally(() => { if (!cancelled) setPromoChecking(false); });
-    }, 400);
-
-    return () => { cancelled = true; clearTimeout(timer); };
-  }, [promoCode, operatorId, bookingType]);
-
-  const discountCents = Math.min(promo?.reason ? 0 : (promo?.discountCents ?? 0), washCents);
-  const priceCents = Math.max(0, washCents - discountCents) + addonCents;
+  const priceCents = washCents + addonCents;
 
   async function book() {
     if (!vehicleId || !date) { setErr('Please select a vehicle and date'); return; }
@@ -252,7 +218,6 @@ export function BookingForm({
           partnershipId: partnershipId ?? undefined,
           recurringCadence: recurring === 'none' ? undefined : recurring,
           addonIds,
-          promoCode: promoCode.trim() || undefined,
           waiverAccepted: needsWaiver ? agreeWaiver : undefined,
         }),
       });
@@ -308,120 +273,8 @@ export function BookingForm({
           </div>
         )}
 
-        {/* Where the wash happens — all of it already on file. */}
-        <div className="card p-6">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h3 className="font-display text-lg">Where we’ll wash</h3>
-            <span className="chip text-ink-400">Auto-filled from your account</span>
-          </div>
-
-          <dl className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-              <dt className="text-[11px] uppercase tracking-widest text-ink-500">Building</dt>
-              <dd className="mt-1 text-sm text-ink-100">{resident.buildingName}</dd>
-              {resident.buildingAddress && (
-                <dd className="mt-0.5 text-xs text-ink-400">{resident.buildingAddress}</dd>
-              )}
-            </div>
-            <div>
-              <dt className="text-[11px] uppercase tracking-widest text-ink-500">Unit</dt>
-              <dd className="mt-1 text-sm text-ink-100">{resident.unitNumber || '—'}</dd>
-            </div>
-            <div>
-              <dt className="text-[11px] uppercase tracking-widest text-ink-500">Parking spot</dt>
-              <dd className="mt-1 text-sm text-ink-100">
-                {resident.spotLabel || <span className="text-amber-600">Not set</span>}
-              </dd>
-              {!resident.spotLabel && (
-                <dd className="mt-0.5 text-xs text-ink-500">
-                  <Link href="/resident/vehicle" className="text-gleam underline underline-offset-2">
-                    Add your spot
-                  </Link>{' '}
-                  so the operator can find your car.
-                </dd>
-              )}
-            </div>
-            <div>
-              <dt className="text-[11px] uppercase tracking-widest text-ink-500">Operator</dt>
-              <dd className="mt-1 text-sm text-ink-100">{operatorName}</dd>
-            </div>
-          </dl>
-
-          {resident.accessNotes && (
-            <p className="mt-4 rounded-xl border border-white/10 bg-ink-800/50 p-3 text-xs text-ink-400">
-              <span className="text-ink-300">Access notes:</span> {resident.accessNotes}
-            </p>
-          )}
-
-          <div className="mt-5 border-t border-white/10 pt-5">
-            <label className="label" htmlFor="booking-vehicle">Vehicle</label>
-            {vehicles.length > 0 ? (
-              <>
-                <select
-                  id="booking-vehicle"
-                  className="field"
-                  value={vehicleId}
-                  onChange={(e) => setVehicleId(e.target.value)}
-                >
-                  {vehicles.map((v) => (
-                    <option key={v.id} value={v.id}>
-                      {v.year ? `${v.year} ` : ''}{v.color} {v.make} {v.model}
-                      {plateLabel(v.license_plate) ? ` · ${plateLabel(v.license_plate)}` : ''}
-                      {v.is_primary && vehicles.length > 1 ? ' (primary)' : ''}
-                    </option>
-                  ))}
-                </select>
-
-                {selectedVehicle && (
-                  <dl className="mt-3 grid grid-cols-2 gap-3 rounded-xl border border-white/10 bg-ink-800/50 p-3 sm:grid-cols-3">
-                    <div>
-                      <dt className="text-[11px] uppercase tracking-widest text-ink-500">Make &amp; model</dt>
-                      <dd className="mt-0.5 text-sm text-ink-100">
-                        {selectedVehicle.year ? `${selectedVehicle.year} ` : ''}
-                        {selectedVehicle.make} {selectedVehicle.model}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt className="text-[11px] uppercase tracking-widest text-ink-500">Color</dt>
-                      <dd className="mt-0.5 text-sm text-ink-100">{selectedVehicle.color}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-[11px] uppercase tracking-widest text-ink-500">Plate</dt>
-                      <dd className="mt-0.5 text-sm text-ink-100">
-                        {plateLabel(selectedVehicle.license_plate) ?? '—'}
-                      </dd>
-                    </div>
-                    {selectedVehicle.notes && (
-                      <div className="col-span-2 sm:col-span-3">
-                        <dt className="text-[11px] uppercase tracking-widest text-ink-500">Vehicle notes</dt>
-                        <dd className="mt-0.5 text-sm text-ink-300">{selectedVehicle.notes}</dd>
-                      </div>
-                    )}
-                  </dl>
-                )}
-
-                <p className="mt-2 text-xs text-ink-500">
-                  {vehicles.length > 1
-                    ? 'Your primary vehicle is pre-selected — switch it for this wash if needed.'
-                    : 'Pulled from your profile and sent to the operator with the job.'}{' '}
-                  <Link href="/resident/vehicle" className="text-gleam underline underline-offset-2">
-                    Manage vehicles
-                  </Link>
-                </p>
-              </>
-            ) : (
-              <div className="text-sm text-red-400">
-                Please{' '}
-                <Link href="/resident/vehicle" className="underline underline-offset-2">
-                  add a vehicle
-                </Link>{' '}
-                to your profile first.
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* The calendar — the centerpiece of the page. */}
+        {/* The calendar — the centerpiece of the page, and the first thing
+            the resident acts on. */}
         <div className="card p-6">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
@@ -489,41 +342,117 @@ export function BookingForm({
           </div>
         </div>
 
-        {/* Everything else about the booking. */}
-        <div className="card grid grid-cols-1 gap-5 p-6 sm:grid-cols-2">
-          <div>
-            <label className="label" htmlFor="booking-cadence">Revisit cadence</label>
-            <select
-              id="booking-cadence"
-              className="field"
-              value={recurring}
-              onChange={(e) => setRecurring(e.target.value as typeof recurring)}
-            >
-              <option value="none">One time</option>
-              <option value="weekly">Every week</option>
-              <option value="biweekly">Every two weeks</option>
-              <option value="monthly">Monthly</option>
-            </select>
-            <p className="mt-1 text-xs text-ink-500">
-              We save your preference for faster rebook. Billing stays per wash at checkout.
-            </p>
-          </div>
+        {/* Where the wash happens — every box already filled from the account,
+            the ones the resident owns editable right here. */}
+        <div className="card p-6">
+          <h3 className="font-display text-lg">Where we’ll wash</h3>
 
-          <div>
-            <label className="label" htmlFor="booking-promo">Promo code (optional)</label>
-            <input
-              id="booking-promo"
-              className="field"
-              value={promoCode}
-              onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
-              placeholder="FIRSTWASH"
-              autoCapitalize="characters"
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <ReadonlyField label="Building" value={resident.buildingName} />
+            <ReadonlyField label="Unit" value={resident.unitNumber} />
+            <div className="sm:col-span-2">
+              <ReadonlyField label="Building address" value={resident.buildingAddress} />
+            </div>
+
+            <EditableField
+              label="Parking spot"
+              field="spotLabel"
+              value={spotLabel}
+              onChange={setSpotLabel}
+              placeholder="e.g. P2-118"
+              hint="Where the operator will find your car."
+              emptyWarning="Add your spot so the operator can find your car."
             />
-            {promoChecking && <p className="mt-1 text-xs text-ink-500">Checking code…</p>}
-            {!promoChecking && promo?.reason && <p className="mt-1 text-xs text-red-400">{promo.reason}</p>}
-            {!promoChecking && !promo?.reason && discountCents > 0 && (
-              <p className="mt-1 text-xs text-gleam">Code applied — {money(discountCents)} off this wash.</p>
+
+            <div>
+              <div className="flex items-center justify-between gap-2">
+                <label className="label mb-0" htmlFor="booking-vehicle">Vehicle</label>
+                <Link href="/resident/vehicle" className="text-xs text-gleam hover:underline underline-offset-2">
+                  Manage
+                </Link>
+              </div>
+              {vehicles.length > 0 ? (
+                <>
+                  <select
+                    id="booking-vehicle"
+                    className="field mt-1.5"
+                    value={vehicleId}
+                    onChange={(e) => setVehicleId(e.target.value)}
+                  >
+                    {vehicles.map((v) => (
+                      <option key={v.id} value={v.id}>
+                        {v.year ? `${v.year} ` : ''}{v.color} {v.make} {v.model}
+                        {plateLabel(v.license_plate) ? ` · ${plateLabel(v.license_plate)}` : ''}
+                        {v.is_primary && vehicles.length > 1 ? ' (primary)' : ''}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="mt-1 text-xs text-ink-500">
+                    {vehicles.length > 1
+                      ? 'Your primary vehicle is pre-selected.'
+                      : 'Sent to the operator with the job.'}
+                  </p>
+                </>
+              ) : (
+                <div className="mt-1.5 rounded-xl border border-red-400/30 bg-red-400/5 px-4 py-3 text-sm text-red-400">
+                  <Link href="/resident/vehicle" className="underline underline-offset-2">
+                    Add a vehicle
+                  </Link>{' '}
+                  to book a wash.
+                </div>
+              )}
+            </div>
+
+            {selectedVehicle && (
+              <>
+                <ReadonlyField
+                  label="Make & model"
+                  value={`${selectedVehicle.year ? `${selectedVehicle.year} ` : ''}${selectedVehicle.make} ${selectedVehicle.model}`}
+                  lockedNote="Edit under Manage vehicles"
+                />
+                <ReadonlyField label="Color" value={selectedVehicle.color} lockedNote="Edit under Manage vehicles" />
+                <ReadonlyField
+                  label="License plate"
+                  value={plateLabel(selectedVehicle.license_plate)}
+                  lockedNote="Edit under Manage vehicles"
+                />
+                <ReadonlyField
+                  label="Vehicle notes"
+                  value={selectedVehicle.notes ?? null}
+                  lockedNote="Edit under Manage vehicles"
+                />
+              </>
             )}
+
+            <div className="sm:col-span-2">
+              <EditableField
+                label="Access notes for the operator"
+                field="vehicleAccessNotes"
+                value={accessNotes}
+                onChange={setAccessNotes}
+                multiline
+                placeholder="Garage code, gate, elevator side — anything the crew should know"
+                hint="Saved to your profile and shown to the operator on every wash."
+              />
+            </div>
+
+            <div className="sm:col-span-2">
+              <label className="label" htmlFor="booking-cadence">Revisit cadence</label>
+              <select
+                id="booking-cadence"
+                className="field"
+                value={recurring}
+                onChange={(e) => setRecurring(e.target.value as typeof recurring)}
+              >
+                <option value="none">One time</option>
+                <option value="weekly">Every week</option>
+                <option value="biweekly">Every two weeks</option>
+                <option value="monthly">Monthly</option>
+              </select>
+              <p className="mt-1 text-xs text-ink-500">
+                We save your preference for faster rebook. Billing stays per wash at checkout.
+              </p>
+            </div>
           </div>
         </div>
 
@@ -542,12 +471,6 @@ export function BookingForm({
                 <span>{money(a.price_cents)}</span>
               </div>
             ))}
-            {discountCents > 0 && (
-              <div className="flex items-center justify-between text-sm text-gleam">
-                <span>Promo {promoCode.trim()}</span>
-                <span>−{money(discountCents)}</span>
-              </div>
-            )}
             <div className="flex items-center justify-between border-t border-white/10 pt-2 text-sm">
               <span className="text-ink-400">When</span>
               <span>{date ? `${longLabel(date)} · ${timeSlot}` : 'Pick a date above'}</span>
@@ -558,6 +481,13 @@ export function BookingForm({
                 <span>{selectedVehicle.color} {selectedVehicle.make} {selectedVehicle.model}</span>
               </div>
             )}
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-ink-400">Where</span>
+              <span>
+                {resident.buildingName}
+                {spotLabel ? ` · spot ${spotLabel}` : ''}
+              </span>
+            </div>
             <div className="flex items-center justify-between border-t border-white/10 pt-2 text-base font-medium">
               <span>Total</span>
               <span className="font-display">{money(priceCents)}</span>
