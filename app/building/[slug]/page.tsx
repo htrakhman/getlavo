@@ -13,7 +13,7 @@ export default async function BuildingCanonicalPage({ params }: { params: { slug
 
   const { data: building } = await sb
     .from('buildings')
-    .select('id, name, city, region, address_line1, status, wash_day, welcome_message, logo_url, brand_color, google_place_id')
+    .select('id, name, city, region, address_line1, status, wash_day, preferred_wash_day, welcome_message, logo_url, brand_color, google_place_id')
     .eq('slug', params.slug)
     .in('status', ['prospect', 'pilot', 'active'])
     .maybeSingle();
@@ -114,7 +114,11 @@ export default async function BuildingCanonicalPage({ params }: { params: { slug
             <div className="mt-10 space-y-6">
               <div className="card p-5 text-center">
                 <div className="text-xs uppercase tracking-widest text-ink-400">Wash day</div>
-                <div className="mt-1 font-display text-xl">{building.wash_day ? `Every ${building.wash_day}` : 'TBD'}</div>
+                <div className="mt-1 font-display text-xl">
+                  {building.wash_day || building.preferred_wash_day
+                    ? `Every ${building.wash_day || building.preferred_wash_day}`
+                    : 'TBD'}
+                </div>
               </div>
 
               <div>

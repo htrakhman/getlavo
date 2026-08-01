@@ -21,7 +21,7 @@ export default async function ResidentWashes() {
   // Identity is still scoped to the authenticated user via the explicit profile_id filter.
   const { data: resident, error: residentErr } = await sbAdmin
     .from('residents')
-    .select('id, building_id, spot_label, building:buildings(name, wash_day), vehicles(*)')
+    .select('id, building_id, spot_label, building:buildings(name, wash_day, preferred_wash_day), vehicles(*)')
     .eq('profile_id', session.user.id)
     .maybeSingle();
   if (residentErr) {
@@ -144,8 +144,8 @@ export default async function ResidentWashes() {
             </>
           ) : (
             <div className="mt-2 text-sm text-ink-400">
-              {hasActiveOperator && building?.wash_day
-                ? `Your next wash will be on a ${building.wash_day}.`
+              {hasActiveOperator && (building?.wash_day || building?.preferred_wash_day)
+                ? `Your next wash will be on a ${building.wash_day || building.preferred_wash_day}.`
                 : 'We’re lining up an operator for your building — you’ll be notified once wash days are scheduled.'}
             </div>
           )}

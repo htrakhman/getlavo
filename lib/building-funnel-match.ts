@@ -49,6 +49,7 @@ export type FunnelBuilding = {
   address_line1: string | null;
   status: string;
   wash_day: string | null;
+  preferred_wash_day: string | null;
   welcome_message: string | null;
   logo_url: string | null;
   brand_color: string | null;
@@ -56,7 +57,7 @@ export type FunnelBuilding = {
 };
 
 const BUILDING_SELECT =
-  'id, name, slug, city, region, address_line1, status, wash_day, welcome_message, logo_url, brand_color, google_place_id';
+  'id, name, slug, city, region, address_line1, status, wash_day, preferred_wash_day, welcome_message, logo_url, brand_color, google_place_id';
 
 type AddressQuery = { col: string; val: string; city?: string; zip?: string };
 

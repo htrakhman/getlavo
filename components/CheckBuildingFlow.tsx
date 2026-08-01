@@ -13,7 +13,7 @@ type MatchA = {
   branch: 'A';
   candidateKey: string;
   place: Place;
-  building: { id: string; name: string; slug: string; wash_day?: string | null };
+  building: { id: string; name: string; slug: string; wash_day?: string | null; preferred_wash_day?: string | null };
   operator: { id: string; name: string; description?: string | null } | null;
   packages: { id: string; name: string; description?: string | null; price_cents: number; est_minutes?: number | null }[];
   requestCount: number;
@@ -125,7 +125,11 @@ function BranchA({ m }: { m: MatchA }) {
       )}
       <div>
         <div className="text-xs uppercase tracking-widest text-ink-500">Next wash day</div>
-        <div className="mt-1 font-display text-xl">{m.building.wash_day ? `Every ${m.building.wash_day}` : 'See app for schedule'}</div>
+        <div className="mt-1 font-display text-xl">
+          {m.building.wash_day || m.building.preferred_wash_day
+            ? `Every ${m.building.wash_day || m.building.preferred_wash_day}`
+            : 'See app for schedule'}
+        </div>
       </div>
       {m.packages.length > 0 && (
         <div>

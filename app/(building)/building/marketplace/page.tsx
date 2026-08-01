@@ -243,7 +243,7 @@ export default async function MyOperator() {
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="card p-5">
               <div className="text-xs uppercase tracking-widest text-ink-400">Wash day</div>
-              <div className="mt-1 font-display text-xl">{building?.wash_day ?? 'TBD'}</div>
+              <div className="mt-1 font-display text-xl">{building?.wash_day ?? building?.preferred_wash_day ?? 'TBD'}</div>
             </div>
             <div className="card p-5">
               <div className="text-xs uppercase tracking-widest text-ink-400">Insurance</div>
