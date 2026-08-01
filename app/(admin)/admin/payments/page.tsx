@@ -9,13 +9,13 @@ export default async function AdminPayments() {
 
   const { data: bookings } = await sb
     .from('bookings')
-    .select('id, scheduled_for, gross_cents, fee_cents, net_cents, status, stripe_payment_intent_id, building:buildings(name), operator:operators(name), resident:residents(profile:profiles(full_name))')
+    .select('id, scheduled_for, gross_cents, fee_cents, processing_fee_cents, net_cents, status, stripe_payment_intent_id, building:buildings(name), operator:operators(name), resident:residents(profile:profiles(full_name))')
     .order('created_at', { ascending: false })
     .limit(100);
 
   const { data: charges } = await sb
     .from('charges')
-    .select('id, created_at, amount_cents, fee_cents, status, failure_reason, stripe_payment_intent_id, operator:operators(name), resident:residents(profile:profiles(full_name)), wash_day:wash_days(scheduled_for, building:buildings(name))')
+    .select('id, created_at, amount_cents, fee_cents, processing_fee_cents, status, failure_reason, stripe_payment_intent_id, operator:operators(name), resident:residents(profile:profiles(full_name)), wash_day:wash_days(scheduled_for, building:buildings(name))')
     .order('created_at', { ascending: false })
     .limit(100);
 
@@ -32,6 +32,9 @@ export default async function AdminPayments() {
         <div className="stat">
           <div className="text-xs uppercase tracking-widest text-ink-300">Revenue this month</div>
           <div className="mt-2 font-display text-3xl">${(platformRev / 100).toFixed(2)}</div>
+          {/* The take rate only. Card processing is billed to Lavo and charged
+              on to the operator, so it passes through rather than earning. */}
+          <div className="mt-1 text-xs text-ink-400">Take rate only — processing passes through</div>
         </div>
       </div>
       <div className="card overflow-hidden">
@@ -42,8 +45,9 @@ export default async function AdminPayments() {
               <th className="px-4 py-2 text-left">Building</th>
               <th className="px-4 py-2 text-left">Operator</th>
               <th className="px-4 py-2 text-right">Gross</th>
-              <th className="px-4 py-2 text-right">Fee</th>
-              <th className="px-4 py-2 text-right">Net</th>
+              <th className="px-4 py-2 text-right">Take</th>
+              <th className="px-4 py-2 text-right">Processing</th>
+              <th className="px-4 py-2 text-right">Operator</th>
               <th className="px-4 py-2 text-left">Status</th>
               <th className="px-4 py-2 text-right">&nbsp;</th>
             </tr>
@@ -55,8 +59,9 @@ export default async function AdminPayments() {
                 <td className="px-4 py-3">{b.building?.name}</td>
                 <td className="px-4 py-3">{b.operator?.name}</td>
                 <td className="px-4 py-3 text-right">${(b.gross_cents / 100).toFixed(2)}</td>
-                <td className="px-4 py-3 text-right text-ink-400">${(b.fee_cents / 100).toFixed(2)}</td>
-                <td className="px-4 py-3 text-right text-gleam">${(b.net_cents / 100).toFixed(2)}</td>
+                <td className="px-4 py-3 text-right text-gleam">${(b.fee_cents / 100).toFixed(2)}</td>
+                <td className="px-4 py-3 text-right text-ink-400">${((b.processing_fee_cents ?? 0) / 100).toFixed(2)}</td>
+                <td className="px-4 py-3 text-right">${(b.net_cents / 100).toFixed(2)}</td>
                 <td className="px-4 py-3"><span className="chip">{b.status}</span></td>
                 <td className="px-4 py-3 text-right">
                   {b.stripe_payment_intent_id && b.status !== 'cancelled' && <RefundButton bookingId={b.id} />}
@@ -77,7 +82,8 @@ export default async function AdminPayments() {
               <th className="px-4 py-2 text-left">Resident</th>
               <th className="px-4 py-2 text-left">Operator</th>
               <th className="px-4 py-2 text-right">Amount</th>
-              <th className="px-4 py-2 text-right">Fee</th>
+              <th className="px-4 py-2 text-right">Take</th>
+              <th className="px-4 py-2 text-right">Processing</th>
               <th className="px-4 py-2 text-left">Status</th>
             </tr>
           </thead>
@@ -89,7 +95,8 @@ export default async function AdminPayments() {
                 <td className="px-4 py-3 text-xs text-ink-400">{c.resident?.profile?.full_name ?? '—'}</td>
                 <td className="px-4 py-3">{c.operator?.name}</td>
                 <td className="px-4 py-3 text-right">${(c.amount_cents / 100).toFixed(2)}</td>
-                <td className="px-4 py-3 text-right text-ink-400">${(c.fee_cents / 100).toFixed(2)}</td>
+                <td className="px-4 py-3 text-right text-gleam">${(c.fee_cents / 100).toFixed(2)}</td>
+                <td className="px-4 py-3 text-right text-ink-400">${((c.processing_fee_cents ?? 0) / 100).toFixed(2)}</td>
                 <td className="px-4 py-3">
                   <span className={`chip ${c.status === 'succeeded' ? 'text-gleam' : c.status === 'failed' ? 'text-amber-600' : ''}`}>{c.status}</span>
                   {c.failure_reason && <div className="mt-1 text-[10px] text-amber-600">{c.failure_reason}</div>}
@@ -97,7 +104,7 @@ export default async function AdminPayments() {
               </tr>
             ))}
             {!charges?.length && (
-              <tr><td colSpan={7} className="px-4 py-10 text-center text-ink-400">No wash-day charges yet.</td></tr>
+              <tr><td colSpan={8} className="px-4 py-10 text-center text-ink-400">No wash-day charges yet.</td></tr>
             )}
           </tbody>
         </table>

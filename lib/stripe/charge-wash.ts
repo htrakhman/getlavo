@@ -1,6 +1,6 @@
 import Stripe from 'stripe';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { calculateFee } from '@/lib/fee';
+import { resolveSplit } from '@/lib/stripe/connect-split';
 import { normalizeSize, priceForVehicle } from '@/lib/vehicle-sizes';
 import {
   recurringAddonsForWash,
@@ -57,7 +57,9 @@ export async function chargeWash(
   // its add-ons from that booking, not from the standing list.
   let addonCents = 0;
   let grossCents: number | null = packageCents;
-  let fee = calculateFee(grossCents ?? 0).fee;
+  // Lavo's take, payment processing and the operator's share — the same
+  // three-way split every resident payment uses (lib/stripe/connect-split.ts).
+  let split = resolveSplit(grossCents ?? 0);
 
   /**
    * Write the ledger row for this wash. Called on every path — the row is the
@@ -74,7 +76,8 @@ export async function chargeWash(
         wash_day_id: (wash as any).wash_day_id ?? null,
         package_id: resident.package?.id ?? null,
         amount_cents: grossCents ?? 0,
-        fee_cents: fee,
+        fee_cents: split.takeCents,
+        processing_fee_cents: split.processingCents,
         ...fields,
       },
       { onConflict: 'wash_id' }
@@ -104,7 +107,7 @@ export async function chargeWash(
   if (resident?.id && (wash as any).wash_day_id) {
     const { data: bookings } = await admin
       .from('bookings')
-      .select('id, status, gross_cents, fee_cents, paid_at, stripe_payment_intent_id')
+      .select('id, status, gross_cents, fee_cents, processing_fee_cents, paid_at, stripe_payment_intent_id')
       .eq('resident_id', resident.id)
       .eq('wash_day_id', (wash as any).wash_day_id)
       .neq('status', 'cancelled')
@@ -117,7 +120,12 @@ export async function chargeWash(
 
     if (paidBooking) {
       const bookingGross = paidBooking.gross_cents ?? 0;
-      const bookingFee = paidBooking.fee_cents ?? calculateFee(bookingGross).fee;
+      // Mirror what the booking actually charged, not a fresh calculation: the
+      // money already moved on those terms, and a booking taken before
+      // processing was passed through has none to mirror.
+      const bookingSplit = resolveSplit(bookingGross, paidBooking.fee_cents);
+      const bookingFee = paidBooking.fee_cents ?? bookingSplit.takeCents;
+      const bookingProcessing = paidBooking.processing_fee_cents ?? bookingSplit.processingCents;
       // Mirror the prepayment into the ledger so the wash has a charge row like
       // every other completed wash — deduped against the booking by booking_id.
       const { error } = await admin.from('charges').upsert(
@@ -130,6 +138,7 @@ export async function chargeWash(
           booking_id: paidBooking.id,
           amount_cents: bookingGross,
           fee_cents: bookingFee,
+          processing_fee_cents: bookingProcessing,
           status: 'succeeded',
           stripe_payment_intent_id: paidBooking.stripe_payment_intent_id ?? null,
           failure_reason: null,
@@ -164,7 +173,7 @@ export async function chargeWash(
     addonCents = billableAddons.reduce((sum, a) => sum + (a.amount_cents ?? 0), 0);
     if (packageCents != null) {
       grossCents = packageCents + addonCents;
-      fee = calculateFee(grossCents).fee;
+      split = resolveSplit(grossCents);
     }
   }
 
@@ -196,7 +205,7 @@ export async function chargeWash(
         payment_method: resident.stripe_payment_method_id,
         off_session: true,
         confirm: true,
-        application_fee_amount: fee,
+        application_fee_amount: split.feeCents,
         transfer_data: { destination: operator.stripe_account_id },
         metadata: { wash_id: washRecordId },
       },
