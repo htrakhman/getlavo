@@ -2,6 +2,8 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
 import { wrapEmail, paragraph, button, escape as esc } from '@/lib/email/template';
 
 type NotificationType =
+  | 'booking_confirmed'
+  | 'booking_received'
   | 'wash_complete'
   | 'wash_flagged'
   | 'wash_reminder'
@@ -16,7 +18,18 @@ type NotificationType =
   | 'coi_expired'
   | 'coi_approved';
 
-export async function notify(profileId: string, type: NotificationType, data: Record<string, any>) {
+/**
+ * `skipEmail` is for events that already sent a richer, purpose-built email
+ * (booking confirmations carry a calendar invite and a price breakdown). The
+ * in-app row and SMS still go out; the generic template would just arrive as a
+ * duplicate.
+ */
+export async function notify(
+  profileId: string,
+  type: NotificationType,
+  data: Record<string, any>,
+  opts: { skipEmail?: boolean } = {},
+) {
   const sb = supabaseAdmin();
   const { data: profile } = await sb.from('profiles').select('email, phone, full_name').eq('id', profileId).maybeSingle();
   if (!profile) return;
@@ -31,6 +44,8 @@ export async function notify(profileId: string, type: NotificationType, data: Re
   const allowSms = prefRespects(type, prefs, 'sms');
 
   const titles: Record<NotificationType, string> = {
+    booking_confirmed: 'Your wash is booked',
+    booking_received: 'New booking',
     wash_complete: 'Your car is done.',
     wash_flagged: "We couldn't complete your wash",
     wash_reminder: 'Your wash is tomorrow',
@@ -56,7 +71,7 @@ export async function notify(profileId: string, type: NotificationType, data: Re
     link: data.link ?? null,
   });
 
-  if (process.env.RESEND_API_KEY && profile.email && allowEmail) {
+  if (process.env.RESEND_API_KEY && profile.email && allowEmail && !opts.skipEmail) {
     try {
       const { Resend } = await import('resend');
       const resend = new Resend(process.env.RESEND_API_KEY);
@@ -120,7 +135,7 @@ function smsEligible(type: NotificationType) {
 
 function prefRespects(type: NotificationType, prefs: Record<string, boolean>, channel: 'email' | 'sms') {
   // Operational/account messages always go through.
-  const operational: NotificationType[] = ['payment_failed', 'pilot_signed', 'operator_assigned', 'wash_day_proposed', 'wash_day_confirmed', 'wash_day_declined', 'waitlist_building_live', 'coi_expiring', 'coi_expired', 'coi_approved'];
+  const operational: NotificationType[] = ['booking_confirmed', 'booking_received', 'payment_failed', 'pilot_signed', 'operator_assigned', 'wash_day_proposed', 'wash_day_confirmed', 'wash_day_declined', 'waitlist_building_live', 'coi_expiring', 'coi_expired', 'coi_approved'];
   if (operational.includes(type)) return true;
   const map: Record<string, string> = {
     'wash_reminder:email': 'email_reminder',
@@ -137,6 +152,10 @@ function prefRespects(type: NotificationType, prefs: Record<string, boolean>, ch
 
 function renderBody(type: NotificationType, data: any) {
   switch (type) {
+    case 'booking_confirmed':
+      return `Your wash at ${data.buildingName || 'your building'} is confirmed for ${when(data)}. Leave your keys at the front desk beforehand.`;
+    case 'booking_received':
+      return `${data.residentName || 'A resident'} at ${data.buildingName || 'your building'} booked a wash for ${when(data)}.`;
     case 'wash_complete':
       return `Your ${data.vehicleDesc ?? 'car'} is clean. Photo in your Lavo app.`;
     case 'wash_flagged':
@@ -166,6 +185,10 @@ function renderBody(type: NotificationType, data: any) {
     default:
       return 'Update from Lavo.';
   }
+}
+
+function when(data: any) {
+  return data.timeSlot ? `${data.scheduledFor} at ${data.timeSlot}` : (data.scheduledFor ?? 'the scheduled date');
 }
 
 function escapeHtml(s: string) {
