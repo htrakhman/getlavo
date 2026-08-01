@@ -50,12 +50,24 @@ export function PlanPicker({
     router.refresh();
   }
 
+  const operatorLine = (
+    <div className="text-xs uppercase tracking-widest text-ink-400">
+      Operator:{' '}
+      <span className={operatorName ? 'text-gleam' : 'text-amber-600'}>
+        {operatorName ?? 'Not assigned yet'}
+      </span>
+    </div>
+  );
+
   if (!packages.length) {
     return (
       <div className="card mt-6 p-6">
         <h3 className="font-display text-lg">Wash plan</h3>
+        <div className="mt-2">{operatorLine}</div>
         <p className="mt-2 text-sm text-ink-400">
-          Plans appear here once an operator is assigned to your building.
+          {operatorName
+            ? 'This operator hasn’t published any plans yet — check back soon.'
+            : 'Plans appear here once an operator is assigned to your building.'}
         </p>
       </div>
     );
@@ -64,6 +76,7 @@ export function PlanPicker({
   return (
     <div className="card mt-6 p-6">
       <h3 className="font-display text-lg">Wash plan</h3>
+      <div className="mt-2">{operatorLine}</div>
       <p className="mt-1 text-xs text-ink-400">
         {currentPackageId
           ? 'Your current plan. You’re charged per completed wash.'
