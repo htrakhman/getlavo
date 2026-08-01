@@ -3,11 +3,12 @@
  * Run: npx tsx --tsconfig tsconfig.scripts.json scripts/wash-pricing-test.ts
  *
  * The bug this exists to prevent: the operator's base price used to track the
- * cheapest active service package, so adding a $1.00 test package repriced the
- * standard wash to $1.00 in every partnered building at once (QA, Aug 2026).
- * The rate a building signed for has to survive whatever the operator later
- * does to their menu, and the quote on the booking form has to equal the amount
- * charged — both invariants are checked below.
+ * cheapest active service package, so a $1.00 test package put "Standard wash —
+ * $1.00" on the resident booking form for an operator whose real menu started at
+ * $70 (QA, Aug 2026). The standard wash is a rate the operator states; a menu
+ * item can never become it, the rate a building signed for has to survive
+ * whatever the operator later does to their menu, and the quote on the booking
+ * form has to equal the amount charged — all three invariants are checked below.
  */
 
 import { resolveStandardWashPricing, washCentsFor } from '../lib/wash-pricing';
@@ -47,6 +48,19 @@ function main() {
     'no on-demand rate published stays null, so the booking type toggle stays hidden',
     resolveStandardWashPricing({ base_price_cents: 3500 }, null).openSlotCents === null,
   );
+
+  // ── an operator who never set a rate has no standard wash ───────────────
+  // The booking form offers packages only in this state, and the API refuses a
+  // package-less booking, so nobody is quoted or charged $0.00.
+  const unpriced = resolveStandardWashPricing({}, null);
+  check('no rate anywhere means no standard wash to sell', !unpriced.available);
+  check('a zeroed base price is treated as unset', !resolveStandardWashPricing({ base_price_cents: 0 }, null).available);
+  check(
+    'an on-demand rate alone does not conjure a standard wash',
+    !resolveStandardWashPricing({ base_price_cents: null, open_slot_price_cents: 6000 }, null).available,
+  );
+  check('a stated profile rate is a standard wash', uncontracted.available);
+  check('a contracted rate is a standard wash', contracted.available);
 
   // ── what a booking actually rings up at ─────────────────────────────────
   check('a building-day booking charges the contracted rate', washCentsFor(contracted, 'building_day') === 7000);

@@ -70,10 +70,14 @@ export default async function OperatorDetail({ params }: { params: { id: string 
                   <div className="text-xs text-ink-400">{op.rating_count} reviews</div>
                 </div>
               )}
-              <div>
-                <div className="text-xs text-ink-400">Building day</div>
-                <div className="font-display text-2xl text-gleam">{money(op.base_price_cents)}</div>
-              </div>
+              {/* An operator who hasn't stated a standard wash rate has no
+                  building-day price to show — money(null) renders "$NaN". */}
+              {op.base_price_cents > 0 && (
+                <div>
+                  <div className="text-xs text-ink-400">Building day</div>
+                  <div className="font-display text-2xl text-gleam">{money(op.base_price_cents)}</div>
+                </div>
+              )}
               {op.open_slot_price_cents && (
                 <div>
                   <div className="text-xs text-ink-400">On-demand</div>

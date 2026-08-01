@@ -65,6 +65,7 @@ export function BookingForm({
   ratingCount,
   basePriceCents,
   openSlotPriceCents,
+  standardWashAvailable,
   vehicles,
   isPartner,
   partnershipId,
@@ -83,6 +84,8 @@ export function BookingForm({
   ratingCount: number;
   basePriceCents: number;
   openSlotPriceCents: number | null;
+  /** False when the operator has published no standard wash rate — packages only. */
+  standardWashAvailable: boolean;
   vehicles: {
     id: string;
     make: string;
@@ -111,8 +114,10 @@ export function BookingForm({
   const selectedVehicle = vehicles.find((v) => v.id === vehicleId) ?? null;
   // The operator's published wash packages (Basic, Premium, Full detail…),
   // when they've set any up. Picking one overrides the flat building-day /
-  // on-demand price below with that package's price.
-  const [packageId, setPackageId] = useState('');
+  // on-demand price below with that package's price. An empty selection means
+  // the standard wash, so it can only be the default when there is one —
+  // otherwise the form would open on a wash the operator hasn't priced.
+  const [packageId, setPackageId] = useState(standardWashAvailable ? '' : (packages[0]?.id ?? ''));
   const selectedPackage = packages.find((p) => p.id === packageId) ?? null;
   // A slot picked on the QR landing calendar arrives via query params.
   const [date, setDate] = useState(() =>
@@ -183,9 +188,15 @@ export function BookingForm({
 
   const washCents = selectedPackage
     ? selectedPackage.price_cents
-    : bookingType === 'building_day'
-      ? basePriceCents
-      : (openSlotPriceCents ?? basePriceCents);
+    : standardWashAvailable
+      ? bookingType === 'building_day'
+        ? basePriceCents
+        : (openSlotPriceCents ?? basePriceCents)
+      : 0;
+
+  // Nothing to sell: no standard wash rate and no packages. Better to say so
+  // than to run a resident through checkout for a $0.00 wash.
+  const nothingBookable = !standardWashAvailable && packages.length === 0;
 
   const selectedAddons = addons.filter((a) => addonIds.includes(a.id));
   const addonCents = selectedAddons.reduce((sum, a) => sum + a.price_cents, 0);
@@ -420,9 +431,11 @@ export function BookingForm({
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <span className="chip text-ink-200">
-                {selectedPackage ? selectedPackage.name : 'Standard wash'} · {money(washCents)}
-              </span>
+              {(selectedPackage || standardWashAvailable) && (
+                <span className="chip text-ink-200">
+                  {selectedPackage ? selectedPackage.name : 'Standard wash'} · {money(washCents)}
+                </span>
+              )}
               {date && (
                 <span className="chip text-ink-200">
                   {longLabel(date)} · {timeSlot}
@@ -431,7 +444,7 @@ export function BookingForm({
             </div>
           </div>
 
-          {isPartner && openSlotPriceCents && (
+          {isPartner && standardWashAvailable && openSlotPriceCents && (
             <div className="mt-5">
               <label className="label">Wash type</label>
               <div className="grid gap-2 sm:grid-cols-2">
@@ -579,7 +592,7 @@ export function BookingForm({
 
           <button
             onClick={book}
-            disabled={busy || !vehicleId || !date || (needsWaiver && !agreeWaiver)}
+            disabled={busy || nothingBookable || !vehicleId || !date || (needsWaiver && !agreeWaiver)}
             className="btn-primary w-full"
           >
             {busy
@@ -596,22 +609,33 @@ export function BookingForm({
       <aside className="order-1 space-y-6 lg:order-2 lg:sticky lg:top-6">
         <div className="card p-6">
           <h3 className="font-display text-lg">Wash package</h3>
+          {nothingBookable && (
+            <p className="mt-3 text-sm text-ink-300">
+              {operatorName} hasn’t published their pricing yet, so there’s nothing to book here
+              right now. Check back shortly.
+            </p>
+          )}
           <div className="mt-4 space-y-2">
-            <button
-              type="button"
-              onClick={() => setPackageId('')}
-              className={`flex w-full items-center justify-between gap-3 rounded-xl border px-4 py-3 text-left transition ${
-                !packageId ? 'border-gleam/60 bg-gleam/5' : 'border-white/10 hover:border-white/20'
-              }`}
-            >
-              <div>
-                <div className="text-sm font-medium">Standard wash</div>
-                <div className="text-xs text-ink-400">
-                  {isPartner && openSlotPriceCents ? 'Priced by the wash type you picked' : 'The operator’s regular wash'}
+            {/* The standard wash is the operator's own regular-wash rate, not the
+                cheapest thing on their menu — an operator who hasn't set one
+                simply doesn't offer it (see lib/wash-pricing.ts). */}
+            {standardWashAvailable && (
+              <button
+                type="button"
+                onClick={() => setPackageId('')}
+                className={`flex w-full items-center justify-between gap-3 rounded-xl border px-4 py-3 text-left transition ${
+                  !packageId ? 'border-gleam/60 bg-gleam/5' : 'border-white/10 hover:border-white/20'
+                }`}
+              >
+                <div>
+                  <div className="text-sm font-medium">Standard wash</div>
+                  <div className="text-xs text-ink-400">
+                    {isPartner && openSlotPriceCents ? 'Priced by the wash type you picked' : 'The operator’s regular wash'}
+                  </div>
                 </div>
-              </div>
-              <span className="whitespace-nowrap font-display text-sm">{money(standardWashCents)}</span>
-            </button>
+                <span className="whitespace-nowrap font-display text-sm">{money(standardWashCents)}</span>
+              </button>
+            )}
             {packages.map((p) => {
               const tiers = parseSizePrices(p.size_prices);
               const checked = packageId === p.id;
