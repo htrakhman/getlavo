@@ -160,23 +160,23 @@ export function BookingCalendar({
   return (
     <div>
       {/* Month header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.04] px-2 py-2">
         <button
           type="button"
           onClick={() => setMonthIndex((i) => Math.max(0, i - 1))}
           disabled={monthIndex <= 0}
           aria-label="Previous month"
-          className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 text-ink-300 transition hover:border-white/25 hover:text-ink-100 disabled:opacity-25 disabled:hover:border-white/10"
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-ink-900 text-lg leading-none text-ink-300 transition hover:border-gleam/40 hover:text-gleam active:scale-95 disabled:opacity-25 disabled:hover:border-white/10 disabled:hover:text-ink-300"
         >
           ‹
         </button>
-        <div className="font-display text-lg">{monthTitle(monthKey)}</div>
+        <div className="font-display text-lg font-semibold tracking-tight">{monthTitle(monthKey)}</div>
         <button
           type="button"
           onClick={() => setMonthIndex((i) => Math.min(months.length - 1, i + 1))}
           disabled={monthIndex >= months.length - 1}
           aria-label="Next month"
-          className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 text-ink-300 transition hover:border-white/25 hover:text-ink-100 disabled:opacity-25 disabled:hover:border-white/10"
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-ink-900 text-lg leading-none text-ink-300 transition hover:border-gleam/40 hover:text-gleam active:scale-95 disabled:opacity-25 disabled:hover:border-white/10 disabled:hover:text-ink-300"
         >
           ›
         </button>
@@ -185,7 +185,7 @@ export function BookingCalendar({
       {/* Weekday header */}
       <div className="mt-4 grid grid-cols-7 gap-1.5 sm:gap-2">
         {WEEKDAYS.map((w) => (
-          <div key={w} className="pb-1 text-center text-[11px] uppercase tracking-widest text-ink-500">
+          <div key={w} className="pb-1 text-center text-[11px] font-medium uppercase tracking-widest text-ink-500">
             {w.slice(0, 3)}
           </div>
         ))}
@@ -213,11 +213,11 @@ export function BookingCalendar({
               aria-label={`${longLabel(iso)}${open ? `, ${day!.slots.length} times open` : ', unavailable'}`}
               disabled={!open}
               onClick={() => onSelectDate(iso)}
-              className={`relative flex aspect-square flex-col items-center justify-center rounded-xl border text-sm transition ${
+              className={`relative flex aspect-square flex-col items-center justify-center rounded-xl border text-sm transition duration-150 ${
                 isSelected
-                  ? 'border-gleam/70 bg-gleam/10 text-gleam shadow-glow'
+                  ? 'scale-[1.04] border-gleam bg-gleam text-ink-950 shadow-glow'
                   : open
-                    ? 'border-white/10 bg-ink-900/40 text-ink-100 hover:border-gleam/40 hover:bg-gleam/5'
+                    ? 'border-white/10 bg-ink-900 text-ink-100 hover:-translate-y-0.5 hover:border-gleam/50 hover:bg-gleam/[0.07] hover:text-gleam'
                     : day
                       // In the booking window but the operator isn't serving.
                       ? 'cursor-not-allowed border-transparent bg-white/5 text-ink-500/70'
@@ -225,11 +225,11 @@ export function BookingCalendar({
                       : 'cursor-not-allowed border-transparent text-ink-500/50'
               }`}
             >
-              <span className={`font-display text-base leading-none ${isSelected ? 'font-semibold' : ''}`}>
+              <span className={`font-display text-base leading-none ${isSelected ? 'font-bold' : 'font-medium'}`}>
                 {dayNum}
               </span>
               {open ? (
-                <span className={`mt-1 text-[10px] leading-none ${isSelected ? 'text-gleam' : 'text-ink-500'}`}>
+                <span className={`mt-1 text-[10px] leading-none ${isSelected ? 'text-ink-950/75' : 'text-ink-500'}`}>
                   {day!.slots.length} open
                 </span>
               ) : day?.full ? (
@@ -251,7 +251,7 @@ export function BookingCalendar({
           <span className="h-2.5 w-2.5 rounded-[4px] border border-white/10 bg-ink-900/40" aria-hidden /> Available
         </span>
         <span className="inline-flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-[4px] border border-gleam/70 bg-gleam/20" aria-hidden /> Selected
+          <span className="h-2.5 w-2.5 rounded-[4px] border border-gleam bg-gleam" aria-hidden /> Selected
         </span>
         <span className="inline-flex items-center gap-1.5">
           <span className="h-2.5 w-2.5 rounded-[4px] bg-white/5" aria-hidden /> No service
@@ -290,18 +290,23 @@ function TimeSlots({
     <div className={className}>
       {selectedDay && grouped.length > 0 ? (
         <>
-          <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <div className={showDayLabel ? 'font-display text-base' : 'text-[11px] uppercase tracking-widest text-ink-500'}>
-              {showDayLabel ? longLabel(selectedDay.date) : 'Pick a time'}
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2.5">
+              <span className="h-6 w-1 rounded-full bg-gleam" aria-hidden />
+              <span className="font-display text-base font-semibold tracking-tight">
+                {showDayLabel ? longLabel(selectedDay.date) : 'Pick a time'}
+              </span>
             </div>
-            <div className="text-xs text-ink-500">
+            <span className="chip border-gleam/25 bg-gleam/[0.07] text-gleam">
               {selectedDay.slots.length} time{selectedDay.slots.length === 1 ? '' : 's'} available
-            </div>
+            </span>
           </div>
           <div className="mt-4 space-y-4" role="radiogroup" aria-label="Choose a time">
             {grouped.map((group) => (
               <div key={group.label}>
-                <div className="mb-2 text-[11px] uppercase tracking-widest text-ink-500">{group.label}</div>
+                <div className="mb-2 text-[11px] font-medium uppercase tracking-widest text-ink-500">
+                  {group.label}
+                </div>
                 <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-5">
                   {group.slots.map((time) => {
                     const isSelected = time === selectedTime;
@@ -312,10 +317,10 @@ function TimeSlots({
                         role="radio"
                         aria-checked={isSelected}
                         onClick={() => onSelectTime(time)}
-                        className={`rounded-xl border px-2 py-2.5 text-center text-sm transition ${
+                        className={`rounded-xl border px-2 py-2.5 text-center text-sm tabular-nums transition duration-150 ${
                           isSelected
-                            ? 'border-gleam/70 bg-gleam/15 font-semibold text-gleam shadow-glow'
-                            : 'border-white/10 bg-ink-900/60 text-ink-100 hover:border-gleam/40'
+                            ? 'border-gleam bg-gleam font-bold text-ink-950 shadow-glow'
+                            : 'border-white/10 bg-ink-900 font-medium text-ink-100 hover:-translate-y-0.5 hover:border-gleam/50 hover:text-gleam'
                         }`}
                       >
                         {time}

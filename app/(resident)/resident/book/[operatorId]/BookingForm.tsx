@@ -183,14 +183,8 @@ export function BookingForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [availability]);
 
-  useEffect(() => {
-    // Open on the soonest bookable day so the resident lands on a real set of
-    // times instead of an empty slot grid.
-    if (date) return;
-    const first = calendarDays.find((d) => d.slots.length > 0);
-    if (first) setDate(first.date);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [calendarDays, date]);
+  // No day is picked for the resident on load — the calendar opens empty and
+  // waits for a real choice, so nobody checks out on a date they never chose.
 
   useEffect(() => {
     // Keep the time inside the chosen day's open hours.
@@ -302,30 +296,48 @@ export function BookingForm({
 
         {/* The calendar — the centerpiece of the page, and the first thing
             the resident acts on. */}
-        <div ref={calendarRef} className="card scroll-mt-4 p-6">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <h3 className="font-display text-lg">Pick a date &amp; time</h3>
-              <p className="mt-1 text-xs text-ink-500">
-                Hourly slots come straight from {operatorName}’s working hours for that day.
-              </p>
+        <div ref={calendarRef} className="card relative scroll-mt-4 overflow-hidden p-6">
+          {/* A soft accent wash behind the header so the booking card reads as
+              the centrepiece rather than one panel among many. */}
+          <div className="pointer-events-none absolute inset-x-0 -top-8 h-48 bg-gleam-fade" aria-hidden />
+
+          <div className="relative">
+            <div className="flex items-start gap-3.5">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-gleam/25 bg-gleam/10 text-gleam">
+                <CalendarGlyph />
+              </span>
+              <div>
+                <h3 className="font-display text-xl font-semibold tracking-tight">Pick a date &amp; time</h3>
+                <p className="mt-1 text-xs leading-relaxed text-ink-500">
+                  Hourly slots come straight from {operatorName}’s working hours for that day.
+                </p>
+              </div>
             </div>
-            <div className="flex flex-wrap items-center gap-2">
+
+            {/* The two choices the resident is actually making, big enough to
+                read at a glance and obviously incomplete until both are set. */}
+            <div className="mt-5 grid gap-2.5 sm:grid-cols-2">
               {(selectedPackage || standardWashAvailable) && (
-                <span className="chip text-ink-200">
-                  {selectedPackage ? selectedPackage.name : 'Standard wash'} · {money(washCents)}
-                </span>
+                <SummaryTile
+                  label="Your wash"
+                  icon={<SparkleGlyph />}
+                  value={selectedPackage ? selectedPackage.name : 'Standard wash'}
+                  meta={money(washCents)}
+                  filled
+                />
               )}
-              {date && (
-                <span className="chip text-ink-200">
-                  {longLabel(date)} · {timeSlot}
-                </span>
-              )}
+              <SummaryTile
+                label="When"
+                icon={<ClockGlyph />}
+                value={date ? longLabel(date) : 'Choose a date below'}
+                meta={date && timeSlot ? timeSlot : undefined}
+                filled={!!date && !!timeSlot}
+              />
             </div>
           </div>
 
           {isPartner && standardWashAvailable && openSlotPriceCents && (
-            <div className="mt-5">
+            <div className="relative mt-6">
               <label className="label">Wash type</label>
               <div className="grid gap-2 sm:grid-cols-2">
                 <button
@@ -358,7 +370,7 @@ export function BookingForm({
             </div>
           )}
 
-          <div className="mt-5">
+          <div className="relative mt-6">
             <BookingCalendar
               days={calendarDays}
               selectedDate={date || null}
@@ -692,5 +704,88 @@ export function BookingForm({
         )}
       </aside>
     </div>
+  );
+}
+
+/**
+ * One half of the booking summary strip above the calendar — the wash on the
+ * left, the date and time on the right. An unfilled tile stays dashed and grey
+ * so a half-finished booking is obvious without reading a word.
+ */
+function SummaryTile({
+  label,
+  icon,
+  value,
+  meta,
+  filled,
+}: {
+  label: string;
+  icon: React.ReactNode;
+  value: string;
+  meta?: string;
+  filled: boolean;
+}) {
+  return (
+    <div
+      className={`flex items-center gap-3 rounded-2xl border px-3.5 py-3 transition ${
+        filled
+          ? 'border-gleam/30 bg-gleam/[0.07] shadow-glow'
+          : 'border-dashed border-ink-600 bg-white/[0.03]'
+      }`}
+    >
+      <span
+        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border ${
+          filled ? 'border-gleam/25 bg-gleam/10 text-gleam' : 'border-white/10 bg-white/5 text-ink-500'
+        }`}
+      >
+        {icon}
+      </span>
+      <span className="min-w-0">
+        <span className="block text-[10px] uppercase tracking-[0.16em] text-ink-500">{label}</span>
+        <span
+          className={`block truncate font-display text-sm font-semibold ${
+            filled ? 'text-ink-100' : 'text-ink-400'
+          }`}
+        >
+          {value}
+        </span>
+      </span>
+      {meta && (
+        <span className="ml-auto shrink-0 font-display text-sm font-semibold tabular-nums text-gleam">
+          {meta}
+        </span>
+      )}
+    </div>
+  );
+}
+
+function CalendarGlyph() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"
+         strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <rect x="3" y="5" width="18" height="16" rx="3" />
+      <path d="M3 10h18M8 3v4M16 3v4" />
+      <circle cx="8.5" cy="15" r="1.2" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+function ClockGlyph() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"
+         strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7.5V12l3 1.8" />
+    </svg>
+  );
+}
+
+function SparkleGlyph() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"
+         strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M12 3.5l1.9 4.9 4.9 1.9-4.9 1.9L12 17.1l-1.9-4.9L5.2 10.3l4.9-1.9L12 3.5z" />
+      <path d="M18.5 16.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7.7-1.8z" />
+    </svg>
   );
 }
