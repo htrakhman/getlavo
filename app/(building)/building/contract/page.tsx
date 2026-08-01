@@ -126,11 +126,14 @@ export default async function ContractPage() {
   const isSigned = !!contract?.manager_signed_at;
   const operatorSigned = !!contract?.operator_signed_at;
   const isFullyExecuted = contract?.status === 'executed' || (isSigned && operatorSigned);
+  // Same condition the sidebar uses to red-dot "My operator" — badges the
+  // Contract tab here too so the dot isn't nav-only.
+  const contractPending = contract?.status === 'pending_signatures' && !isSigned;
 
   return (
     <>
       <PageHeader eyebrow={building.name} title="Service agreement" />
-      <OperatorTabs active="/building/contract" />
+      <OperatorTabs active="/building/contract" contractPending={contractPending} />
 
       {isFullyExecuted && (
         <div className="mb-6 flex items-center gap-3 rounded-xl border border-gleam/30 bg-gleam/10 px-5 py-3">

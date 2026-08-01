@@ -28,6 +28,19 @@ export default async function MyOperator() {
     ? await admin.from('buildings').select('id, name, wash_day, preferred_wash_day, requested_wash_dates, lat, lng').eq('id', bSel.id).maybeSingle()
     : { data: null };
 
+  // Same "awaiting manager signature" check that flags "My operator" in the
+  // sidebar — badges the Contract tab here too so the dot isn't nav-only.
+  const { data: pendingContract } = building
+    ? await sb
+        .from('contracts')
+        .select('id')
+        .eq('building_id', building.id)
+        .eq('status', 'pending_signatures')
+        .is('manager_signed_at', null)
+        .limit(1)
+        .maybeSingle()
+    : { data: null };
+
   // Admin client: RLS-scoped partnership reads can silently return nothing for
   // managers, leaving this page stuck on "We're finding your crew" after a match.
   const { data: partnershipRows, error: partnershipError } = building
@@ -128,7 +141,7 @@ export default async function MyOperator() {
   return (
     <>
       <PageHeader eyebrow="Operator" title="My operator" />
-      <OperatorTabs active="/building/marketplace" />
+      <OperatorTabs active="/building/marketplace" contractPending={!!pendingContract} />
 
       {!operator ? (
         <div className="space-y-8">
