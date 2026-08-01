@@ -11,7 +11,7 @@ import { parseDateList } from '@/lib/wash-dates';
 import Link from 'next/link';
 import { money, dateShort } from '@/lib/format';
 import { hasApprovedInsurance } from '@/lib/insurance';
-import { operatorSetup, pendingLabel } from '@/lib/operator-readiness';
+import { operatorSetup, pendingLabel, setupChipLabel } from '@/lib/operator-readiness';
 import { OperatorTabs } from './OperatorTabs';
 
 export default async function MyOperator() {
@@ -81,13 +81,14 @@ export default async function MyOperator() {
     : { data: null };
 
   // Load marketplace operators when no partner assigned. Operators still
-  // finishing setup are listed too — they're badged below rather than hidden,
-  // so a manager can see who is coming online in their area.
+  // finishing setup — or still awaiting our review — are listed too. They're
+  // badged below rather than hidden, so a manager can see who is coming online
+  // in their area instead of an empty marketplace.
   const { data: operators } = !operator
     ? await sb
         .from('operators')
-        .select('id, name, description, rating_avg, rating_count, base_price_cents, open_slot_price_cents, service_radius_miles, insurance_expires_at, insurance_review_status, stripe_onboarding_complete')
-        .eq('status', 'approved')
+        .select('id, name, status, description, rating_avg, rating_count, base_price_cents, open_slot_price_cents, service_radius_miles, insurance_expires_at, insurance_review_status, stripe_onboarding_complete')
+        .in('status', ['approved', 'pending_review'])
         .order('promoted_listing', { ascending: false })
         .order('rating_avg', { ascending: false })
         .limit(20)
@@ -184,15 +185,18 @@ export default async function MyOperator() {
                         <span className="chip text-gleam/80">✓ Insured</span>
                       )}
                       {!setup.requestable && (
-                        <span className="chip text-amber-600">Setting up</span>
+                        <span className="chip text-amber-600">{setupChipLabel(setup)}</span>
                       )}
                     </div>
                     {setup.requestable ? (
                       <div className="mt-4 text-xs text-gleam">View &amp; request →</div>
                     ) : (
                       <div className="mt-4 text-xs text-amber-600">
-                        Still finishing their {pendingLabel(setup.pending)} — you can view their
-                        profile, but can&rsquo;t request them yet.
+                        {setup.awaitingReview
+                          ? 'New to Lavo and not verified yet'
+                          : 'Still finishing setup'}
+                        {' — '}waiting on {pendingLabel(setup.pending)}. You can view their profile,
+                        but can&rsquo;t request them yet.
                       </div>
                     )}
                   </Link>
