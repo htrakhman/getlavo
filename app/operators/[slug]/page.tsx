@@ -29,9 +29,11 @@ export default async function PublicOperatorPage({ params }: { params: { slug: s
     <main className="mx-auto max-w-2xl px-6 py-12">
       <h1 className="font-display text-4xl">{op.name}</h1>
       {op.description && <p className="mt-3 text-ink-300">{op.description}</p>}
-      <p className="mt-4 text-sm text-ink-500">
-        From {((op.base_price_cents ?? 0) / 100).toFixed(0)} dollars on building wash days when partnered.
-      </p>
+      {(op.base_price_cents ?? 0) > 0 && (
+        <p className="mt-4 text-sm text-ink-500">
+          From {((op.base_price_cents as number) / 100).toFixed(0)} dollars on building wash days when partnered.
+        </p>
+      )}
       <div className="mt-8 space-y-3">
         {(pkgs ?? []).map((p) => {
           const sizePrices = parseSizePrices(p.size_prices);

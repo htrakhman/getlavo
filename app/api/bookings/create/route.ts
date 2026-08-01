@@ -166,14 +166,24 @@ async function createBooking(req: Request) {
     packageRow = pkg;
   }
 
-  // No package selected means the standard wash, which is priced off the
-  // building's agreement with this operator rather than their profile — the
-  // same resolution the booking form quoted (see lib/wash-pricing.ts).
+  // No package selected means the standard wash: the rate the operator set for
+  // their regular wash, or the one this building's agreement fixed — the same
+  // resolution the booking form quoted (see lib/wash-pricing.ts).
   const washPricing = await standardWashPricing(admin, {
     buildingId: resident.building_id,
     operatorId,
     operator,
   });
+
+  // An operator with no standard wash rate has no standard wash to sell. The
+  // form hides the option; a stale tab could still post it, and charging $0
+  // would be worse than saying no.
+  if (!packageRow && !washPricing.available) {
+    return NextResponse.json(
+      { error: 'This operator hasn’t priced their standard wash yet — please choose a package.' },
+      { status: 400 },
+    );
+  }
 
   const baseGrossCents = packageRow ? packageRow.price_cents : washCentsFor(washPricing, bookingType);
 

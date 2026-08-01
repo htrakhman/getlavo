@@ -1,6 +1,5 @@
 'use client';
 import { useState } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabaseBrowser } from '@/lib/supabase/client';
 import {
@@ -30,12 +29,12 @@ export function PackagesEditor({ operatorId, initial }: { operatorId: string; in
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
 
-  // Editing this menu deliberately leaves the operator's base price per wash
+  // Editing this menu deliberately leaves the operator's standard wash price
   // alone. It used to track the cheapest active package, which meant a single
   // cheap item silently repriced the standard wash in every partnered building
-  // (a $1.00 package took eleven buildings down to $1.00). The base price is
-  // what the operator agreed with each building, and it is set in the agreement
-  // builder under Contracts — see lib/wash-pricing.ts.
+  // (a $1.00 test package took the standard wash down to $1.00). The standard
+  // wash is a rate the operator states, in the Standard wash card above — see
+  // lib/wash-pricing.ts.
   async function remove(id: string) {
     const sb = supabaseBrowser();
     await sb.from('service_packages').update({ active: false }).eq('id', id);
@@ -52,8 +51,7 @@ export function PackagesEditor({ operatorId, initial }: { operatorId: string; in
           <h3 className="font-display text-xl">Service packages</h3>
           <p className="text-xs text-ink-500 mt-0.5">Residents choose from these when booking — think Fiverr gig tiers</p>
           <p className="text-xs text-ink-500 mt-0.5">
-            Your standard wash is priced separately, in your{' '}
-            <Link href="/operator/contracts" className="text-gleam hover:underline">building agreement</Link>.
+            Your standard wash is priced separately, in the Standard wash card above.
           </p>
         </div>
         {/* Add and Edit panels are mutually exclusive — opening one closes the

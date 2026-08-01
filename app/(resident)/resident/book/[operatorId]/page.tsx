@@ -50,8 +50,9 @@ export default async function BookOperator({
     listBookableAddons(admin, operator.id),
     listRecurringAddonIds(admin, resident.id, operator.id),
     getPackagesForOperator(admin, operator.id),
-    // The standard wash is priced off the building's agreement with this
-    // operator, not off the operator's service menu — see lib/wash-pricing.ts.
+    // The standard wash is the rate the operator set for their regular wash (or
+    // the one this building signed), never a price read off their service menu
+    // — see lib/wash-pricing.ts.
     standardWashPricing(admin, {
       buildingId: resident.building_id,
       operatorId: operator.id,
@@ -85,6 +86,7 @@ export default async function BookOperator({
           operatorName={operator.name}
           basePriceCents={washPricing.buildingDayCents}
           openSlotPriceCents={washPricing.openSlotCents}
+          standardWashAvailable={washPricing.available}
           vehicles={vehicles ?? []}
           isPartner={isPartner}
           partnershipId={searchParams.partnershipId}

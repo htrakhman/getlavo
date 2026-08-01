@@ -3,6 +3,7 @@ import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
 import { insuranceDocViewUrl } from '@/lib/insurance-doc';
 import { redirect } from 'next/navigation';
 import { OperatorProfileEditor } from './OperatorProfileEditor';
+import { StandardWashEditor } from './StandardWashEditor';
 import { PackagesEditor } from './PackagesEditor';
 import { AddonsEditor } from './AddonsEditor';
 import { InsuranceUploader } from './InsuranceUploader';
@@ -45,6 +46,7 @@ export default async function OperatorProfilePage() {
   const needsWashDays = !hasWashDays;
   const needsStripe = !op.stripe_onboarding_complete;
   const needsPackages = activePackages.length === 0;
+  const needsStandardWash = (op.base_price_cents ?? 0) <= 0;
 
   return (
     <>
@@ -57,6 +59,8 @@ export default async function OperatorProfilePage() {
         <PortfolioEditor operatorId={op.id} initial={portfolio ?? []} />
 
         <Flagged show={needsStripe}><StripeConnectSection initialConnected={!!op.stripe_onboarding_complete} /></Flagged>
+
+        <Flagged show={needsStandardWash}><StandardWashEditor op={op} /></Flagged>
 
         <Flagged show={needsPackages}><PackagesEditor operatorId={op.id} initial={packages ?? []} /></Flagged>
 

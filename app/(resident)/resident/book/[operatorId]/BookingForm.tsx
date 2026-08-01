@@ -29,6 +29,7 @@ export function BookingForm({
   operatorName,
   basePriceCents,
   openSlotPriceCents,
+  standardWashAvailable,
   vehicles,
   isPartner,
   partnershipId,
@@ -43,7 +44,9 @@ export function BookingForm({
   operatorName: string;
   basePriceCents: number;
   openSlotPriceCents: number | null;
-  vehicles: { id: string; make: string; model: string; color: string; license_plate: string; is_primary: boolean }[];
+  /** False when the operator has published no standard wash rate — packages only. */
+  standardWashAvailable: boolean;
+  vehicles:{ id: string; make: string; model: string; color: string; license_plate: string; is_primary: boolean }[];
   isPartner: boolean;
   partnershipId?: string;
   initialDate?: string;
@@ -60,8 +63,10 @@ export function BookingForm({
   const [vehicleId, setVehicleId] = useState(vehicles.find((v) => v.is_primary)?.id ?? vehicles[0]?.id ?? '');
   // The operator's published wash packages (Basic, Premium, Full detail…),
   // when they've set any up. Picking one overrides the flat building-day /
-  // on-demand price below with that package's price.
-  const [packageId, setPackageId] = useState('');
+  // on-demand price below with that package's price. An empty selection means
+  // the standard wash, so it can only be the default when there is one —
+  // otherwise the form would open on a wash the operator hasn't priced.
+  const [packageId, setPackageId] = useState(standardWashAvailable ? '' : (packages[0]?.id ?? ''));
   const selectedPackage = packages.find((p) => p.id === packageId) ?? null;
   // A slot picked on the QR landing calendar arrives via query params.
   const [date, setDate] = useState(() =>
@@ -114,9 +119,15 @@ export function BookingForm({
 
   const washCents = selectedPackage
     ? selectedPackage.price_cents
-    : bookingType === 'building_day'
-      ? basePriceCents
-      : (openSlotPriceCents ?? basePriceCents);
+    : standardWashAvailable
+      ? bookingType === 'building_day'
+        ? basePriceCents
+        : (openSlotPriceCents ?? basePriceCents)
+      : 0;
+
+  // Nothing to sell: no standard wash rate and no packages. Better to say so
+  // than to run a resident through checkout for a $0.00 wash.
+  const nothingBookable = !standardWashAvailable && packages.length === 0;
 
   const selectedAddons = addons.filter((a) => addonIds.includes(a.id));
   const addonCents = selectedAddons.reduce((sum, a) => sum + a.price_cents, 0);
@@ -212,7 +223,14 @@ export function BookingForm({
     <div className="card sticky top-6 h-fit p-6 space-y-5">
       <h3 className="font-display text-xl">Book a wash</h3>
 
-      {isPartner && openSlotPriceCents && (
+      {nothingBookable && (
+        <div className="rounded-xl border border-white/10 bg-ink-800/50 p-4 text-sm text-ink-300">
+          {operatorName} hasn't published their pricing yet, so there's nothing to book here right
+          now. Check back shortly.
+        </div>
+      )}
+
+      {isPartner && standardWashAvailable && openSlotPriceCents && (
         <div>
           <label className="label">Booking type</label>
           <div className="space-y-2">
@@ -250,23 +268,28 @@ export function BookingForm({
         <div>
           <label className="label">Wash package</label>
           <div className="space-y-2">
-            <button
-              type="button"
-              onClick={() => setPackageId('')}
-              className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left transition ${
-                !packageId ? 'border-gleam/60 bg-gleam/5' : 'border-white/10 hover:border-white/20'
-              }`}
-            >
-              <div>
-                <div className="text-sm font-medium">Standard wash</div>
-                <div className="text-xs text-ink-400">
-                  {isPartner && openSlotPriceCents ? 'Priced by booking type above' : 'The operator’s regular wash'}
+            {/* The standard wash is the operator's own regular-wash rate, not the
+                cheapest thing on their menu — an operator who hasn't set one
+                simply doesn't offer it (see lib/wash-pricing.ts). */}
+            {standardWashAvailable && (
+              <button
+                type="button"
+                onClick={() => setPackageId('')}
+                className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left transition ${
+                  !packageId ? 'border-gleam/60 bg-gleam/5' : 'border-white/10 hover:border-white/20'
+                }`}
+              >
+                <div>
+                  <div className="text-sm font-medium">Standard wash</div>
+                  <div className="text-xs text-ink-400">
+                    {isPartner && openSlotPriceCents ? 'Priced by booking type above' : 'The operator’s regular wash'}
+                  </div>
                 </div>
-              </div>
-              <span className="font-display">
-                {money(bookingType === 'building_day' ? basePriceCents : (openSlotPriceCents ?? basePriceCents))}
-              </span>
-            </button>
+                <span className="font-display">
+                  {money(bookingType === 'building_day' ? basePriceCents : (openSlotPriceCents ?? basePriceCents))}
+                </span>
+              </button>
+            )}
             {packages.map((p) => {
               const tiers = parseSizePrices(p.size_prices);
               const checked = packageId === p.id;
@@ -470,7 +493,7 @@ export function BookingForm({
 
       <button
         onClick={book}
-        disabled={busy || !vehicleId || !date || (needsWaiver && !agreeWaiver)}
+        disabled={busy || nothingBookable || !vehicleId || !date || (needsWaiver && !agreeWaiver)}
         className="btn-primary w-full"
       >
         {busy

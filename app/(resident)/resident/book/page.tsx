@@ -92,6 +92,10 @@ export default async function ResidentBook() {
               const dist = building.lat && building.lng && op.lat && op.lng
                 ? haversineMiles(building.lat, building.lng, op.lat, op.lng).toFixed(1)
                 : null;
+              // An operator who hasn't set a standard wash rate has no headline
+              // price. Say nothing rather than quote $0.00 — their packages are
+              // still on the booking page.
+              const headlineCents = op.open_slot_price_cents || op.base_price_cents || null;
               return (
                 <Link
                   key={op.id}
@@ -106,12 +110,12 @@ export default async function ResidentBook() {
                         {dist && <>{dist} mi away</>}
                       </div>
                     </div>
-                    <div className="text-right shrink-0">
-                      <div className="text-xs text-ink-400">On-demand</div>
-                      <div className="font-display text-lg">
-                        {money(op.open_slot_price_cents ?? op.base_price_cents)}
+                    {headlineCents && (
+                      <div className="text-right shrink-0">
+                        <div className="text-xs text-ink-400">On-demand</div>
+                        <div className="font-display text-lg">{money(headlineCents)}</div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 </Link>
               );
