@@ -32,12 +32,12 @@ export async function POST(req: Request) {
 
   const { data: operator } = await sb
     .from('operators')
-    .select('id, name, owner_id, status, base_price_cents, hours_json')
+    .select('id, name, owner_id, status, base_price_cents, hours_json, stripe_onboarding_complete, insurance_doc_url')
     .eq('owner_id', session.user.id)
     .maybeSingle();
   if (!operator) return NextResponse.json({ error: 'Operator not found' }, { status: 404 });
-  if (operator.status !== 'approved') {
-    return NextResponse.json({ error: 'Your operator profile must be approved first' }, { status: 403 });
+  if (['suspended', 'rejected'].includes(operator.status ?? '')) {
+    return NextResponse.json({ error: 'Your operator account is not active. Contact support.' }, { status: 403 });
   }
 
   // Required-field gate: the agreement can't be sent until the profile has the

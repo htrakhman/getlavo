@@ -76,14 +76,13 @@ export default async function OperatorOverview({ searchParams }: { searchParams:
     insurance: 'Insurance certificate uploaded',
   };
 
-  const checklist = [
-    { label: 'Application approved', done: op.status === 'approved' },
-    ...operatorRequirements(op, activePackages ?? 0).map((r) => ({
-      label: LABELS[r.key] ?? r.label,
-      done: r.done,
-      href: HREFS[r.key],
-    })),
-  ];
+  // No "application approved" row: approval is automatic once the list below is
+  // complete (migration 0046), so there is nothing for the operator to wait on.
+  const checklist = operatorRequirements(op, activePackages ?? 0).map((r) => ({
+    label: LABELS[r.key] ?? r.label,
+    done: r.done,
+    href: HREFS[r.key],
+  }));
   const incomplete = checklist.filter((c) => !c.done);
 
   return (
@@ -114,7 +113,8 @@ export default async function OperatorOverview({ searchParams }: { searchParams:
           <div className="font-medium text-amber-700">Finish setup to start receiving washes</div>
           <p className="mt-0.5 text-xs text-amber-600/70">
             Buildings can see you in the marketplace now, but can&rsquo;t request you — and residents
-            can&rsquo;t book — until everything below is checked off.
+            can&rsquo;t book — until everything below is checked off. There&rsquo;s no waiting on us:
+            you go live the moment the last box is ticked.
           </p>
           <ul className="mt-4 space-y-2">
             {checklist.map((c) => (
