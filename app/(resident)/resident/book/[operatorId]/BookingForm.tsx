@@ -1,6 +1,7 @@
 'use client';
 import { money, plateLabel } from '@/lib/format';
-import { parseSizePrices, sizeLabel } from '@/lib/vehicle-sizes';
+import { parseSizePrices } from '@/lib/vehicle-sizes';
+import { SizePriceList } from '@/components/SizePriceList';
 import { captureEvent } from '@/lib/analytics';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -276,15 +277,7 @@ export function BookingForm({
                     />
                     <span className="min-w-0">
                       <span className="block text-sm font-medium">{a.label}</span>
-                      {tiers.length > 0 && (
-                        <span className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-ink-500">
-                          {tiers.map((t) => (
-                            <span key={t.size}>
-                              {sizeLabel(t.size)} {money(t.price_cents)}
-                            </span>
-                          ))}
-                        </span>
-                      )}
+                      <SizePriceList raw={a.size_prices} format={money} className="mt-1 text-xs text-ink-500" />
                     </span>
                   </span>
                   <span className="whitespace-nowrap font-display text-sm">

@@ -1,7 +1,8 @@
 import { supabaseServer } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { money } from '@/lib/format';
-import { parseSizePrices, sizeLabel } from '@/lib/vehicle-sizes';
+import { parseSizePrices } from '@/lib/vehicle-sizes';
+import { SizePriceList } from '@/components/SizePriceList';
 import Link from 'next/link';
 import { BuildingAttributor } from '@/app/b/[slug]/BuildingAttributor';
 import { Logo } from '@/components/Logo';
@@ -128,16 +129,12 @@ export default async function BuildingCanonicalPage({ params }: { params: { slug
                             <div className="font-display text-lg">{p.name}</div>
                             {p.description && <p className="mt-1 text-sm text-ink-300">{p.description}</p>}
                             {p.est_minutes && <div className="mt-1 text-xs text-ink-500">~{p.est_minutes} min</div>}
-                            {sizePrices.length > 0 && (
-                              <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-ink-400">
-                                {sizePrices.map((sp) => (
-                                  <span key={sp.size}>
-                                    {sizeLabel(sp.size)}{' '}
-                                    <span className="text-gleam" style={accentText}>{money(sp.price_cents)}</span>
-                                  </span>
-                                ))}
-                              </div>
-                            )}
+                            <SizePriceList
+                              raw={p.size_prices}
+                              format={money}
+                              priceStyle={accentText}
+                              className="mt-2 text-xs text-ink-400"
+                            />
                           </div>
                           <div className="font-display text-xl text-gleam shrink-0" style={accentText}>
                             {sizePrices.length > 0 && <span className="text-xs text-ink-400 font-normal">from </span>}

@@ -1,6 +1,8 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { parseSizePrices } from '@/lib/vehicle-sizes';
+import { SizePriceList } from '@/components/SizePriceList';
 
 type Pkg = {
   id: string;
@@ -86,10 +88,11 @@ export function PlanPicker({
                   {currentPackageId === p.id && <span className="chip ml-2 text-gleam">current</span>}
                 </div>
                 {p.description && <p className="mt-1 text-sm text-ink-300">{p.description}</p>}
+                <SizePriceList raw={p.size_prices} className="mt-2 text-xs text-ink-400" />
               </div>
               <div className="shrink-0 text-right">
                 <div className="font-display text-lg text-gleam">
-                  {(p.size_prices?.length ? 'from ' : '') + `$${(p.price_cents / 100).toFixed(0)}`}
+                  {(parseSizePrices(p.size_prices).length ? 'from ' : '') + `$${(p.price_cents / 100).toFixed(0)}`}
                 </div>
                 <div className="text-xs text-ink-400">per wash</div>
               </div>

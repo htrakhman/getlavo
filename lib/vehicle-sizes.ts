@@ -4,24 +4,23 @@
 // each carry an optional price per tier on top of their base price. Labels
 // mirror the language detailers already use on their menus.
 
-export type VehicleSizeId = 'sedan' | 'suv' | 'three_row' | 'truck';
+export type VehicleSizeId = 'sedan' | 'suv' | 'xl';
 
 export const VEHICLE_SIZES: { id: VehicleSizeId; label: string; short: string }[] = [
   { id: 'sedan', label: 'Sedan / Coupe', short: 'Sedan' },
   { id: 'suv', label: 'SUV / Small SUV', short: 'SUV' },
-  { id: 'three_row', label: '3-Row SUV', short: '3-Row' },
-  { id: 'truck', label: 'Pickup Truck / Minivan', short: 'Truck' },
+  { id: 'xl', label: '3-Row SUV / Pickup / Minivan', short: '3-Row / Pickup' },
 ];
 
 export type SizePrice = { size: VehicleSizeId; price_cents: number };
 
 const SIZE_ORDER = VEHICLE_SIZES.map((s) => s.id);
 
-// The original three-tier menu lumped 3-row SUVs, minivans and large pickups
-// into one `xl` tier. Rows written before the split still carry it, so read it
-// as the 3-row tier rather than dropping the operator's top price on the floor.
-// Migration 0049 rewrites stored rows; this keeps any straggler readable.
-const LEGACY_SIZES: Record<string, VehicleSizeId> = { xl: 'three_row' };
+// A brief four-tier version (migration 0049) split the top tier into a 3-row
+// and a pickup/minivan tier. Operators price those together, so 0050 collapsed
+// them back into `xl`. Read both names as `xl` so a row written during that
+// window still renders its price instead of silently losing a tier.
+const LEGACY_SIZES: Record<string, VehicleSizeId> = { three_row: 'xl', truck: 'xl' };
 
 function normalizeSize(raw: unknown): VehicleSizeId | null {
   if (typeof raw !== 'string') return null;
@@ -33,21 +32,26 @@ function normalizeSize(raw: unknown): VehicleSizeId | null {
  * Normalize the raw `size_prices` jsonb into a clean, tier-ordered list.
  * Tolerates nulls, unknown sizes, duplicates and non-numeric prices so a
  * malformed row can never crash a render.
+ *
+ * Two entries can land on the same tier once the legacy names above are
+ * folded in. The higher price wins: the surviving tier has to cover the
+ * biggest vehicle in it, and quoting a pickup at the 3-row rate would have the
+ * operator eat the difference.
  */
 export function parseSizePrices(raw: unknown): SizePrice[] {
   if (!Array.isArray(raw)) return [];
-  const seen = new Set<VehicleSizeId>();
-  const out: SizePrice[] = [];
+  const byTier = new Map<VehicleSizeId, number>();
   for (const r of raw) {
     if (!r || typeof r !== 'object') continue;
     const size = normalizeSize((r as any).size);
     const cents = (r as any).price_cents;
-    if (!size || seen.has(size)) continue;
-    if (!Number.isFinite(cents) || cents <= 0) continue;
-    seen.add(size);
-    out.push({ size, price_cents: Math.round(cents) });
+    if (!size || !Number.isFinite(cents) || cents <= 0) continue;
+    const price = Math.round(cents);
+    byTier.set(size, Math.max(byTier.get(size) ?? 0, price));
   }
-  return out.sort((a, b) => SIZE_ORDER.indexOf(a.size) - SIZE_ORDER.indexOf(b.size));
+  return [...byTier.entries()]
+    .map(([size, price_cents]) => ({ size, price_cents }))
+    .sort((a, b) => SIZE_ORDER.indexOf(a.size) - SIZE_ORDER.indexOf(b.size));
 }
 
 export function sizeLabel(id: VehicleSizeId): string {
