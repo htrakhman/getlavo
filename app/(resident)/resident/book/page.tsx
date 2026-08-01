@@ -64,32 +64,21 @@ export default async function ResidentBook() {
       {partnerOperator && (
         <div className="mb-8">
           <div className="mb-3 text-xs uppercase tracking-widest text-gleam">Your building partner · best rate</div>
-          <Link
-            href={`/resident/book/${partnerOperator.id}?partnershipId=${partnership!.id}`}
-            className="card block p-6 hover:border-gleam/30 transition"
-          >
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex-1">
-                <div className="font-display text-xl">{partnerOperator.name}</div>
-                {partnerOperator.rating_count > 0 && (
-                  <div className="mt-0.5 text-sm text-ink-400">
-                    ★ {Number(partnerOperator.rating_avg).toFixed(1)} · {partnerOperator.rating_count} reviews
-                  </div>
-                )}
-                <p className="mt-2 text-sm text-ink-300 line-clamp-2">{partnerOperator.description}</p>
+          <div className="card p-6">
+            <div className="font-display text-xl">{partnerOperator.name}</div>
+            {partnerOperator.rating_count > 0 && (
+              <div className="mt-0.5 text-sm text-ink-400">
+                ★ {Number(partnerOperator.rating_avg).toFixed(1)} · {partnerOperator.rating_count} reviews
               </div>
-              <div className="shrink-0 text-right">
-                <div className="text-xs text-ink-400">Building day</div>
-                <div className="font-display text-xl text-gleam">{money(partnerOperator.base_price_cents)}</div>
-                {partnerOperator.open_slot_price_cents && (
-                  <>
-                    <div className="mt-2 text-xs text-ink-400">On-demand</div>
-                    <div className="font-display text-lg">{money(partnerOperator.open_slot_price_cents)}</div>
-                  </>
-                )}
-              </div>
-            </div>
-          </Link>
+            )}
+            <p className="mt-2 text-sm text-ink-300 line-clamp-2">{partnerOperator.description}</p>
+            <Link
+              href={`/resident/book/${partnerOperator.id}?partnershipId=${partnership!.id}`}
+              className="btn-primary mt-5 inline-block"
+            >
+              Book a wash →
+            </Link>
+          </div>
         </div>
       )}
 
