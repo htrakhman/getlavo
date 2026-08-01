@@ -1,5 +1,6 @@
 import { getSessionUser } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
+import { normalizeSize, priceForVehicle } from '@/lib/vehicle-sizes';
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
@@ -34,7 +35,7 @@ export async function POST(req: NextRequest) {
 
   const { data: addon } = await admin
     .from('operator_addons')
-    .select('id, label, price_cents, active, operator:operators(id, name, stripe_account_id)')
+    .select('id, label, price_cents, size_prices, active, operator:operators(id, name, stripe_account_id)')
     .eq('id', addonId)
     .maybeSingle();
   if (!addon || !addon.active) return NextResponse.json({ error: 'not found' }, { status: 404 });
@@ -46,7 +47,7 @@ export async function POST(req: NextRequest) {
   const today = new Date().toISOString().slice(0, 10);
   const { data: upcoming } = await admin
     .from('washes')
-    .select('id, wash_day:wash_days!inner(scheduled_for, completed_at)')
+    .select('id, vehicle:vehicles(size), wash_day:wash_days!inner(scheduled_for, completed_at)')
     .eq('resident_id', resident.id)
     .is('completed_at', null)
     .gte('wash_days.scheduled_for', today)
@@ -57,12 +58,29 @@ export async function POST(req: NextRequest) {
     .filter((w: any) => !w.wash_day?.completed_at)
     .sort((a: any, b: any) => String(a.wash_day?.scheduled_for).localeCompare(String(b.wash_day?.scheduled_for)))[0];
 
+  // An add-on the operator prices by vehicle type costs what that resident's
+  // car costs — the vehicle on the wash it's attaching to, or their primary one
+  // when no wash is scheduled yet. Without this the one-off purchase charged the
+  // starting rate whatever they drive.
+  let vehicleSize = normalizeSize((nextWash as any)?.vehicle?.size);
+  if (!vehicleSize) {
+    const { data: primaryVehicle } = await admin
+      .from('vehicles')
+      .select('size')
+      .eq('resident_id', resident.id)
+      .order('is_primary', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    vehicleSize = normalizeSize(primaryVehicle?.size);
+  }
+  const amountCents = priceForVehicle(addon, vehicleSize);
+
   const { data: order, error: orderError } = await admin
     .from('addon_orders')
     .insert({
       resident_id: resident.id,
       operator_addon_id: addon.id,
-      amount_cents: addon.price_cents,
+      amount_cents: amountCents,
       wash_id: nextWash?.id ?? null,
     })
     .select('id')
@@ -90,7 +108,7 @@ export async function POST(req: NextRequest) {
           price_data: {
             currency: 'usd',
             product_data: { name: `${addon.label} — ${operator?.name ?? 'add-on'}` },
-            unit_amount: addon.price_cents,
+            unit_amount: amountCents,
           },
           quantity: 1,
         },

@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { plateLabel } from '@/lib/format';
+import { VehicleSizePicker } from '@/components/VehicleSizePicker';
+import { normalizeSize, sizeLabel, type VehicleSizeId } from '@/lib/vehicle-sizes';
 
 const COLORS = ['White', 'Black', 'Silver', 'Gray', 'Red', 'Blue', 'Green', 'Other'];
 
@@ -129,7 +131,19 @@ export function VehiclesList({ residentId, vehicles }: { residentId: string; veh
                   <div className="mt-1 text-xs text-ink-400">
                     {v.color}
                     {plateLabel(v.license_plate) && <> · <span className="font-mono">{plateLabel(v.license_plate)}</span></>}
+                    {normalizeSize(v.size) && <> · {sizeLabel(normalizeSize(v.size)!)}</>}
                   </div>
+                  {/* Added before vehicle-type pricing existed: until it's
+                      answered this car is quoted at the operator's starting
+                      rate, so say so where the resident can fix it. */}
+                  {!normalizeSize(v.size) && (
+                    <button
+                      onClick={() => setEditing(v.id)}
+                      className="mt-2 block text-left text-xs text-amber-500 hover:underline"
+                    >
+                      Add your vehicle type so washes price correctly →
+                    </button>
+                  )}
                 </div>
                 <div className="flex flex-col gap-1 text-right">
                   <button onClick={() => setEditing(v.id)} className="text-xs text-gleam">Edit</button>
@@ -175,10 +189,15 @@ function VehicleForm({ residentId, vehicle, onDone, onCancel, isFirst }: {
   // Legacy rows may still hold the 'UNKNOWN' sentinel; never seed it into the
   // input or the resident has to delete it before typing a real plate.
   const [plate, setPlate] = useState(plateLabel(vehicle?.license_plate) ?? '');
+  // Vehicles added before vehicle-type pricing have no size on file. There is
+  // no safe default — guessing sedan for a pickup quietly undercharges the
+  // operator — so the form opens unanswered and Save stays disabled until it is.
+  const [size, setSize] = useState<VehicleSizeId | null>(normalizeSize(vehicle?.size));
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
   async function save() {
+    if (!size) return;
     setBusy(true);
     setErr(null);
     const payload = {
@@ -187,6 +206,7 @@ function VehicleForm({ residentId, vehicle, onDone, onCancel, isFirst }: {
       year: year ? parseInt(year, 10) : null,
       color,
       plate: plate || null,
+      size,
     };
     const error = vehicle?.id
       ? await apiCall('/api/residents/vehicles', 'PATCH', { id: vehicle.id, ...payload })
@@ -222,8 +242,11 @@ function VehicleForm({ residentId, vehicle, onDone, onCancel, isFirst }: {
           ))}
         </div>
       </div>
+      <div className="col-span-2">
+        <VehicleSizePicker value={size} onChange={setSize} />
+      </div>
       <div className="col-span-2 flex gap-2">
-        <button onClick={save} disabled={busy || !make || !model} className="btn-primary text-sm">{busy ? 'Saving…' : 'Save'}</button>
+        <button onClick={save} disabled={busy || !make || !model || !size} className="btn-primary text-sm">{busy ? 'Saving…' : 'Save'}</button>
         <button onClick={onCancel} className="btn-quiet text-sm">Cancel</button>
       </div>
       {err && <p className="col-span-2 text-sm text-red-400">{err}</p>}

@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { isPriced } from '@/lib/service-packages';
+import { normalizeSize, priceForVehicle, type VehicleSizeId } from '@/lib/vehicle-sizes';
 
 /**
  * Add-ons (wax, interior, tire shine…) an operator sells on top of a wash.
@@ -21,8 +22,9 @@ export type BookableAddon = {
   price_cents: number;
   /**
    * Optional per-vehicle-type prices (see lib/vehicle-sizes). When set,
-   * price_cents is the lowest of them — the "from" price the menu quotes and
-   * the amount charged, since a booking has no vehicle size to price against.
+   * price_cents is the "from" price the menu quotes; the amount actually
+   * charged is the tier matching the vehicle being washed, resolved by
+   * {@link priceAddonSelection} and {@link recurringAddonsForWash}.
    */
   size_prices?: unknown;
 };
@@ -82,28 +84,35 @@ export type AddonSelection =
  * Ids are re-read server side — the client is never trusted for price, and an
  * id belonging to another operator (or since deactivated) is rejected rather
  * than silently dropped, so the resident never pays a total they didn't see.
+ *
+ * `vehicleSize` picks the tier on an add-on the operator prices by vehicle
+ * type. Each returned add-on carries the resolved amount as its `price_cents`,
+ * so the order row, the Stripe line item and the total all bill the same
+ * figure the resident was quoted.
  */
 export async function priceAddonSelection(
   admin: SupabaseClient,
   operatorId: string,
   addonIds: string[] | undefined,
+  vehicleSize: VehicleSizeId | null = null,
 ): Promise<AddonSelection> {
   const ids = Array.from(new Set(addonIds ?? [])).filter(Boolean);
   if (!ids.length) return { ok: true, addons: [], totalCents: 0 };
 
   const { data, error } = await admin
     .from('operator_addons')
-    .select('id, label, price_cents')
+    .select('id, label, price_cents, size_prices')
     .eq('operator_id', operatorId)
     .eq('active', true)
     .in('id', ids);
   if (error) return { ok: false, error: error.message };
 
-  const addons = (data ?? []) as BookableAddon[];
-  if (addons.length !== ids.length) {
+  const rows = (data ?? []) as BookableAddon[];
+  if (rows.length !== ids.length) {
     return { ok: false, error: 'One of the add-ons you picked is no longer available' };
   }
 
+  const addons = rows.map((a) => ({ ...a, price_cents: priceForVehicle(a, vehicleSize) }));
   const totalCents = addons.reduce((sum, a) => sum + (a.price_cents ?? 0), 0);
   return { ok: true, addons, totalCents };
 }
@@ -201,9 +210,12 @@ export async function syncWashDayAddonOrders(admin: SupabaseClient, washDayId: s
     .maybeSingle();
   if (!day?.operator_id) return;
 
+  // The vehicle comes along because an add-on the operator prices by vehicle
+  // type has to be quoted against the car actually being washed, not at the
+  // starting rate for everyone on the day.
   const { data: washes, error } = await admin
     .from('washes')
-    .select('id, resident_id')
+    .select('id, resident_id, vehicle:vehicles(size)')
     .eq('wash_day_id', washDayId);
   if (error) {
     console.error('syncWashDayAddonOrders: washes query failed:', error.message);
@@ -219,34 +231,37 @@ export async function syncWashDayAddonOrders(admin: SupabaseClient, washDayId: s
   const [{ data: standing }, { data: already }] = await Promise.all([
     admin
       .from('resident_addons')
-      .select('resident_id, operator_addon:operator_addons(id, label, price_cents, operator_id, active)')
+      .select('resident_id, operator_addon:operator_addons(id, label, price_cents, size_prices, operator_id, active)')
       .in('resident_id', residentIds)
       .eq('active', true),
     admin.from('addon_orders').select('wash_id, operator_addon_id').in('wash_id', washIds),
   ]);
 
+  // Held with their tier pricing intact: the amount depends on which car each
+  // wash is for, so it can't be resolved until the wash rows are walked below.
   const wanted = new Map<string, BookableAddon[]>();
   for (const row of standing ?? []) {
     const a = (row as any).operator_addon;
     if (!a || !a.active || a.operator_id !== day.operator_id) continue;
     const list = wanted.get((row as any).resident_id) ?? [];
-    list.push({ id: a.id, label: a.label, price_cents: a.price_cents });
+    list.push({ id: a.id, label: a.label, price_cents: a.price_cents, size_prices: a.size_prices });
     wanted.set((row as any).resident_id, list);
   }
   if (!wanted.size) return;
 
   const have = new Set((already ?? []).map((r: any) => `${r.wash_id}:${r.operator_addon_id}`));
 
-  const rows = washes.flatMap((w: any) =>
-    (wanted.get(w.resident_id) ?? [])
+  const rows = washes.flatMap((w: any) => {
+    const size = normalizeSize(w.vehicle?.size);
+    return (wanted.get(w.resident_id) ?? [])
       .filter((a) => !have.has(`${w.id}:${a.id}`))
       .map((a) => ({
         wash_id: w.id,
         resident_id: w.resident_id,
         operator_addon_id: a.id,
-        amount_cents: a.price_cents,
-      })),
-  );
+        amount_cents: priceForVehicle(a, size),
+      }));
+  });
   if (!rows.length) return;
 
   const { error: insertError } = await admin.from('addon_orders').insert(rows);
@@ -293,18 +308,19 @@ export async function settleWashAddonOrders(
 
 /**
  * The add-ons a packaged resident has standing on every wash, priced against
- * the operator running that wash day. This is what the per-wash charge bills
- * on top of the package price.
+ * the operator running that wash day and the vehicle being washed. This is what
+ * the per-wash charge bills on top of the package price.
  */
 export async function recurringAddonsForWash(
   admin: SupabaseClient,
   residentId: string,
   operatorId: string | null,
+  vehicleSize: VehicleSizeId | null = null,
 ): Promise<BookableAddon[]> {
   if (!operatorId) return [];
   const { data, error } = await admin
     .from('resident_addons')
-    .select('operator_addon:operator_addons(id, label, price_cents, operator_id, active)')
+    .select('operator_addon:operator_addons(id, label, price_cents, size_prices, operator_id, active)')
     .eq('resident_id', residentId)
     .eq('active', true);
   if (error) {
@@ -314,7 +330,7 @@ export async function recurringAddonsForWash(
   return (data ?? [])
     .map((r: any) => r.operator_addon)
     .filter((a: any) => a && a.active && a.operator_id === operatorId)
-    .map((a: any) => ({ id: a.id, label: a.label, price_cents: a.price_cents }));
+    .map((a: any) => ({ id: a.id, label: a.label, price_cents: priceForVehicle(a, vehicleSize) }));
 }
 
 /**

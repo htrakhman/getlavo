@@ -1,8 +1,9 @@
 'use client';
 import { money, plateLabel } from '@/lib/format';
-import { parseSizePrices } from '@/lib/vehicle-sizes';
+import { parseSizePrices, normalizeSize, priceForVehicle, sizeLabel, type VehicleSizeId } from '@/lib/vehicle-sizes';
 import { SizePriceList } from '@/components/SizePriceList';
 import { PackageDescription } from '@/components/PackageDescription';
+import { VehicleSizePicker } from '@/components/VehicleSizePicker';
 import { BookingCalendar, longLabel } from '@/components/BookingCalendar';
 import { ReadonlyField, EditableField } from '@/components/ResidentField';
 import type { AvailabilityDay } from '@/components/DayTimePicker';
@@ -110,6 +111,8 @@ export function BookingForm({
     license_plate: string;
     notes?: string | null;
     is_primary: boolean;
+    /** Null on vehicles added before vehicle-type pricing — asked for below. */
+    size?: string | null;
   }[];
   isPartner: boolean;
   partnershipId?: string;
@@ -206,8 +209,22 @@ export function BookingForm({
   const [spotLabel, setSpotLabel] = useState<string | null>(resident.spotLabel);
   const [accessNotes, setAccessNotes] = useState<string | null>(resident.accessNotes);
 
+  // The vehicle's type is what picks the tier on every price below. It lives on
+  // the vehicle, but it's answerable right here for a car added before the
+  // field existed, so the quote updates the moment it's answered rather than
+  // after a round trip to the vehicle page.
+  const [sizeById, setSizeById] = useState<Record<string, VehicleSizeId>>(() => {
+    const seed: Record<string, VehicleSizeId> = {};
+    for (const v of vehicles) {
+      const s = normalizeSize(v.size);
+      if (s) seed[v.id] = s;
+    }
+    return seed;
+  });
+  const vehicleSize = sizeById[vehicleId] ?? null;
+
   const washCents = selectedPackage
-    ? selectedPackage.price_cents
+    ? priceForVehicle(selectedPackage, vehicleSize)
     : standardWashAvailable
       ? bookingType === 'building_day'
         ? basePriceCents
@@ -218,13 +235,16 @@ export function BookingForm({
   // than to run a resident through checkout for a $0.00 wash.
   const nothingBookable = !standardWashAvailable && packages.length === 0;
 
-  const selectedAddons = addons.filter((a) => addonIds.includes(a.id));
+  const selectedAddons = addons
+    .filter((a) => addonIds.includes(a.id))
+    .map((a) => ({ ...a, price_cents: priceForVehicle(a, vehicleSize) }));
   const addonCents = selectedAddons.reduce((sum, a) => sum + a.price_cents, 0);
 
   const priceCents = washCents + addonCents;
 
   async function book() {
     if (!vehicleId || !date) { setErr('Please select a vehicle and date'); return; }
+    if (!vehicleSize) { setErr('Please choose your vehicle type — it sets the price for your wash.'); return; }
     setBusy(true); setErr(null);
     try {
       const res = await fetch('/api/bookings/create', {
@@ -460,6 +480,25 @@ export function BookingForm({
 
             {selectedVehicle && (
               <>
+                {/* The one vehicle detail that moves the price. Answered here
+                    when it's missing, so a resident is never sent off to their
+                    profile mid-booking, and read-only once it's on file. */}
+                <div className="sm:col-span-2">
+                  {vehicleSize ? (
+                    <ReadonlyField
+                      label="Vehicle type"
+                      value={sizeLabel(vehicleSize)}
+                      lockedNote="Edit under Manage vehicles"
+                      hint="Sets your rate when this operator prices by vehicle type."
+                    />
+                  ) : (
+                    <VehicleSizeSetter
+                      vehicleId={selectedVehicle.id}
+                      onSaved={(size) => setSizeById((prev) => ({ ...prev, [selectedVehicle.id]: size }))}
+                    />
+                  )}
+                </div>
+
                 <ReadonlyField
                   label="Make & model"
                   value={`${selectedVehicle.year ? `${selectedVehicle.year} ` : ''}${selectedVehicle.make} ${selectedVehicle.model}`}
@@ -577,7 +616,7 @@ export function BookingForm({
 
           <button
             onClick={book}
-            disabled={busy || nothingBookable || !vehicleId || !date || (needsWaiver && !agreeWaiver)}
+            disabled={busy || nothingBookable || !vehicleId || !vehicleSize || !date || (needsWaiver && !agreeWaiver)}
             className="btn-primary w-full"
           >
             {busy
@@ -624,6 +663,9 @@ export function BookingForm({
             {packages.map((p) => {
               const tiers = parseSizePrices(p.size_prices);
               const checked = packageId === p.id;
+              // With the vehicle known there is nothing to say "from" about —
+              // this is the price this resident pays for this car.
+              const price = priceForVehicle(p, vehicleSize);
               return (
                 <button
                   type="button"
@@ -643,15 +685,16 @@ export function BookingForm({
                     <SizePriceList raw={p.size_prices} format={money} className="mt-2 text-xs text-ink-500" />
                   </div>
                   <span className="whitespace-nowrap font-display text-sm">
-                    {tiers.length > 0 ? `from ${money(p.price_cents)}` : money(p.price_cents)}
+                    {tiers.length > 0 && !vehicleSize ? `from ${money(price)}` : money(price)}
                   </span>
                 </button>
               );
             })}
           </div>
-          {selectedPackage && parseSizePrices(selectedPackage.size_prices).length > 0 && (
+          {selectedPackage && parseSizePrices(selectedPackage.size_prices).length > 0 && vehicleSize && (
             <p className="mt-2 text-xs text-ink-500">
-              Priced by vehicle type — checks out at the starting rate, your operator confirms the rate for your vehicle.
+              Priced for your {sizeLabel(vehicleSize).toLowerCase()} — that’s the rate you’re charged, no
+              confirmation needed.
             </p>
           )}
         </div>
@@ -664,6 +707,7 @@ export function BookingForm({
               {addons.map((a) => {
                 const checked = addonIds.includes(a.id);
                 const tiers = parseSizePrices(a.size_prices);
+                const price = priceForVehicle(a, vehicleSize);
                 return (
                   <label
                     key={a.id}
@@ -688,16 +732,15 @@ export function BookingForm({
                       </span>
                     </span>
                     <span className="whitespace-nowrap font-display text-sm">
-                      {tiers.length > 0 ? `from ${money(a.price_cents)}` : `+${money(a.price_cents)}`}
+                      {tiers.length > 0 && !vehicleSize ? `from ${money(price)}` : `+${money(price)}`}
                     </span>
                   </label>
                 );
               })}
             </div>
-            {addons.some((a) => parseSizePrices(a.size_prices).length > 0) && (
+            {vehicleSize && addons.some((a) => parseSizePrices(a.size_prices).length > 0) && (
               <p className="mt-2 text-xs text-ink-500">
-                Add-ons priced by vehicle type check out at the starting rate — your operator confirms
-                the rate for your vehicle.
+                Add-ons priced by vehicle type show your {sizeLabel(vehicleSize).toLowerCase()} rate.
               </p>
             )}
             {initialAddonIds.length > 0 && (
@@ -708,6 +751,54 @@ export function BookingForm({
           </div>
         )}
       </aside>
+    </div>
+  );
+}
+
+/**
+ * The vehicle-type question for a car that predates vehicle-type pricing.
+ *
+ * It saves to the vehicle itself rather than to the booking: the answer is a
+ * fact about the car, so answering it once here prices every future wash too.
+ * Until it's answered the prices on this page are the operator's starting
+ * rates, and checkout is blocked — quoting a sedan price for a pickup and
+ * settling up afterwards is exactly the gap this closes.
+ */
+function VehicleSizeSetter({
+  vehicleId,
+  onSaved,
+}: {
+  vehicleId: string;
+  onSaved: (size: VehicleSizeId) => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  async function save(size: VehicleSizeId) {
+    setBusy(true);
+    setErr(null);
+    const res = await fetch('/api/residents/vehicles', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: vehicleId, size }),
+    }).catch(() => null);
+    setBusy(false);
+    if (!res?.ok) {
+      setErr('Couldn’t save your vehicle type — please try again.');
+      return;
+    }
+    onSaved(size);
+  }
+
+  return (
+    <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4">
+      <VehicleSizePicker
+        value={null}
+        onChange={save}
+        disabled={busy}
+        hint="Your operator prices by vehicle size. Pick yours and the prices below update — we’ll save it to your vehicle."
+      />
+      {err && <p className="mt-2 text-xs text-red-400">{err}</p>}
     </div>
   );
 }

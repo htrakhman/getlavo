@@ -2,9 +2,10 @@
 import { Logo } from '@/components/Logo';
 import { supabaseBrowser } from '@/lib/supabase/client';
 import { safeInternalPath } from '@/lib/safe-redirect';
-import { parseSizePrices } from '@/lib/vehicle-sizes';
+import { parseSizePrices, priceForVehicle, type VehicleSizeId } from '@/lib/vehicle-sizes';
 import { SizePriceList } from '@/components/SizePriceList';
 import { PackageDescription } from '@/components/PackageDescription';
+import { VehicleSizePicker } from '@/components/VehicleSizePicker';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -26,6 +27,9 @@ export default function ResidentOnboarding() {
   const [year, setYear] = useState('');
   const [color, setColor] = useState('White');
   const [plate, setPlate] = useState('');
+  // What the wash costs depends on this, so it's asked once here rather than
+  // guessed — see lib/vehicle-sizes.
+  const [size, setSize] = useState<VehicleSizeId | null>(null);
   const [accessNotes, setAccessNotes] = useState('');
   const [keysAcknowledged, setKeysAcknowledged] = useState(false);
 
@@ -92,7 +96,7 @@ export default function ResidentOnboarding() {
   }, [buildingId]);
 
   const canStep2 = !!buildingId;
-  const canFinish = canStep2 && spotLabel.trim() && phone.trim() && make && model && year && color && keysAcknowledged;
+  const canFinish = canStep2 && spotLabel.trim() && phone.trim() && make && model && year && color && size && keysAcknowledged;
 
   const totalSteps = packages.length > 0 ? 3 : 2;
 
@@ -143,6 +147,7 @@ export default function ResidentOnboarding() {
         year: parseInt(year, 10),
         color,
         plate: plate || null,
+        size,
       }),
     });
 
@@ -303,6 +308,9 @@ Thanks!`}
                   ))}
                 </div>
               </div>
+              <div className="col-span-2">
+                <VehicleSizePicker value={size} onChange={setSize} />
+              </div>
             </div>
           </div>
 
@@ -360,8 +368,11 @@ Thanks!`}
                     <SizePriceList raw={p.size_prices} className="mt-2 text-xs text-ink-400" />
                   </div>
                   <div className="shrink-0 text-right">
+                    {/* The vehicle type was answered a step ago, so these are
+                        this resident's real prices, not starting ones. */}
                     <div className="font-display text-xl text-gleam">
-                      {(parseSizePrices(p.size_prices).length ? 'from ' : '') + `$${(p.price_cents / 100).toFixed(0)}`}
+                      {(parseSizePrices(p.size_prices).length && !size ? 'from ' : '') +
+                        `$${(priceForVehicle(p, size) / 100).toFixed(0)}`}
                     </div>
                     <div className="text-xs text-ink-400">per wash</div>
                   </div>

@@ -6,6 +6,7 @@ import Stripe from 'stripe';
 import { PaymentMethodPanel } from './PaymentMethodPanel';
 import { PlanPicker } from './PlanPicker';
 import { getPackagesForBuilding } from '@/lib/service-packages';
+import { normalizeSize } from '@/lib/vehicle-sizes';
 
 export default async function PaymentPage() {
   const session = await getSessionUser();
@@ -20,7 +21,19 @@ export default async function PaymentPage() {
     .maybeSingle();
   if (!resident) redirect('/resident/onboarding');
 
-  const { operatorName, packages } = await getPackagesForBuilding(admin, resident.building_id);
+  // The plan prices below are per-vehicle-type for operators who price that
+  // way, so the primary vehicle's tier decides which figure this resident sees
+  // — the same one lib/stripe/charge-wash bills them.
+  const [{ operatorName, packages }, { data: primaryVehicle }] = await Promise.all([
+    getPackagesForBuilding(admin, resident.building_id),
+    admin
+      .from('vehicles')
+      .select('size')
+      .eq('resident_id', resident.id)
+      .order('is_primary', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  ]);
 
   let card: { brand: string; last4: string; exp: string } | null = null;
   if (resident.stripe_payment_method_id && process.env.STRIPE_SECRET_KEY) {
@@ -47,6 +60,7 @@ export default async function PaymentPage() {
         packages={packages}
         currentPackageId={resident.package_id ?? null}
         operatorName={operatorName}
+        vehicleSize={normalizeSize(primaryVehicle?.size)}
       />
     </>
   );

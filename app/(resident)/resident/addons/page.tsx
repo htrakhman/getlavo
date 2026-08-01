@@ -4,6 +4,7 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
 import { money } from '@/lib/format';
 import { redirect } from 'next/navigation';
 import { AddonRow, RecurringAddons } from './AddonControls';
+import { normalizeSize } from '@/lib/vehicle-sizes';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,11 +31,23 @@ export default async function AddonsPage() {
   const operator = (partnership?.operator as any) ?? null;
   const addons: any[] = (operator?.operator_addons ?? []).filter((a: any) => a.active);
 
-  const { data: recurring } = await sb
-    .from('resident_addons')
-    .select('id, operator_addon:operator_addons(id, label, price_cents, size_prices)')
-    .eq('resident_id', r.id)
-    .eq('active', true);
+  const [{ data: recurring }, { data: primaryVehicle }] = await Promise.all([
+    sb
+      .from('resident_addons')
+      .select('id, operator_addon:operator_addons(id, label, price_cents, size_prices)')
+      .eq('resident_id', r.id)
+      .eq('active', true),
+    // An add-on priced by vehicle type costs this resident one specific figure;
+    // show that rather than the starting rate for the smallest car.
+    supabaseAdmin()
+      .from('vehicles')
+      .select('size')
+      .eq('resident_id', r.id)
+      .order('is_primary', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  ]);
+  const vehicleSize = normalizeSize(primaryVehicle?.size);
 
   return (
     <>
@@ -43,7 +56,7 @@ export default async function AddonsPage() {
       {recurring && recurring.length > 0 && (
         <div className="mb-8">
           <h2 className="text-xs uppercase tracking-widest text-ink-400 mb-3">On every wash</h2>
-          <RecurringAddons items={recurring} />
+          <RecurringAddons items={recurring} vehicleSize={vehicleSize} />
         </div>
       )}
 
@@ -60,6 +73,7 @@ export default async function AddonsPage() {
               addon={a}
               operatorName={operator.name}
               alreadyRecurring={!!recurring?.find((x: any) => (x.operator_addon as any)?.id === a.id)}
+              vehicleSize={vehicleSize}
             />
           ))}
         </div>

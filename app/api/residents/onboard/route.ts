@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSessionUser } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
+import { VEHICLE_SIZE_IDS } from '@/lib/vehicle-sizes';
 import { z } from 'zod';
 
 const Body = z.object({
@@ -14,6 +15,11 @@ const Body = z.object({
   year: z.number().int(),
   color: z.string().min(1),
   plate: z.string().nullable().optional(),
+  // Sets what every wash on this vehicle costs once the operator prices by
+  // vehicle type (lib/vehicle-sizes). Optional here so an older client that
+  // predates the field can still finish onboarding — the vehicle page and the
+  // booking form both ask for it before it can affect a price.
+  size: z.enum(VEHICLE_SIZE_IDS).nullable().optional(),
 });
 
 export async function POST(req: Request) {
@@ -26,7 +32,7 @@ export async function POST(req: Request) {
   const {
     buildingId, phone, spotLabel,
     vehicleAccessMethod, vehicleAccessNotes,
-    make, model, year, color, plate,
+    make, model, year, color, plate, size,
   } = parsed.data;
 
   const admin = supabaseAdmin();
@@ -134,6 +140,9 @@ export async function POST(req: Request) {
     year,
     color,
     is_primary: true,
+    // Only written when the client sent one: re-running onboarding without the
+    // field must not blank a vehicle type the resident already answered.
+    ...(size ? { size } : {}),
   };
 
   if (existingVeh?.id) {

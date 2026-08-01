@@ -142,11 +142,21 @@ export default async function ResidentWashes() {
                 )}
               </div>
             </>
+          ) : hasActiveOperator ? (
+            // Nothing booked and no confirmed building wash day: don't imply a
+            // wash is coming just because the building has a usual wash day.
+            <>
+              <div className="mt-2 text-sm text-ink-400">
+                You don’t have a wash scheduled yet.
+              </div>
+              <Link href="/resident/book" className="btn-primary mt-5 inline-block">
+                Book a wash →
+              </Link>
+            </>
           ) : (
             <div className="mt-2 text-sm text-ink-400">
-              {hasActiveOperator && (building?.wash_day || building?.preferred_wash_day)
-                ? `Your next wash will be on a ${building.wash_day || building.preferred_wash_day}.`
-                : 'We’re lining up an operator for your building — you’ll be notified once wash days are scheduled.'}
+              Your building doesn’t have an operator assigned yet, so you can’t book a wash
+              right now. We’ll notify you as soon as one is serving {building?.name || 'your building'}.
             </div>
           )}
         </div>

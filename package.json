@@ -16,6 +16,7 @@
     "validate:operator-pricing": "tsx --tsconfig tsconfig.scripts.json scripts/operator-pricing-test.ts",
     "validate:wash-pricing": "tsx --tsconfig tsconfig.scripts.json scripts/wash-pricing-test.ts",
     "validate:package-description": "tsx --tsconfig tsconfig.scripts.json scripts/package-description-test.ts",
+    "validate:vehicle-size-pricing": "tsx --tsconfig tsconfig.scripts.json scripts/vehicle-size-pricing-test.ts",
     "validate:insurance-auto-verify": "tsx --tsconfig tsconfig.scripts.json scripts/insurance-auto-verify-test.ts",
     "db:push": "supabase db push"
   },
