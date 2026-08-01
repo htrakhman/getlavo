@@ -207,11 +207,8 @@ export default async function MyOperator() {
                       <div className="mt-4 text-xs text-gleam">View &amp; request →</div>
                     ) : (
                       <div className="mt-4 text-xs text-amber-600">
-                        {setup.awaitingReview
-                          ? 'New to Lavo and not verified yet'
-                          : 'Still finishing setup'}
-                        {' — '}waiting on {pendingLabel(setup.pending)}. You can view their profile,
-                        but can&rsquo;t request them yet.
+                        Still finishing setup — waiting on {pendingLabel(setup.pending)}. You can
+                        view their profile, but can&rsquo;t request them yet.
                       </div>
                     )}
                   </Link>

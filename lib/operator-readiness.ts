@@ -44,10 +44,17 @@ export function operatorRequirements(
   ];
 }
 
+/** Statuses that represent a deliberate admin decision to take an operator offline. */
+const BLOCKED_STATUSES = ['suspended', 'rejected'];
+
 /**
  * An operator is listed in the building marketplace as soon as they sign up —
- * an empty or unvetted account is visible, not hidden. What gates a partnership
- * request is whether they've actually filled everything out.
+ * an empty account is visible, not hidden. What gates a partnership request is
+ * whether they've actually filled everything out, and nothing else: there is no
+ * manual approval step. A database trigger flips status to 'approved' the
+ * moment the checklist is complete (migration 0046), and readiness is
+ * recomputed from the profile on every read, so status can never be the reason
+ * a complete operator is held back.
  *
  * Insurance *review* stays non-blocking: uploading the certificate is the
  * operator's job and is required, approving it is ours and shouldn't hold a
@@ -61,26 +68,22 @@ export type OperatorSetup = {
   pending: string[];
   /** Certificate of insurance is approved and unexpired. */
   insured: boolean;
-  /** Awaiting Lavo's review — distinct from an incomplete profile. */
-  awaitingReview: boolean;
+  /** Taken offline by an admin (suspended/rejected) — not an unfinished profile. */
+  blocked: boolean;
 };
 
 export function operatorSetup(
   op: OperatorProfileRow | null | undefined,
   activePackages = 0,
 ): OperatorSetup {
-  const awaitingReview = op?.status !== 'approved';
+  const blocked = BLOCKED_STATUSES.includes(op?.status ?? '');
   const gaps = operatorRequirements(op, activePackages).filter((r) => !r.done);
 
-  const pending = awaitingReview
-    ? ['Lavo verification', ...gaps.map((r) => r.label)]
-    : gaps.map((r) => r.label);
-
   return {
-    requestable: !awaitingReview && gaps.length === 0,
-    pending,
+    requestable: !blocked && gaps.length === 0,
+    pending: gaps.map((r) => r.label),
     insured: hasApprovedInsurance(op),
-    awaitingReview,
+    blocked,
   };
 }
 
@@ -91,6 +94,6 @@ export function pendingLabel(pending: string[]): string {
 }
 
 /** Short chip label for a marketplace card. */
-export function setupChipLabel(setup: OperatorSetup): string {
-  return setup.awaitingReview ? 'New — in review' : 'Setting up';
+export function setupChipLabel(_setup: OperatorSetup): string {
+  return 'Setting up';
 }
