@@ -27,12 +27,12 @@ const OPERATORS_FAQS = [
   {
     question: 'What does Lavo cost an operator?',
     answer:
-      'Nothing up front. Lavo takes 10% of each booking and transfers the rest to your connected Stripe account automatically. There is no subscription and no lead fee.',
+      'Nothing up front. Lavo takes 10% of each booking plus the card processing on that payment (2.9% + 30¢), and transfers the rest to your connected Stripe account automatically. There is no subscription and no lead fee.',
   },
   {
     question: 'How do I get paid?',
     answer:
-      'Residents pay in the app when they book. Every confirmed booking triggers an automatic payout to the bank account you connect through Stripe. Your earnings dashboard shows gross, Lavo fee, and net per period.',
+      'Residents pay in the app when they book. Every confirmed booking triggers an automatic payout to the bank account you connect through Stripe. Your earnings dashboard shows gross, fees, and net per period.',
   },
   {
     question: 'Do I set my own prices?',
@@ -115,18 +115,18 @@ export default function OperatorsPage() {
       <section className="mx-auto max-w-5xl px-6 py-20">
         <div className="text-center mb-12">
           <h2 className="font-display text-4xl">The math works</h2>
-          <p className="mt-3 text-ink-300">Lavo takes 10% of each booking. You keep the rest — transferred automatically.</p>
+          <p className="mt-3 text-ink-300">Lavo takes 10% of each booking plus card processing. You keep the rest — transferred automatically.</p>
         </div>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           <div className="card p-6 text-center">
             <div className="font-display text-4xl text-gleam">$35</div>
             <div className="mt-2 text-sm text-ink-400">resident pays (building day)</div>
-            <div className="mt-3 text-xs text-ink-500">Your payout: ~$31.50</div>
+            <div className="mt-3 text-xs text-ink-500">Your payout: ~$30.18</div>
           </div>
           <div className="card p-6 text-center">
             <div className="font-display text-4xl">$45</div>
             <div className="mt-2 text-sm text-ink-400">resident pays (on-demand)</div>
-            <div className="mt-3 text-xs text-ink-500">Your payout: ~$40.50</div>
+            <div className="mt-3 text-xs text-ink-500">Your payout: ~$38.89</div>
           </div>
           <div className="card p-6 text-center">
             <div className="font-display text-4xl">$12k+</div>
@@ -135,7 +135,7 @@ export default function OperatorsPage() {
           </div>
         </div>
         <p className="mt-6 text-center text-xs text-ink-500">
-          Example pricing. You set your own rates. Lavo take rate is 10% per booking.
+          Example pricing. You set your own rates. Lavo take rate is 10% per booking, plus card processing of 2.9% + 30¢.
         </p>
       </section>
 

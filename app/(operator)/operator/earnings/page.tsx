@@ -21,7 +21,7 @@ export default async function Earnings() {
   const [{ data: payouts }, { data: bookings, error: bookingsError }, { data: washCharges }] = await Promise.all([
     admin.from('payouts').select('*').eq('operator_id', op.id).order('period_end', { ascending: false }),
     admin.from('bookings')
-      .select('id, scheduled_for, gross_cents, fee_cents, net_cents, status, paid_at, stripe_payment_intent_id, building:buildings(name), resident:residents(profile:profiles(full_name))')
+      .select('id, scheduled_for, gross_cents, fee_cents, processing_fee_cents, net_cents, status, paid_at, stripe_payment_intent_id, building:buildings(name), resident:residents(profile:profiles(full_name))')
       .eq('operator_id', op.id)
       .gte('scheduled_for', last30)
       .order('scheduled_for', { ascending: false })
@@ -31,7 +31,7 @@ export default async function Earnings() {
     // succeeded: a wash whose charge failed still happened, and the operator
     // needs to see that it didn't get paid rather than have it disappear.
     admin.from('charges')
-      .select('id, created_at, amount_cents, fee_cents, status, booking_id, wash_day:wash_days(scheduled_for, building:buildings(name)), resident:residents(profile:profiles(full_name))')
+      .select('id, created_at, amount_cents, fee_cents, processing_fee_cents, status, booking_id, wash_day:wash_days(scheduled_for, building:buildings(name)), resident:residents(profile:profiles(full_name))')
       .eq('operator_id', op.id)
       .gte('created_at', last30)
       .order('created_at', { ascending: false })
@@ -61,7 +61,9 @@ export default async function Earnings() {
           building: b.building?.name,
           resident: b.resident?.profile?.full_name,
           gross: b.gross_cents ?? 0,
-          fee: b.fee_cents ?? 0,
+          // What comes off the top: Lavo's take and the card processing it
+          // covers. Shown as one deduction so gross − fee always equals net.
+          fee: (b.fee_cents ?? 0) + (b.processing_fee_cents ?? 0),
           net: b.net_cents ?? 0,
           status: paid ? b.status : b.status === 'confirmed' ? 'payment pending' : b.status,
           paid,
@@ -73,8 +75,8 @@ export default async function Earnings() {
       building: c.wash_day?.building?.name,
       resident: c.resident?.profile?.full_name,
       gross: c.amount_cents ?? 0,
-      fee: c.fee_cents ?? 0,
-      net: (c.amount_cents ?? 0) - (c.fee_cents ?? 0),
+      fee: (c.fee_cents ?? 0) + (c.processing_fee_cents ?? 0),
+      net: (c.amount_cents ?? 0) - (c.fee_cents ?? 0) - (c.processing_fee_cents ?? 0),
       status: c.status === 'succeeded' ? 'paid' : c.status,
       paid: c.status === 'succeeded',
     })),
@@ -129,6 +131,10 @@ export default async function Earnings() {
           </tbody>
         </table>
       </div>
+      <p className="-mt-6 mb-8 text-xs text-ink-400">
+        Fees are Lavo&rsquo;s 10% plus card processing (2.9% + 30¢ per payment), taken off the top before
+        the rest transfers to your Stripe account.
+      </p>
 
       <h2 className="mb-3 text-xs uppercase tracking-widest text-ink-400">Payouts</h2>
       <div className="card overflow-hidden">

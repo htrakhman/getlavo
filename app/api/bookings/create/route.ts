@@ -245,9 +245,10 @@ async function createBooking(req: Request) {
   const promoDiscountCents = promoResult.discountCents;
   const promoRow = promoResult.promo;
   // One split, used for both the booking row and the Stripe charge, so what the
-  // ledger says the operator earned is what Stripe actually sends them.
+  // ledger says the operator earned is what Stripe actually sends them. The
+  // operator's share is gross minus Lavo's take minus payment processing.
   const split = resolveSplit(grossCents);
-  const { feeCents, netCents } = split;
+  const { takeCents, processingCents, netCents } = split;
 
   const { count: existingBookings } = await admin
     .from('bookings')
@@ -326,7 +327,8 @@ async function createBooking(req: Request) {
       time_slot: timeSlot ?? null,
       status: 'pending_payment',
       gross_cents: grossCents,
-      fee_cents: feeCents,
+      fee_cents: takeCents,
+      processing_fee_cents: processingCents,
       net_cents: netCents,
       recurring_cadence: recurringCadence ?? null,
       promo_code_id: promoRow?.id ?? null,
@@ -422,10 +424,8 @@ async function createBooking(req: Request) {
       mode: 'payment',
       ...(process.env.STRIPE_TAX_ENABLED === '1' ? { automatic_tax: { enabled: true } } : {}),
       line_items: lineItems,
-      // The operator is sent gross minus Lavo's 10%, and the 10% is recorded as
-      // an application fee rather than left as an unlabelled remainder on the
-      // platform balance — see lib/stripe/connect-split.ts for why that
-      // distinction is the whole point.
+      // The operator is sent gross minus Lavo's take minus payment processing,
+      // collected as one application fee — see lib/stripe/connect-split.ts.
       //
       // The fee is a fixed amount, so anything Stripe adds to the total beyond
       // the line items flows to the operator. That is correct for the wash and

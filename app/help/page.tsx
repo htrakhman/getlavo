@@ -116,12 +116,12 @@ const HELP_CATEGORIES: HelpCategory[] = [
       {
         question: 'How do payouts work?',
         answer:
-          'Residents pay in the app. Net earnings flow to your connected Stripe account per completed booking. Your earnings dashboard breaks out gross, Lavo fee, and net.',
+          'Residents pay in the app. Net earnings flow to your connected Stripe account per completed booking. Your earnings dashboard breaks out gross, fees, and net.',
       },
       {
         question: 'What does Lavo charge?',
         answer:
-          'Lavo takes 10% of each booking. There is no subscription, no lead fee, and no marketing spend required.',
+          'Lavo takes 10% of each booking, plus the card processing on that payment (2.9% + 30¢). There is no subscription, no lead fee, and no marketing spend required.',
       },
       {
         question: 'How do building partnerships start?',

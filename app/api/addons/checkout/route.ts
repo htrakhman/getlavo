@@ -80,9 +80,10 @@ export async function POST(req: NextRequest) {
   }
 
   // A one-off add-on is a resident payment like any other: the operator's share
-  // transfers automatically and Lavo keeps the same 10%. This flow used to send
-  // the operator 100% and take nothing, so add-on revenue was the one part of
-  // the marketplace the take rate never touched.
+  // transfers automatically, and Lavo's take plus payment processing is
+  // deducted the same way. This flow used to send the operator 100% and take
+  // nothing, so add-on revenue was the one part of the marketplace the take
+  // rate never touched.
   if (!operator?.stripe_account_id) {
     return NextResponse.json(
       { error: 'This operator can’t take payments right now — please try again later.' },
