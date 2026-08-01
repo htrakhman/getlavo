@@ -1,6 +1,8 @@
 import { PageHeader } from '@/components/PortalShell';
 import { supabaseServer } from '@/lib/supabase/server';
 import { insuranceDocViewUrl } from '@/lib/insurance-doc';
+import { sweepInsuranceAutoVerify } from '@/lib/insurance-auto-verify';
+import { INSURANCE_REVIEW_HOLD_MINUTES } from '@/lib/insurance';
 import { ReviewActions } from './ReviewActions';
 
 const NEEDS_REVIEW = ['pending_review', 'rejected', 'expired'];
@@ -8,6 +10,10 @@ const NEEDS_REVIEW = ['pending_review', 'rejected', 'expired'];
 export const dynamic = 'force-dynamic';
 
 export default async function InsuranceReviewPage() {
+  // Certificates verify themselves once the hold elapses; clear the due ones
+  // before reading so the queue shows what is genuinely still open.
+  await sweepInsuranceAutoVerify();
+
   const sb = supabaseServer();
   // Every operator that has ever uploaded a certificate, so approved policies
   // stay reachable instead of disappearing from the queue once reviewed.
@@ -26,6 +32,10 @@ export default async function InsuranceReviewPage() {
   return (
     <>
       <PageHeader eyebrow="Admin" title="Insurance review queue" />
+      <p className="-mt-4 mb-6 text-sm text-ink-400">
+        Certificates verify automatically {INSURANCE_REVIEW_HOLD_MINUTES} minutes after upload. Anything
+        below is inside that window or was taken out of it — reject to pull a certificate back.
+      </p>
       {!pending?.length ? (
         <div className="card p-10 text-center text-ink-400">No certificates awaiting review.</div>
       ) : (

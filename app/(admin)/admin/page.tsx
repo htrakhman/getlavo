@@ -1,5 +1,6 @@
 import { PageHeader } from '@/components/PortalShell';
 import { supabaseServer } from '@/lib/supabase/server';
+import { sweepInsuranceAutoVerify } from '@/lib/insurance-auto-verify';
 import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
@@ -12,6 +13,10 @@ const ROLE_TONE: Record<string, string> = {
 };
 
 export default async function AdminOverview() {
+  // Clear the certificates whose review hold has elapsed before counting, so
+  // the "awaiting review" tile can't advertise work the queue no longer has.
+  await sweepInsuranceAutoVerify();
+
   const sb = supabaseServer();
   const monthStart = new Date().toISOString().slice(0, 8) + '01';
 

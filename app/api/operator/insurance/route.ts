@@ -3,6 +3,7 @@ import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { sendAdminNotification } from '@/lib/email/resend';
 import { insuranceDocFile, insuranceDocViewUrl } from '@/lib/insurance-doc';
+import { INSURANCE_REVIEW_HOLD_MINUTES } from '@/lib/insurance';
 
 export async function PATCH(req: Request) {
   const session = await getSessionUser();
@@ -22,8 +23,10 @@ export async function PATCH(req: Request) {
   const nextDocUrl = docUrl ?? op.insurance_doc_url;
   const hasCertificate = !!nextDocUrl;
 
-  // A certificate never self-approves. A fresh upload goes to the admin
-  // review queue; metadata edits alone keep whatever status is on file.
+  // A fresh upload always starts in `pending_review` — it verifies itself
+  // INSURANCE_REVIEW_HOLD_MINUTES later (lib/insurance-auto-verify.ts), which
+  // makes the window below an admin's chance to reject rather than a queue the
+  // operator is waiting on. Metadata edits alone keep the status on file.
   let nextStatus = op.insurance_review_status;
   if (!hasCertificate) nextStatus = 'not_uploaded';
   else if (fileUploaded) nextStatus = 'pending_review';
@@ -62,9 +65,9 @@ export async function PATCH(req: Request) {
     ]);
 
     await sendAdminNotification({
-      subject: `Insurance certificate awaiting review: ${op.name}`,
+      subject: `Insurance certificate uploaded: ${op.name}`,
       lines: [
-        `${op.name} uploaded a certificate of insurance and it's awaiting your review.`,
+        `${op.name} uploaded a certificate of insurance. It verifies automatically in ${INSURANCE_REVIEW_HOLD_MINUTES} minutes unless you reject it first.`,
         carrier ? `Carrier: ${carrier}` : '',
         policyNumber ? `Policy #: ${policyNumber}` : '',
         coverageCents ? `Coverage: $${Math.round(coverageCents / 100).toLocaleString()}` : '',
@@ -74,9 +77,9 @@ export async function PATCH(req: Request) {
           : viewUrl
             ? `Certificate (link valid for 1 hour): ${viewUrl}`
             : `No certificate file could be retrieved — check the operator's profile.`,
-        `Open the review queue below to approve or reject it.`,
+        `Open the review queue below if you want to look before it clears.`,
       ].filter(Boolean),
-      action: { url: '/admin/insurance', label: 'Review — approve or reject →' },
+      action: { url: '/admin/insurance', label: 'Open the review queue →' },
       attachments: file
         ? [{ filename: `${op.name ?? 'operator'}-certificate-of-insurance-${file.filename}`.replace(/[^a-z0-9.\-]+/gi, '-'), content: file.bytes }]
         : undefined,

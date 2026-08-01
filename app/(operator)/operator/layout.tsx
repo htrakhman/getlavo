@@ -1,5 +1,6 @@
 import { PortalShell } from '@/components/PortalShell';
 import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
+import { withAutoVerifiedInsurance } from '@/lib/insurance-auto-verify';
 import { redirect } from 'next/navigation';
 
 // Grouped into three logical sections. "Overview" was dropped as a separate
@@ -44,10 +45,15 @@ async function operatorSetupAlerts(ownerId: string): Promise<string[]> {
   const sb = supabaseServer();
   const { data: op } = await sb
     .from('operators')
-    .select('id, name, hours_json, stripe_onboarding_complete, insurance_doc_url, insurance_review_status')
+    .select('id, name, hours_json, stripe_onboarding_complete, insurance_doc_url, insurance_review_status, insurance_uploaded_at, insurance_expires_at')
     .eq('owner_id', ownerId)
     .maybeSingle();
   if (!op) return [];
+
+  // Any operator page view cashes in an elapsed review hold, so a certificate
+  // clears (and its "verified" email goes out) without the operator having to
+  // sit on the compliance page waiting for it.
+  await withAutoVerifiedInsurance(op as any);
 
   const { count: packageCount } = await sb
     .from('service_packages')
