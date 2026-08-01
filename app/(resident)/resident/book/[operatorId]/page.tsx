@@ -3,7 +3,7 @@ import { getSessionUser, supabaseServer, supabaseAdmin } from '@/lib/supabase/se
 import { WAIVER_VERSION } from '@/lib/waiver';
 import { listBookableAddons, listRecurringAddonIds } from '@/lib/addons';
 import { getPackagesForOperator } from '@/lib/service-packages';
-import { getBuildingWashPriceCents } from '@/lib/building-price';
+import { standardWashPricing } from '@/lib/wash-pricing';
 import { redirect } from 'next/navigation';
 import { BookingForm } from './BookingForm';
 
@@ -35,7 +35,7 @@ export default async function BookOperator({
 
   if (!resident || !operator) redirect('/resident/book');
 
-  const [{ data: vehicles }, { data: waiver }, addons, recurringAddonIds, packages, buildingPriceCents] = await Promise.all([
+  const [{ data: vehicles }, { data: waiver }, addons, recurringAddonIds, packages, washPricing] = await Promise.all([
     admin
       .from('vehicles')
       .select('id, make, model, color, license_plate, is_primary')
@@ -50,7 +50,13 @@ export default async function BookOperator({
     listBookableAddons(admin, operator.id),
     listRecurringAddonIds(admin, resident.id, operator.id),
     getPackagesForOperator(admin, operator.id),
-    getBuildingWashPriceCents(admin, resident.building_id, operator.id),
+    // The standard wash is priced off the building's agreement with this
+    // operator, not off the operator's service menu — see lib/wash-pricing.ts.
+    standardWashPricing(admin, {
+      buildingId: resident.building_id,
+      operatorId: operator.id,
+      operator,
+    }),
   ]);
 
   const isPartner = !!searchParams.partnershipId;
@@ -78,9 +84,8 @@ export default async function BookOperator({
         operatorDescription={operator.description}
         ratingAvg={operator.rating_avg}
         ratingCount={operator.rating_count}
-        basePriceCents={operator.base_price_cents}
-        openSlotPriceCents={operator.open_slot_price_cents}
-        buildingPriceCents={buildingPriceCents}
+        basePriceCents={washPricing.buildingDayCents}
+        openSlotPriceCents={washPricing.openSlotCents}
         jobDetails={jobDetails}
         vehicles={vehicles ?? []}
         isPartner={isPartner}

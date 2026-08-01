@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabaseBrowser } from '@/lib/supabase/client';
 import {
@@ -29,22 +30,16 @@ export function PackagesEditor({ operatorId, initial }: { operatorId: string; in
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
 
-  // The operator's base price is no longer typed in by hand — it tracks the
-  // cheapest active package so every "from $X" display and the booking charge
-  // stay in step with what's actually on offer.
-  async function syncBasePrice(next: Pkg[]) {
-    const prices = next.filter((p) => p.active).map((p) => p.price_cents).filter((c) => c > 0);
-    if (prices.length === 0) return;
-    const sb = supabaseBrowser();
-    await sb.from('operators').update({ base_price_cents: Math.min(...prices) }).eq('id', operatorId);
-  }
-
+  // Editing this menu deliberately leaves the operator's base price per wash
+  // alone. It used to track the cheapest active package, which meant a single
+  // cheap item silently repriced the standard wash in every partnered building
+  // (a $1.00 package took eleven buildings down to $1.00). The base price is
+  // what the operator agreed with each building, and it is set in the agreement
+  // builder under Contracts — see lib/wash-pricing.ts.
   async function remove(id: string) {
     const sb = supabaseBrowser();
     await sb.from('service_packages').update({ active: false }).eq('id', id);
-    const next = items.filter((x) => x.id !== id);
-    setItems(next);
-    await syncBasePrice(next);
+    setItems(items.filter((x) => x.id !== id));
     router.refresh();
   }
 
@@ -56,6 +51,10 @@ export function PackagesEditor({ operatorId, initial }: { operatorId: string; in
         <div>
           <h3 className="font-display text-xl">Service packages</h3>
           <p className="text-xs text-ink-500 mt-0.5">Residents choose from these when booking — think Fiverr gig tiers</p>
+          <p className="text-xs text-ink-500 mt-0.5">
+            Your standard wash is priced separately, in your{' '}
+            <Link href="/operator/contracts" className="text-gleam hover:underline">building agreement</Link>.
+          </p>
         </div>
         {/* Add and Edit panels are mutually exclusive — opening one closes the
             other, so a blank Add form can never sit under an open Edit form. */}
@@ -75,11 +74,9 @@ export function PackagesEditor({ operatorId, initial }: { operatorId: string; in
               <PackageForm
                 operatorId={operatorId}
                 pkg={pkg}
-                onDone={async (updated) => {
+                onDone={(updated) => {
                   setEditing(null);
-                  const next = items.map((x) => (x.id === updated.id ? updated : x));
-                  setItems(next);
-                  await syncBasePrice(next);
+                  setItems(items.map((x) => (x.id === updated.id ? updated : x)));
                   router.refresh();
                 }}
                 onCancel={() => setEditing(null)}
@@ -122,11 +119,9 @@ export function PackagesEditor({ operatorId, initial }: { operatorId: string; in
             <PackageForm
               operatorId={operatorId}
               pkg={null}
-              onDone={async (created) => {
+              onDone={(created) => {
                 setAdding(false);
-                const next = [...items, created];
-                setItems(next);
-                await syncBasePrice(next);
+                setItems([...items, created]);
                 router.refresh();
               }}
               onCancel={() => setAdding(false)}

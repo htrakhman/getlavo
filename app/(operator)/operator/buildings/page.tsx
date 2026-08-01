@@ -2,7 +2,6 @@ import { PageHeader } from '@/components/PortalShell';
 import { getAvailableBuildingsForOperator } from '@/lib/operator-available-buildings';
 import { getSessionUser, supabaseServer, supabaseAdmin } from '@/lib/supabase/server';
 import { AvailableBuildings } from './AvailableBuildings';
-import { StandardPriceEditor } from './StandardPriceEditor';
 import { PartnershipRequests } from '../PartnershipRequests';
 import { redirect } from 'next/navigation';
 import { parseDateList, futureDates } from '@/lib/wash-dates';
@@ -15,16 +14,12 @@ export default async function OperatorBuildings() {
   if (!session) redirect('/login');
   const sb = supabaseServer();
   const admin = supabaseAdmin();
-  const { data: op } = await sb
-    .from('operators')
-    .select('id, name, base_price_cents')
-    .eq('owner_id', session.user.id)
-    .maybeSingle();
+  const { data: op } = await sb.from('operators').select('id, name').eq('owner_id', session.user.id).maybeSingle();
 
   const [{ data: partnerships }, { data: pendingPartnerships }, availableData] = await Promise.all([
     admin
       .from('partnerships')
-      .select('id, status, connected_at, standard_wash_price_cents, building:buildings(name, address_line1, city, region, total_units, wash_day, preferred_wash_day, requested_wash_dates)')
+      .select('id, status, connected_at, building:buildings(name, address_line1, city, region, total_units, wash_day, preferred_wash_day, requested_wash_dates)')
       .eq('operator_id', op?.id ?? '')
       .eq('status', 'active')
       .order('connected_at', { ascending: false }),
@@ -83,11 +78,6 @@ export default async function OperatorBuildings() {
                       ))}
                     </div>
                   )}
-                  <StandardPriceEditor
-                    partnershipId={p.id}
-                    priceCents={p.standard_wash_price_cents ?? null}
-                    fallbackCents={op?.base_price_cents ?? null}
-                  />
                   {requestedDates.length > 0 && (
                     <p className="mt-1 text-xs text-ink-500">
                       Dates this building chose — they&rsquo;re confirmed on your wash day calendar.

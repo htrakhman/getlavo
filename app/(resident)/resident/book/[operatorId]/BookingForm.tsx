@@ -3,7 +3,6 @@ import { money, plateLabel } from '@/lib/format';
 import { parseSizePrices } from '@/lib/vehicle-sizes';
 import { SizePriceList } from '@/components/SizePriceList';
 import { DayTimePicker, type AvailabilityDay } from '@/components/DayTimePicker';
-import { resolveWashPriceCents } from '@/lib/building-price';
 import { captureEvent } from '@/lib/analytics';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -39,7 +38,6 @@ export function BookingForm({
   addons,
   initialAddonIds,
   packages,
-  buildingPriceCents,
   jobDetails,
   operatorDescription,
   ratingAvg,
@@ -52,8 +50,6 @@ export function BookingForm({
   ratingCount: number;
   basePriceCents: number;
   openSlotPriceCents: number | null;
-  /** The rate the operator agreed for this building, when one is set. */
-  buildingPriceCents: number | null;
   jobDetails: {
     buildingName: string | null;
     address: string | null;
@@ -129,20 +125,11 @@ export function BookingForm({
   const [addonIds, setAddonIds] = useState<string[]>(initialAddonIds);
   const [residentNotes, setResidentNotes] = useState('');
 
-  const washCents = resolveWashPriceCents({
-    packagePriceCents: selectedPackage?.price_cents,
-    buildingPriceCents,
-    bookingType,
-    basePriceCents,
-    openSlotPriceCents,
-  });
-  // The standard-wash tile quotes the same rate with no package chosen.
-  const standardWashCents = resolveWashPriceCents({
-    buildingPriceCents,
-    bookingType,
-    basePriceCents,
-    openSlotPriceCents,
-  });
+  // basePriceCents / openSlotPriceCents already carry the building's agreed
+  // rate, resolved server-side by lib/wash-pricing.ts.
+  const standardWashCents =
+    bookingType === 'building_day' ? basePriceCents : (openSlotPriceCents ?? basePriceCents);
+  const washCents = selectedPackage ? selectedPackage.price_cents : standardWashCents;
 
   const selectedAddons = addons.filter((a) => addonIds.includes(a.id));
   const addonCents = selectedAddons.reduce((sum, a) => sum + a.price_cents, 0);

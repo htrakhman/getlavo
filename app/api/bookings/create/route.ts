@@ -6,8 +6,8 @@ import { applyPromoToBooking, recordPromoRedemption } from '@/lib/promo';
 import { confirmPaidBookingAndNotify } from '@/lib/booking-confirm';
 import { priceAddonSelection, recordBookingAddonOrders, releaseBookingAddonOrders } from '@/lib/addons';
 import { syncWashDayRoster } from '@/lib/wash-roster';
-import { getBuildingWashPriceCents, resolveWashPriceCents } from '@/lib/building-price';
 import { WAIVER_VERSION } from '@/lib/waiver';
+import { standardWashPricing, washCentsFor } from '@/lib/wash-pricing';
 import Stripe from 'stripe';
 import { z } from 'zod';
 
@@ -167,15 +167,16 @@ async function createBooking(req: Request) {
     packageRow = pkg;
   }
 
-  const buildingPriceCents = await getBuildingWashPriceCents(admin, resident.building_id, operatorId);
-
-  const baseGrossCents = resolveWashPriceCents({
-    packagePriceCents: packageRow?.price_cents,
-    buildingPriceCents,
-    bookingType,
-    basePriceCents: operator.base_price_cents,
-    openSlotPriceCents: operator.open_slot_price_cents,
+  // No package selected means the standard wash, which is priced off the
+  // building's agreement with this operator rather than their profile — the
+  // same resolution the booking form quoted (see lib/wash-pricing.ts).
+  const washPricing = await standardWashPricing(admin, {
+    buildingId: resident.building_id,
+    operatorId,
+    operator,
   });
+
+  const baseGrossCents = packageRow ? packageRow.price_cents : washCentsFor(washPricing, bookingType);
 
   const promoResult = await applyPromoToBooking(admin, {
     rawCode: promoCode,
