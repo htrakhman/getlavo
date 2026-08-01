@@ -6,13 +6,8 @@ import Link from 'next/link';
 import { SendContractPanel } from './SendContractPanel';
 import { AgreementBuilder } from './AgreementBuilder';
 import { hasApprovedInsurance } from '@/lib/insurance';
+import { openWashDays, operatorRequirements } from '@/lib/operator-readiness';
 
-const DAY_ORDER = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-
-function openWashDays(hours: any): string[] {
-  if (!hours || typeof hours !== 'object') return [];
-  return DAY_ORDER.filter((d) => hours[d] && hours[d].closed !== true);
-}
 
 export const dynamic = 'force-dynamic';
 
@@ -55,13 +50,12 @@ export default async function OperatorContractsPage() {
   ]);
 
   // Required fields the agreement needs before it can be sent to a building.
+  // Shares operatorRequirements with /api/contracts/send so the UI gate and the
+  // server gate can't disagree.
   const washDays = openWashDays(op.hours_json);
-  const requirements = [
-    { key: 'name', label: 'Business name', done: !!op.name },
-    { key: 'schedule', label: 'Wash days & hours', done: washDays.length > 0 },
-    { key: 'price', label: 'Base price per wash', done: (op.base_price_cents ?? 0) > 0 },
-    { key: 'packages', label: 'At least one service package', done: (packages?.length ?? 0) > 0 },
-  ];
+  const requirements = operatorRequirements(op, packages?.length ?? 0)
+    .filter((r) => ['name', 'schedule', 'price', 'packages'].includes(r.key))
+    .map((r) => ({ ...r, label: r.label.charAt(0).toUpperCase() + r.label.slice(1) }));
   const missing = requirements.filter((r) => !r.done);
   const canSend = missing.length === 0;
 

@@ -13,10 +13,11 @@ export default async function OperatorDetail({ params }: { params: { id: string 
   const sb = supabaseServer();
 
   const { getCurrentBuildingForSession } = await import('@/lib/building');
-  const [{ data: op }, { data: addons }, { current: building }] = await Promise.all([
+  const [{ data: op }, { data: addons }, { current: building }, { count: activePackages }] = await Promise.all([
     sb.from('operators').select('*').eq('id', params.id).single(),
     sb.from('operator_addons').select('*').eq('operator_id', params.id).eq('active', true),
     getCurrentBuildingForSession(session.user.id),
+    sb.from('service_packages').select('*', { count: 'exact', head: true }).eq('operator_id', params.id).eq('active', true),
   ]);
   if (!op || !building) return <div>Not found.</div>;
 
@@ -34,7 +35,7 @@ export default async function OperatorDetail({ params }: { params: { id: string 
     .maybeSingle();
 
   const existingStatus = (existingPartnership?.status as 'pending' | 'active' | 'declined') ?? 'none';
-  const setup = operatorSetup(op);
+  const setup = operatorSetup(op, activePackages ?? 0);
 
   return (
     <>
@@ -49,8 +50,7 @@ export default async function OperatorDetail({ params }: { params: { id: string 
           </div>
           <p className="mt-1 text-xs text-amber-600/80">
             Still outstanding: {pendingLabel(setup.pending)}. You can review their profile and
-            pricing now — requesting a partnership unlocks once
-            {setup.awaitingReview ? ' Lavo verifies them and' : ''} their payment account is connected.
+            pricing now — requesting a partnership unlocks once everything above is done.
           </p>
         </div>
       )}

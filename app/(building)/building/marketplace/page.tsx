@@ -87,12 +87,27 @@ export default async function MyOperator() {
   const { data: operators } = !operator
     ? await sb
         .from('operators')
-        .select('id, name, status, description, rating_avg, rating_count, base_price_cents, open_slot_price_cents, service_radius_miles, insurance_expires_at, insurance_review_status, stripe_onboarding_complete')
+        .select('id, name, status, description, rating_avg, rating_count, base_price_cents, open_slot_price_cents, service_radius_miles, insurance_expires_at, insurance_review_status, insurance_doc_url, stripe_onboarding_complete, hours_json')
         .in('status', ['approved', 'pending_review'])
         .order('promoted_listing', { ascending: false })
         .order('rating_avg', { ascending: false })
         .limit(20)
     : { data: null };
+
+  // Package counts for the whole page in one query — an operator with no active
+  // package hasn't finished their profile and can't be requested yet.
+  const { data: packageRows } = operators?.length
+    ? await sb
+        .from('service_packages')
+        .select('operator_id')
+        .eq('active', true)
+        .in('operator_id', operators.map((o: any) => o.id))
+    : { data: null };
+  const packageCounts = new Map<string, number>();
+  for (const row of packageRows ?? []) {
+    const id = (row as any).operator_id as string;
+    packageCounts.set(id, (packageCounts.get(id) ?? 0) + 1);
+  }
 
   return (
     <>
@@ -150,7 +165,7 @@ export default async function MyOperator() {
             {operators && operators.length > 0 ? (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 {operators.map((op: any) => {
-                  const setup = operatorSetup(op);
+                  const setup = operatorSetup(op, packageCounts.get(op.id) ?? 0);
                   return (
                   <Link
                     key={op.id}

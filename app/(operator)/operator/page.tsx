@@ -4,6 +4,7 @@ import { dateShort, money } from '@/lib/format';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { StripeConnectButton } from '@/components/StripeConnectButton';
+import { operatorRequirements } from '@/lib/operator-readiness';
 
 export default async function OperatorOverview({ searchParams }: { searchParams: { stripe_error?: string; stripe_msg?: string } }) {
   const stripeError = searchParams.stripe_error === '1';
@@ -50,10 +51,38 @@ export default async function OperatorOverview({ searchParams }: { searchParams:
     (p: any) => p.requested_by === (p.building as any)?.manager_id,
   ).length;
 
+  // The same checklist buildings are shown in the marketplace, so an operator
+  // can see exactly what is keeping them from being requestable.
+  const { count: activePackages } = await sb
+    .from('service_packages')
+    .select('*', { count: 'exact', head: true })
+    .eq('operator_id', op.id)
+    .eq('active', true);
+
+  const HREFS: Record<string, string> = {
+    name: '/operator/profile',
+    schedule: '/operator/profile',
+    price: '/operator/profile',
+    packages: '/operator/contracts',
+    stripe: '/api/stripe/connect/onboard',
+    insurance: '/operator/profile',
+  };
+  const LABELS: Record<string, string> = {
+    name: 'Business name',
+    schedule: 'Wash days & hours',
+    price: 'Base price per wash',
+    packages: 'At least one service package',
+    stripe: 'Stripe Connect set up',
+    insurance: 'Insurance certificate uploaded',
+  };
+
   const checklist = [
     { label: 'Application approved', done: op.status === 'approved' },
-    { label: 'Stripe Connect set up', done: !!op.stripe_onboarding_complete, href: '/api/stripe/connect/onboard' },
-    { label: 'Insurance certificate approved', done: op.insurance_review_status === 'approved', href: '/operator/profile' },
+    ...operatorRequirements(op, activePackages ?? 0).map((r) => ({
+      label: LABELS[r.key] ?? r.label,
+      done: r.done,
+      href: HREFS[r.key],
+    })),
   ];
   const incomplete = checklist.filter((c) => !c.done);
 
@@ -84,7 +113,8 @@ export default async function OperatorOverview({ searchParams }: { searchParams:
         <div className="mb-6 card border-yellow-400/30 bg-yellow-400/5 p-5">
           <div className="font-medium text-amber-700">Finish setup to start receiving washes</div>
           <p className="mt-0.5 text-xs text-amber-600/70">
-            Residents can't book until everything below is checked off.
+            Buildings can see you in the marketplace now, but can&rsquo;t request you — and residents
+            can&rsquo;t book — until everything below is checked off.
           </p>
           <ul className="mt-4 space-y-2">
             {checklist.map((c) => (
