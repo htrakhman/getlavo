@@ -3,6 +3,7 @@ import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { sendAdminNotification, sendPartnershipRequest } from '@/lib/email/resend';
 import { operatorSetup, pendingLabel } from '@/lib/operator-readiness';
+import { parseDateList, futureDates } from '@/lib/wash-dates';
 import { z } from 'zod';
 
 const Body = z.object({
@@ -26,24 +27,34 @@ export async function POST(req: Request) {
   // Verify the building belongs to this manager
   const { data: building } = await sb
     .from('buildings')
-    .select('id, name, manager_id')
+    .select('id, name, manager_id, address_line1, city, region, total_units, wash_day, preferred_wash_day, requested_wash_dates')
     .eq('id', buildingId)
     .eq('manager_id', session.user.id)
     .single();
   if (!building) return NextResponse.json({ error: 'Building not found' }, { status: 404 });
 
-  // Check no active partnership already exists for this building
-  const { data: existing } = await sb
+  // Check no active or pending partnership already exists for this building.
+  // Admin read: the blocking row can belong to a crew this manager can't see
+  // under RLS, and the message below has to name them — an unattributed
+  // "a request is already pending" on some other crew's page reads like a bug.
+  const { data: existing } = await admin
     .from('partnerships')
-    .select('id, status')
+    .select('id, status, operator_id, operator:operators(name)')
     .eq('building_id', buildingId)
     .in('status', ['active', 'pending'])
     .maybeSingle();
   if (existing) {
-    return NextResponse.json(
-      { error: existing.status === 'active' ? 'This building already has an active partner' : 'A request is already pending' },
-      { status: 409 },
-    );
+    const blockingName = (existing.operator as any)?.name ?? 'another crew';
+    const sameOperator = existing.operator_id === operatorId;
+    const error =
+      existing.status === 'active'
+        ? sameOperator
+          ? `${blockingName} is already your active partner for ${building.name}.`
+          : `${building.name} already has an active partner (${blockingName}). End that partnership before requesting another crew.`
+        : sameOperator
+          ? `You've already requested ${blockingName} — waiting on them to accept.`
+          : `${building.name} already has a pending request with ${blockingName}. They need to accept or decline it before you can request another crew.`;
+    return NextResponse.json({ error }, { status: 409 });
   }
 
   // Fetch operator and owner email. Every signed-up operator is listed in the
@@ -88,14 +99,23 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: error?.message ?? 'Failed to create request' }, { status: 500 });
   }
 
-  // Email operator
+  // Email operator, with enough building detail to judge the request and a
+  // reply-to so they can ask the manager questions directly.
   if (ownerProfile?.email) {
+    const address = [building.address_line1, [building.city, building.region].filter(Boolean).join(', ')]
+      .filter(Boolean)
+      .join(' · ') || null;
     await sendPartnershipRequest({
       to: ownerProfile.email,
       operatorName: ownerProfile.full_name ?? operator.name,
       buildingName: building.name,
       managerName: session.profile.full_name,
+      managerEmail: session.profile.email,
       partnershipId: partnership.id,
+      buildingAddress: address,
+      buildingUnits: building.total_units,
+      washDay: building.wash_day ?? building.preferred_wash_day ?? null,
+      requestedDates: futureDates(parseDateList(building.requested_wash_dates)),
     }).catch(() => {});
   }
 

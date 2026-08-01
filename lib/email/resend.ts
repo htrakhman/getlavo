@@ -99,22 +99,64 @@ export async function sendWashComplete(args: {
   });
 }
 
+/**
+ * Where the accept/decline buttons live. Routed through `/login?redirect=` so a
+ * signed-out operator lands back on the request after signing in instead of on
+ * their portal home — `/operator/buildings` itself redirects to a bare `/login`
+ * and loses the destination.
+ */
+const PARTNERSHIP_REVIEW_PATH = '/operator/buildings';
+const partnershipReviewUrl = () =>
+  `${APP_URL}/login?redirect=${encodeURIComponent(PARTNERSHIP_REVIEW_PATH)}`;
+
+function detailRows(rows: [string, string | null | undefined][]) {
+  const present = rows.filter(([, value]) => value != null && value !== '');
+  if (!present.length) return '';
+  return `<table style="border-collapse:collapse;width:100%;max-width:440px;margin:16px 0">${present
+    .map(
+      ([label, value]) =>
+        `<tr><td style="padding:6px 0;color:#666;vertical-align:top">${escapeHtml(label)}</td>` +
+        `<td style="padding:6px 0;font-weight:600">${escapeHtml(String(value))}</td></tr>`,
+    )
+    .join('')}</table>`;
+}
+
 export async function sendPartnershipRequest(args: {
   to: string;
   operatorName: string;
   buildingName: string;
   managerName: string;
   partnershipId: string;
+  /** Reply-to, so the operator can ask the manager questions directly. */
+  managerEmail?: string | null;
+  /** Building details, so the operator can judge the request from the email. */
+  buildingAddress?: string | null;
+  buildingUnits?: number | null;
+  washDay?: string | null;
+  requestedDates?: string[];
 }) {
+  const reviewUrl = partnershipReviewUrl();
+  const details = detailRows([
+    ['Building', args.buildingName],
+    ['Address', args.buildingAddress],
+    ['Units', args.buildingUnits ? `${args.buildingUnits}` : null],
+    ['Preferred wash day', args.washDay],
+    ['Requested dates', args.requestedDates?.length ? args.requestedDates.join(', ') : null],
+    ['Property manager', args.managerEmail ? `${args.managerName} (${args.managerEmail})` : args.managerName],
+  ]);
+
   return client().emails.send({
     from: FROM,
     to: args.to,
+    ...(args.managerEmail ? { replyTo: args.managerEmail } : {}),
     subject: `Partnership request from ${escapeHtml(args.buildingName)}`,
     html: `
       <p>Hi ${escapeHtml(args.operatorName)},</p>
       <p><strong>${escapeHtml(args.buildingName)}</strong> (managed by ${escapeHtml(args.managerName)}) has requested a partnership with your car wash on Lavo.</p>
-      <p>Accepting will make you visible to residents at this building and allow them to book washes with you.</p>
-      <p><a href="${APP_URL}/operator/bookings" style="display:inline-block;padding:12px 18px;border-radius:8px;background:#00ff88;color:#000;font-weight:600;text-decoration:none">Review request</a></p>
+      ${details}
+      <p>Log in to <strong>accept or decline</strong> this request. Accepting makes you visible to residents at this building and lets them book washes with you right away.</p>
+      <p><a href="${reviewUrl}" style="display:inline-block;padding:12px 18px;border-radius:8px;background:#00ff88;color:#000;font-weight:600;text-decoration:none">Log in to accept or decline</a></p>
+      <p style="color:#666;font-size:12px">If the button doesn't work, paste this into your browser:<br>${escapeHtml(reviewUrl)}</p>
     `,
   });
 }
