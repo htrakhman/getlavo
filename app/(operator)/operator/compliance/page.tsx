@@ -1,6 +1,7 @@
 import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { insuranceDocViewUrl } from '@/lib/insurance-doc';
+import { withAutoVerifiedInsurance } from '@/lib/insurance-auto-verify';
 import { InsuranceUploader } from '../profile/InsuranceUploader';
 
 export default async function OperatorCompliancePage() {
@@ -8,13 +9,18 @@ export default async function OperatorCompliancePage() {
   if (!session) redirect('/login');
 
   const sb = supabaseServer();
-  const { data: op } = await sb
+  const { data: row } = await sb
     .from('operators')
     .select('id, insurance_carrier, insurance_policy_number, insurance_coverage_amount_cents, insurance_expires_at, insurance_doc_url, insurance_uploaded_at, insurance_review_status, insurance_review_note')
     .eq('owner_id', session.user.id)
     .maybeSingle();
 
-  if (!op) redirect('/operator/onboarding');
+  if (!row) redirect('/operator/onboarding');
+
+  // This is the page an operator refreshes while they wait, so it is where the
+  // review hold is cashed in: once it has elapsed the certificate is marked
+  // verified here and rendered verified in the same pass.
+  const op = (await withAutoVerifiedInsurance(row as any)) ?? row;
 
   const docViewUrl = await insuranceDocViewUrl(op.insurance_doc_url);
 

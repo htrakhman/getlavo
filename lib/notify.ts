@@ -13,7 +13,8 @@ type NotificationType =
   | 'wash_day_declined'
   | 'waitlist_building_live'
   | 'coi_expiring'
-  | 'coi_expired';
+  | 'coi_expired'
+  | 'coi_approved';
 
 export async function notify(profileId: string, type: NotificationType, data: Record<string, any>) {
   const sb = supabaseAdmin();
@@ -42,6 +43,7 @@ export async function notify(profileId: string, type: NotificationType, data: Re
     waitlist_building_live: 'Your building is live on Lavo',
     coi_expiring: 'Your insurance expires soon',
     coi_expired: 'Your insurance on file has expired',
+    coi_approved: 'Your certificate of insurance is verified',
   };
 
   const body = renderBody(type, data);
@@ -118,7 +120,7 @@ function smsEligible(type: NotificationType) {
 
 function prefRespects(type: NotificationType, prefs: Record<string, boolean>, channel: 'email' | 'sms') {
   // Operational/account messages always go through.
-  const operational: NotificationType[] = ['payment_failed', 'pilot_signed', 'operator_assigned', 'wash_day_proposed', 'wash_day_confirmed', 'wash_day_declined', 'waitlist_building_live', 'coi_expiring', 'coi_expired'];
+  const operational: NotificationType[] = ['payment_failed', 'pilot_signed', 'operator_assigned', 'wash_day_proposed', 'wash_day_confirmed', 'wash_day_declined', 'waitlist_building_live', 'coi_expiring', 'coi_expired', 'coi_approved'];
   if (operational.includes(type)) return true;
   const map: Record<string, string> = {
     'wash_reminder:email': 'email_reminder',
@@ -159,6 +161,8 @@ function renderBody(type: NotificationType, data: any) {
       return `Your certificate of insurance expires ${data.expiresAt ?? 'soon'}. Upload a renewed certificate to stay verified.`;
     case 'coi_expired':
       return `Your certificate of insurance expired${data.expiresAt ? ` on ${data.expiresAt}` : ''}. Upload a current certificate to get verified again.`;
+    case 'coi_approved':
+      return `Your certificate of insurance is verified${data.expiresAt ? ` through ${data.expiresAt}` : ''}. Buildings now see the verified badge on your profile.`;
     default:
       return 'Update from Lavo.';
   }

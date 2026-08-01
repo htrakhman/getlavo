@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabaseBrowser } from '@/lib/supabase/client';
 
@@ -22,6 +22,16 @@ export function InsuranceUploader({ op, docViewUrl }: { op: any; docViewUrl?: st
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+
+  // A certificate under review clears itself after a few minutes. Poll while
+  // it's pending so the operator watching this page sees it turn verified
+  // instead of having to guess when to reload.
+  const pending = op.insurance_review_status === 'pending_review';
+  useEffect(() => {
+    if (!pending) return;
+    const t = setInterval(() => router.refresh(), 20_000);
+    return () => clearInterval(t);
+  }, [pending, router]);
 
   async function save() {
     setErr(null);
@@ -88,9 +98,10 @@ export function InsuranceUploader({ op, docViewUrl }: { op: any; docViewUrl?: st
           Your policy on file has expired. Upload a current certificate to get verified again.
         </div>
       )}
-      {op.insurance_review_status === 'pending_review' && (
+      {pending && (
         <div className="card border-amber-500/30 bg-amber-500/5 mb-3 p-3 text-xs text-amber-600">
-          Certificate under review. We will let you know once it is verified.
+          Certificate under review — this usually takes a few minutes. We&apos;ll email you the moment
+          it&apos;s verified, and this page updates on its own.
         </div>
       )}
       {op.insurance_review_status === 'approved' && (
