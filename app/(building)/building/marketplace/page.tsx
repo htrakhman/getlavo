@@ -9,10 +9,12 @@ import { RequestedWashDatesForm } from './RequestedWashDatesForm';
 import { IncomingOperatorRequests } from './IncomingOperatorRequests';
 import { parseDateList } from '@/lib/wash-dates';
 import Link from 'next/link';
-import { money, dateShort } from '@/lib/format';
+import { dateShort } from '@/lib/format';
 import { hasApprovedInsurance } from '@/lib/insurance';
 import { operatorSetup, pendingLabel, setupChipLabel } from '@/lib/operator-readiness';
 import { OperatorTabs } from './OperatorTabs';
+import { OperatorPricingCard } from './OperatorPricingCard';
+import { operatorPricing } from '@/lib/operator-pricing';
 
 export default async function MyOperator() {
   const session = await getSessionUser();
@@ -94,15 +96,29 @@ export default async function MyOperator() {
         .limit(20)
     : { data: null };
 
-  // Package counts for the whole page in one query — an operator with no active
-  // package hasn't finished their profile and can't be requested yet.
-  const { data: packageRows } = operators?.length
-    ? await sb
-        .from('service_packages')
-        .select('operator_id')
-        .eq('active', true)
-        .in('operator_id', operators.map((o: any) => o.id))
-    : { data: null };
+  // Full menus for the whole page in two batched queries. These double as the
+  // readiness signal (an operator with no active package hasn't finished their
+  // profile and can't be requested) and as the source for the consolidated
+  // pricing panel on each card.
+  const operatorIds = (operators ?? []).map((o: any) => o.id);
+  const [{ data: packageRows }, { data: addonRows }] = operatorIds.length
+    ? await Promise.all([
+        sb
+          .from('service_packages')
+          .select('id, operator_id, name, description, price_cents, size_prices')
+          .eq('active', true)
+          .in('operator_id', operatorIds)
+          .order('display_order', { ascending: true })
+          .order('price_cents', { ascending: true }),
+        sb
+          .from('operator_addons')
+          .select('id, operator_id, label, price_cents, size_prices')
+          .eq('active', true)
+          .in('operator_id', operatorIds)
+          .order('price_cents', { ascending: true }),
+      ])
+    : [{ data: null }, { data: null }];
+
   const packageCounts = new Map<string, number>();
   for (const row of packageRows ?? []) {
     const id = (row as any).operator_id as string;
@@ -167,51 +183,20 @@ export default async function MyOperator() {
                 {operators.map((op: any) => {
                   const setup = operatorSetup(op, packageCounts.get(op.id) ?? 0);
                   return (
-                  <Link
-                    key={op.id}
-                    href={`/building/marketplace/${op.id}`}
-                    className={`card p-5 hover:border-gleam/40 transition-colors block ${setup.requestable ? '' : 'border-amber-500/30'}`}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <div className="font-display text-lg truncate">{op.name}</div>
-                        {op.rating_count > 0 && (
-                          <div className="mt-0.5 text-xs text-ink-400">
-                            ★ {Number(op.rating_avg).toFixed(1)} · {op.rating_count} reviews
-                          </div>
-                        )}
-                        {op.description && (
-                          <p className="mt-2 text-sm text-ink-300 line-clamp-2">{op.description}</p>
-                        )}
-                      </div>
-                      <div className="shrink-0 text-right">
-                        <div className="font-display text-xl text-gleam">{money(op.base_price_cents)}</div>
-                        <div className="text-xs text-ink-400">per building day</div>
-                      </div>
-                    </div>
-                    <div className="mt-4 flex flex-wrap gap-2 text-xs text-ink-400">
-                      {op.service_radius_miles && (
-                        <span className="chip">{op.service_radius_miles} mi radius</span>
-                      )}
-                      {op.open_slot_price_cents && (
-                        <span className="chip">On-demand {money(op.open_slot_price_cents)}</span>
-                      )}
-                      {hasApprovedInsurance(op) && (
-                        <span className="chip text-gleam/80">✓ Insured</span>
-                      )}
-                      {!setup.requestable && (
-                        <span className="chip text-amber-600">{setupChipLabel(setup)}</span>
-                      )}
-                    </div>
-                    {setup.requestable ? (
-                      <div className="mt-4 text-xs text-gleam">View &amp; request →</div>
-                    ) : (
-                      <div className="mt-4 text-xs text-amber-600">
-                        Still finishing setup — waiting on {pendingLabel(setup.pending)}. You can
-                        view their profile, but can&rsquo;t request them yet.
-                      </div>
-                    )}
-                  </Link>
+                    <OperatorPricingCard
+                      key={op.id}
+                      operatorId={op.id}
+                      name={op.name}
+                      description={op.description ?? null}
+                      ratingAvg={op.rating_avg ?? null}
+                      ratingCount={op.rating_count ?? null}
+                      serviceRadiusMiles={op.service_radius_miles ?? null}
+                      insured={hasApprovedInsurance(op)}
+                      requestable={setup.requestable}
+                      setupChip={setup.requestable ? null : setupChipLabel(setup)}
+                      pendingNote={setup.requestable ? null : pendingLabel(setup.pending)}
+                      pricing={operatorPricing(op.id, op, (packageRows ?? []) as any[], (addonRows ?? []) as any[])}
+                    />
                   );
                 })}
               </div>
