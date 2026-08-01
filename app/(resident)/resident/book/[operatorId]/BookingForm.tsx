@@ -679,7 +679,7 @@ export function BookingForm({
           >
             {busy
               ? (priceCents > 0 ? 'Redirecting to payment…' : 'Booking…')
-              : (priceCents > 0 ? `Pay ${money(priceCents)}` : 'Book free wash')}
+              : (priceCents > 0 ? `Book · ${money(priceCents)}` : 'Book free wash')}
           </button>
           <p className="text-[11px] text-ink-400 text-center">
             Secure payment via Stripe. Cancellation available up to 24h before.
