@@ -4,6 +4,8 @@ import { redirect } from 'next/navigation';
 
 const NAV = [
   { href: '/resident/washes', label: 'My account' },
+  { href: '/resident/book', label: 'Book a wash' },
+  { href: '/resident/bookings', label: 'My bookings' },
   { href: '/resident/vehicle', label: 'Vehicle' },
   { href: '/resident/payment', label: 'Payment' },
   { href: '/resident/charges', label: 'Charges' },

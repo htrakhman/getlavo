@@ -1,23 +1,6 @@
 'use client';
 import { useEffect, useMemo, useState } from 'react';
-
-type Day = { date: string; dow: string; slots: string[]; full: boolean };
-
-function dayNumber(date: string): string {
-  return String(parseInt(date.slice(8, 10), 10));
-}
-
-function monthLabel(date: string): string {
-  return new Date(`${date}T12:00:00`).toLocaleDateString('en-US', { month: 'short' });
-}
-
-function longLabel(date: string): string {
-  return new Date(`${date}T12:00:00`).toLocaleDateString('en-US', {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-  });
-}
+import { DayTimePicker, longLabel, type AvailabilityDay } from '@/components/DayTimePicker';
 
 /**
  * Live slot picker for the QR landing page. Availability comes from the
@@ -27,7 +10,7 @@ function longLabel(date: string): string {
  * redirect so it's confirmed and paid for after account creation.
  */
 export function AvailabilityCalendar({ slug }: { slug: string }) {
-  const [days, setDays] = useState<Day[] | null>(null);
+  const [days, setDays] = useState<AvailabilityDay[] | null>(null);
   const [failed, setFailed] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
@@ -36,17 +19,12 @@ export function AvailabilityCalendar({ slug }: { slug: string }) {
     fetch(`/api/b/availability?b=${encodeURIComponent(slug)}`)
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then((d) => {
-        const list: Day[] = d.days ?? [];
+        const list: AvailabilityDay[] = d.days ?? [];
         setDays(list);
         setSelectedDate(list.find((day) => day.slots.length > 0)?.date ?? null);
       })
       .catch(() => setFailed(true));
   }, [slug]);
-
-  const selectedDay = useMemo(
-    () => days?.find((d) => d.date === selectedDate) ?? null,
-    [days, selectedDate]
-  );
 
   const bookHref = useMemo(() => {
     const schedule =
@@ -83,6 +61,8 @@ export function AvailabilityCalendar({ slug }: { slug: string }) {
     );
   }
 
+  const selectedDay = days.find((d) => d.date === selectedDate) ?? null;
+
   return (
     <div className="card p-5 sm:p-6">
       <div className="flex items-baseline justify-between">
@@ -90,65 +70,20 @@ export function AvailabilityCalendar({ slug }: { slug: string }) {
         <div className="text-xs text-ink-400">Next two weeks</div>
       </div>
 
-      {/* Day strip */}
-      <div className="-mx-1 mt-4 flex gap-2 overflow-x-auto px-1 pb-2" role="tablist" aria-label="Choose a day">
-        {days.map((day) => {
-          const isSelected = day.date === selectedDate;
-          const unavailable = day.slots.length === 0;
-          return (
-            <button
-              key={day.date}
-              role="tab"
-              aria-selected={isSelected}
-              disabled={unavailable}
-              onClick={() => {
-                setSelectedDate(day.date);
-                setSelectedTime(null);
-              }}
-              className={`flex w-14 shrink-0 flex-col items-center rounded-xl border px-2 py-2.5 transition ${
-                isSelected
-                  ? 'border-gleam/60 bg-gleam/10 shadow-glow'
-                  : unavailable
-                    ? 'border-white/5 opacity-35'
-                    : 'border-white/10 hover:border-white/25'
-              }`}
-            >
-              <span className="text-[10px] uppercase tracking-wide text-ink-400">{day.dow}</span>
-              <span className={`mt-0.5 font-display text-lg ${isSelected ? 'text-gleam' : 'text-ink-100'}`}>
-                {dayNumber(day.date)}
-              </span>
-              <span className="text-[10px] text-ink-500">{monthLabel(day.date)}</span>
-            </button>
-          );
-        })}
+      <div className="mt-4">
+        <DayTimePicker
+          days={days}
+          selectedDate={selectedDate}
+          selectedTime={selectedTime}
+          onSelectDate={(date) => {
+            setSelectedDate(date);
+            setSelectedTime(null);
+          }}
+          onSelectTime={(time) => setSelectedTime((prev) => (prev === time ? null : time))}
+        />
       </div>
 
-      {/* Slots for the selected day */}
-      {selectedDay ? (
-        <>
-          <div className="mt-4 text-sm text-ink-300">{longLabel(selectedDay.date)}</div>
-          <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4" role="radiogroup" aria-label="Choose a time">
-            {selectedDay.slots.map((time) => {
-              const isSelected = time === selectedTime;
-              return (
-                <button
-                  key={time}
-                  role="radio"
-                  aria-checked={isSelected}
-                  onClick={() => setSelectedTime(isSelected ? null : time)}
-                  className={`rounded-xl border px-2 py-2.5 text-center text-sm transition ${
-                    isSelected
-                      ? 'border-gleam/70 bg-gleam/15 font-semibold text-gleam shadow-glow'
-                      : 'border-white/10 bg-ink-900/60 text-ink-100 hover:border-gleam/40'
-                  }`}
-                >
-                  {time}
-                </button>
-              );
-            })}
-          </div>
-        </>
-      ) : (
+      {!selectedDay && (
         <p className="mt-4 text-sm text-ink-400">
           No open slots in the next two weeks — sign up and we&apos;ll notify you when new times open.
         </p>

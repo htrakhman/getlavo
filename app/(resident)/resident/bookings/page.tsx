@@ -66,13 +66,13 @@ export default async function ResidentBookings({
 
   const [{ data: upcoming, error: upcomingError }, { data: past }] = await Promise.all([
     admin.from('bookings')
-      .select('id, scheduled_for, time_slot, status, gross_cents, booking_type, operator:operators(name), addon_orders(id, paid_at, operator_addon:operator_addons(label))')
+      .select('id, scheduled_for, time_slot, status, gross_cents, booking_type, operator:operators(name), package:service_packages(name), addon_orders(id, paid_at, operator_addon:operator_addons(label))')
       .eq('resident_id', resident.id)
       .gte('scheduled_for', today)
       .in('status', ['confirmed', 'in_progress', 'pending_payment'])
       .order('scheduled_for'),
     admin.from('bookings')
-      .select('id, scheduled_for, time_slot, status, gross_cents, booking_type, operator:operators(name), addon_orders(id, paid_at, operator_addon:operator_addons(label))')
+      .select('id, scheduled_for, time_slot, status, gross_cents, booking_type, operator:operators(name), package:service_packages(name), addon_orders(id, paid_at, operator_addon:operator_addons(label))')
       .eq('resident_id', resident.id)
       .or(`scheduled_for.lt.${today},status.in.(completed,cancelled)`)
       .order('scheduled_for', { ascending: false })
@@ -110,7 +110,10 @@ export default async function ResidentBookings({
               {upcoming.map((b: any) => (
                 <div key={b.id} className="card p-5 flex items-center justify-between">
                   <div>
-                    <div className="font-medium">{b.operator?.name}</div>
+                    <div className="font-medium">
+                      {b.operator?.name}
+                      {b.package?.name && <span className="text-ink-400"> · {b.package.name}</span>}
+                    </div>
                     <div className="mt-0.5 text-sm text-ink-400">
                       {dateShort(b.scheduled_for)}{b.time_slot ? ` at ${b.time_slot}` : ''}
                       <span className="ml-2 text-xs">
