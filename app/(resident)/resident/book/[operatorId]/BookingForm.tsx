@@ -2,6 +2,7 @@
 import { money, plateLabel } from '@/lib/format';
 import { parseSizePrices } from '@/lib/vehicle-sizes';
 import { SizePriceList } from '@/components/SizePriceList';
+import { DayTimePicker, type AvailabilityDay } from '@/components/DayTimePicker';
 import { captureEvent } from '@/lib/analytics';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -36,6 +37,7 @@ export function BookingForm({
   waiverAccepted,
   addons,
   initialAddonIds,
+  packages,
 }: {
   operatorId: string;
   operatorName: string;
@@ -49,12 +51,18 @@ export function BookingForm({
   waiverAccepted: boolean;
   addons: { id: string; label: string; price_cents: number; size_prices?: unknown }[];
   initialAddonIds: string[];
+  packages: { id: string; name: string; description: string | null; price_cents: number; size_prices?: unknown }[];
 }) {
   const router = useRouter();
   const [bookingType, setBookingType] = useState<'building_day' | 'open_slot'>(
     isPartner ? 'building_day' : 'open_slot'
   );
   const [vehicleId, setVehicleId] = useState(vehicles.find((v) => v.is_primary)?.id ?? vehicles[0]?.id ?? '');
+  // The operator's published wash packages (Basic, Premium, Full detail…),
+  // when they've set any up. Picking one overrides the flat building-day /
+  // on-demand price below with that package's price.
+  const [packageId, setPackageId] = useState('');
+  const selectedPackage = packages.find((p) => p.id === packageId) ?? null;
   // A slot picked on the QR landing calendar arrives via query params.
   const [date, setDate] = useState(() =>
     initialDate && initialDate >= isoDateMin() && initialDate <= isoDateMax() ? initialDate : ''
@@ -66,16 +74,16 @@ export function BookingForm({
   // Live availability (operator hours + agreed wash days + capacity). When
   // present, the date/time pickers are constrained to it; otherwise the
   // free-form inputs below remain as a fallback.
-  const [availability, setAvailability] = useState<{ date: string; slots: string[] }[] | null>(null);
+  const [availability, setAvailability] = useState<AvailabilityDay[] | null>(null);
 
   useEffect(() => {
     fetch(`/api/availability?operatorId=${encodeURIComponent(operatorId)}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
-        const days = ((d?.days ?? []) as { date: string; slots: string[] }[]).filter(
-          (day) => day.slots.length > 0
-        );
-        if (days.length > 0) setAvailability(days);
+        const days = (d?.days ?? []) as AvailabilityDay[];
+        // Only switch to the live calendar view once there's at least one
+        // bookable day — otherwise keep the free-form fallback inputs.
+        if (days.some((day) => day.slots.length > 0)) setAvailability(days);
       })
       .catch(() => {});
   }, [operatorId]);
@@ -104,9 +112,11 @@ export function BookingForm({
     if (stored) setPromoCode(stored);
   }, []);
 
-  const washCents = bookingType === 'building_day'
-    ? basePriceCents
-    : (openSlotPriceCents ?? basePriceCents);
+  const washCents = selectedPackage
+    ? selectedPackage.price_cents
+    : bookingType === 'building_day'
+      ? basePriceCents
+      : (openSlotPriceCents ?? basePriceCents);
 
   const selectedAddons = addons.filter((a) => addonIds.includes(a.id));
   const addonCents = selectedAddons.reduce((sum, a) => sum + a.price_cents, 0);
@@ -158,6 +168,7 @@ export function BookingForm({
           scheduledFor: date,
           timeSlot,
           bookingType,
+          packageId: packageId || undefined,
           partnershipId: partnershipId ?? undefined,
           recurringCadence: recurring === 'none' ? undefined : recurring,
           addonIds,
@@ -232,6 +243,59 @@ export function BookingForm({
               <span className="font-display">{money(openSlotPriceCents)}</span>
             </button>
           </div>
+        </div>
+      )}
+
+      {packages.length > 0 && (
+        <div>
+          <label className="label">Wash package</label>
+          <div className="space-y-2">
+            <button
+              type="button"
+              onClick={() => setPackageId('')}
+              className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left transition ${
+                !packageId ? 'border-gleam/60 bg-gleam/5' : 'border-white/10 hover:border-white/20'
+              }`}
+            >
+              <div>
+                <div className="text-sm font-medium">Standard wash</div>
+                <div className="text-xs text-ink-400">
+                  {isPartner && openSlotPriceCents ? 'Priced by booking type above' : 'The operator’s regular wash'}
+                </div>
+              </div>
+              <span className="font-display">
+                {money(bookingType === 'building_day' ? basePriceCents : (openSlotPriceCents ?? basePriceCents))}
+              </span>
+            </button>
+            {packages.map((p) => {
+              const tiers = parseSizePrices(p.size_prices);
+              const checked = packageId === p.id;
+              return (
+                <button
+                  type="button"
+                  key={p.id}
+                  onClick={() => setPackageId(p.id)}
+                  className={`flex w-full items-start justify-between gap-3 rounded-xl border px-4 py-3 text-left transition ${
+                    checked ? 'border-gleam/60 bg-gleam/5' : 'border-white/10 hover:border-white/20'
+                  }`}
+                >
+                  <div className="min-w-0">
+                    <div className="text-sm font-medium">{p.name}</div>
+                    {p.description && <div className="mt-0.5 text-xs text-ink-400">{p.description}</div>}
+                    <SizePriceList raw={p.size_prices} format={money} className="mt-1 text-xs text-ink-500" />
+                  </div>
+                  <span className="whitespace-nowrap font-display text-sm">
+                    {tiers.length > 0 ? `from ${money(p.price_cents)}` : money(p.price_cents)}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          {selectedPackage && parseSizePrices(selectedPackage.size_prices).length > 0 && (
+            <p className="mt-1 text-xs text-ink-500">
+              Priced by vehicle type — checks out at the starting rate, your operator confirms the rate for your vehicle.
+            </p>
+          )}
         </div>
       )}
 
@@ -329,37 +393,30 @@ export function BookingForm({
       </div>
 
       <div>
-        <label className="label">Date</label>
+        <label className="label">Date & time</label>
         {availability ? (
-          <select className="field" value={date} onChange={(e) => setDate(e.target.value)}>
-            <option value="">Select a date…</option>
-            {availability.map((d) => (
-              <option key={d.date} value={d.date}>
-                {new Date(`${d.date}T12:00:00`).toLocaleDateString('en-US', {
-                  weekday: 'short',
-                  month: 'short',
-                  day: 'numeric',
-                })}
-              </option>
-            ))}
-          </select>
-        ) : (
-          <input
-            className="field"
-            type="date"
-            min={isoDateMin()}
-            max={isoDateMax()}
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
+          <DayTimePicker
+            days={availability}
+            selectedDate={date || null}
+            selectedTime={timeSlot || null}
+            onSelectDate={(d) => setDate(d)}
+            onSelectTime={(t) => setTimeSlot(t)}
           />
+        ) : (
+          <div className="space-y-3">
+            <input
+              className="field"
+              type="date"
+              min={isoDateMin()}
+              max={isoDateMax()}
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+            />
+            <select className="field" value={timeSlot} onChange={(e) => setTimeSlot(e.target.value)}>
+              {slotOptions.map((t) => <option key={t} value={t}>{t}</option>)}
+            </select>
+          </div>
         )}
-      </div>
-
-      <div>
-        <label className="label">Preferred time</label>
-        <select className="field" value={timeSlot} onChange={(e) => setTimeSlot(e.target.value)}>
-          {slotOptions.map((t) => <option key={t} value={t}>{t}</option>)}
-        </select>
       </div>
 
       <div className="rounded-xl border border-white/10 bg-ink-800/50 p-4 space-y-2">

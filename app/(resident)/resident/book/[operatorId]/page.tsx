@@ -3,6 +3,7 @@ import { getSessionUser, supabaseServer, supabaseAdmin } from '@/lib/supabase/se
 import { money } from '@/lib/format';
 import { WAIVER_VERSION } from '@/lib/waiver';
 import { listBookableAddons, listRecurringAddonIds } from '@/lib/addons';
+import { getPackagesForOperator } from '@/lib/service-packages';
 import { redirect } from 'next/navigation';
 import { BookingForm } from './BookingForm';
 
@@ -34,7 +35,7 @@ export default async function BookOperator({
 
   if (!resident || !operator) redirect('/resident/book');
 
-  const [{ data: vehicles }, { data: waiver }, addons, recurringAddonIds] = await Promise.all([
+  const [{ data: vehicles }, { data: waiver }, addons, recurringAddonIds, packages] = await Promise.all([
     admin
       .from('vehicles')
       .select('id, make, model, color, license_plate, is_primary')
@@ -48,6 +49,7 @@ export default async function BookOperator({
       .maybeSingle(),
     listBookableAddons(admin, operator.id),
     listRecurringAddonIds(admin, resident.id, operator.id),
+    getPackagesForOperator(admin, operator.id),
   ]);
 
   const isPartner = !!searchParams.partnershipId;
@@ -96,6 +98,7 @@ export default async function BookOperator({
           waiverAccepted={!!waiver}
           addons={addons}
           initialAddonIds={recurringAddonIds}
+          packages={packages}
         />
       </div>
     </>

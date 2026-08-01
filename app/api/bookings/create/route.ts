@@ -16,6 +16,7 @@ const Body = z.object({
   scheduledFor: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   timeSlot: z.string().optional(),
   bookingType: z.enum(['building_day', 'open_slot']).default('open_slot'),
+  packageId: z.string().uuid().optional(),
   partnershipId: z.string().uuid().optional(),
   recurringCadence: z.enum(['weekly', 'biweekly', 'monthly']).optional(),
   addonIds: z.array(z.string().uuid()).max(10).optional(),
@@ -83,7 +84,7 @@ async function createBooking(req: Request) {
   }
   const body = Body.safeParse(raw);
   if (!body.success) return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
-  const { operatorId, vehicleId, scheduledFor, timeSlot, bookingType, partnershipId, recurringCadence, addonIds, promoCode, waiverAccepted } =
+  const { operatorId, vehicleId, scheduledFor, timeSlot, bookingType, packageId, partnershipId, recurringCadence, addonIds, promoCode, waiverAccepted } =
     body.data;
 
   const admin = supabaseAdmin();
@@ -145,8 +146,28 @@ async function createBooking(req: Request) {
     return NextResponse.json({ error: 'This operator is not accepting new bookings yet' }, { status: 403 });
   }
 
-  const baseGrossCents =
-    bookingType === 'building_day'
+  // A selected wash package (Basic/Premium/etc.) overrides the flat
+  // building-day/on-demand price. Re-read from the operator's live catalogue —
+  // the client is never trusted for price, and a stale or foreign id is
+  // rejected rather than silently falling back to the flat price.
+  let packageRow: { id: string; name: string; price_cents: number } | null = null;
+  if (packageId) {
+    const { data: pkg, error: pkgError } = await admin
+      .from('service_packages')
+      .select('id, name, price_cents')
+      .eq('id', packageId)
+      .eq('operator_id', operatorId)
+      .eq('active', true)
+      .maybeSingle();
+    if (pkgError || !pkg) {
+      return NextResponse.json({ error: 'That wash package is no longer available' }, { status: 400 });
+    }
+    packageRow = pkg;
+  }
+
+  const baseGrossCents = packageRow
+    ? packageRow.price_cents
+    : bookingType === 'building_day'
       ? operator.base_price_cents
       : (operator.open_slot_price_cents ?? operator.base_price_cents);
 
@@ -244,6 +265,7 @@ async function createBooking(req: Request) {
       vehicle_id: vehicleId,
       partnership_id: partnershipId ?? null,
       wash_day_id: washDayId,
+      package_id: packageRow?.id ?? null,
       booking_type: bookingType,
       scheduled_for: scheduledFor,
       time_slot: timeSlot ?? null,
@@ -317,7 +339,7 @@ async function createBooking(req: Request) {
         unit_amount: promoResult.finalGrossCents,
         ...taxBehavior,
         product_data: {
-          name: `Car wash — ${buildingName}`,
+          name: packageRow ? `${packageRow.name} — ${buildingName}` : `Car wash — ${buildingName}`,
           description: `${scheduledFor}${timeSlot ? ` at ${timeSlot}` : ''} · ${vehicleDesc}`,
         },
       },
