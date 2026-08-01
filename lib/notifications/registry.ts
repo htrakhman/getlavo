@@ -3,7 +3,11 @@ export const notificationMatrix: Record<
   string,
   { email?: boolean; sms?: boolean; push?: boolean }
 > = {
-  booking_confirmed: { email: true, sms: true, push: true },
+  // Booking confirmations send their own email (with the calendar invite) from
+  // lib/booking-confirm, so notify() contributes the in-app row only. SMS is
+  // deliberately off for booking events.
+  booking_confirmed: { email: true, sms: false, push: true },
+  booking_received: { email: true, sms: false, push: true },
   booking_reminder_24h: { email: true, sms: true, push: true },
   operator_en_route: { sms: true, push: true },
   wash_complete: { email: true, sms: true, push: true },

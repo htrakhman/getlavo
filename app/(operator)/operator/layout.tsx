@@ -16,6 +16,7 @@ const NAV = [
   { href: '/operator/contracts', label: 'Contracts' },
   { heading: 'Operations' },
   { href: '/operator/today', label: 'Today' },
+  { href: '/operator/bookings', label: 'Bookings' },
   { href: '/operator/buildings', label: 'Buildings' },
   { href: '/operator/wash-days', label: 'Wash days' },
 ];

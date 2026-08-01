@@ -91,8 +91,13 @@ export default async function ResidentBookings({
       />
 
       {paymentBanner === 'confirmed' && (
-        <div className="mb-6 card border-gleam/30 bg-gleam/5 p-4 text-sm text-gleam">
-          Payment received — your booking is confirmed.
+        <div className="mb-6 card border-gleam/30 bg-gleam/5 p-4">
+          <p className="text-sm font-medium text-gleam">Payment received — your booking is confirmed.</p>
+          <p className="mt-2 text-sm text-ink-200">
+            A calendar invite is on its way to your email. Before your wash window,{' '}
+            <strong>drop your keys at the front desk</strong> — if the crew can&apos;t get your keys
+            they can&apos;t wash the car, and the booking isn&apos;t refunded.
+          </p>
         </div>
       )}
       {paymentBanner === 'processing' && (
@@ -123,6 +128,12 @@ export default async function ResidentBookings({
                     {addonLabels(b).length > 0 && (
                       <div className="mt-1 text-xs text-gleam">Add-ons: {addonLabels(b).join(', ')}</div>
                     )}
+                    <div className="mt-2 text-xs text-ink-400">
+                      Keys to the front desk before your window ·{' '}
+                      <a href={`/api/bookings/${b.id}/calendar`} className="underline hover:text-gleam">
+                        Add to calendar
+                      </a>
+                    </div>
                   </div>
                   <div className="text-right">
                     <div className={`text-sm font-medium ${STATUS_COLOR[b.status] ?? 'text-ink-300'}`}>

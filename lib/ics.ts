@@ -6,6 +6,11 @@
 const TZ = 'America/New_York';
 const DEFAULT_DURATION_MINS = 60;
 
+export type CalendarPerson = {
+  email: string;
+  name?: string | null;
+};
+
 export type WashEvent = {
   uid: string;
   title: string;
@@ -16,6 +21,10 @@ export type WashEvent = {
   /** e.g. "9:00 AM" — omitted → all-day event */
   time?: string | null;
   durationMins?: number;
+  /** Who the invite is from. Required for METHOD:REQUEST to render as an invite. */
+  organizer?: CalendarPerson;
+  /** Who the invite is addressed to. Required for METHOD:REQUEST to render as an invite. */
+  attendee?: CalendarPerson;
 };
 
 function icsEscape(s: string) {
@@ -39,6 +48,35 @@ function localStamp(date: string, h: number, min: number) {
   return `${date.replace(/-/g, '')}T${pad(h)}${pad(min)}00`;
 }
 
+/**
+ * End clock time for a slot, clamped to 23:59 on the same day. A late slot plus
+ * the wash duration used to roll past midnight and emit an hour of "24", which
+ * is not a valid ICS timestamp and made the whole event unparseable.
+ */
+function endClock(startH: number, startMin: number, durationMins: number): [number, number] {
+  const total = Math.min(startH * 60 + startMin + durationMins, 23 * 60 + 59);
+  return [Math.floor(total / 60), total % 60];
+}
+
+/**
+ * Parameter values (CN=…) can't carry the structural characters of the
+ * content line, and quoting rules differ from the text escaping above.
+ */
+function paramValue(s: string) {
+  return s.replace(/[",;:\r\n]/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function personLines(
+  prop: 'ORGANIZER' | 'ATTENDEE',
+  person: CalendarPerson | undefined,
+): string[] {
+  if (!person?.email) return [];
+  const cn = person.name ? `;CN=${paramValue(person.name)}` : '';
+  const extra =
+    prop === 'ATTENDEE' ? ';ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=TRUE' : '';
+  return [`${prop}${cn}${extra}:mailto:${person.email}`];
+}
+
 /** Builds a VCALENDAR string. `method: 'REQUEST'` makes mail clients render it as an invite. */
 export function buildIcs(event: WashEvent, opts: { method?: 'PUBLISH' | 'REQUEST' } = {}): string {
   const method = opts.method ?? 'PUBLISH';
@@ -47,10 +85,13 @@ export function buildIcs(event: WashEvent, opts: { method?: 'PUBLISH' | 'REQUEST
   const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
 
   const dtLines = parsed
-    ? [
-        `DTSTART;TZID=${TZ}:${localStamp(event.date, parsed[0], parsed[1])}`,
-        `DTEND;TZID=${TZ}:${localStamp(event.date, parsed[0] + Math.floor((parsed[1] + duration) / 60), (parsed[1] + duration) % 60)}`,
-      ]
+    ? (() => {
+        const [endH, endMin] = endClock(parsed[0], parsed[1], duration);
+        return [
+          `DTSTART;TZID=${TZ}:${localStamp(event.date, parsed[0], parsed[1])}`,
+          `DTEND;TZID=${TZ}:${localStamp(event.date, endH, endMin)}`,
+        ];
+      })()
     : [`DTSTART;VALUE=DATE:${event.date.replace(/-/g, '')}`];
 
   const lines = [
@@ -61,10 +102,17 @@ export function buildIcs(event: WashEvent, opts: { method?: 'PUBLISH' | 'REQUEST
     'BEGIN:VEVENT',
     `UID:${event.uid}`,
     `DTSTAMP:${stamp}`,
+    'SEQUENCE:0',
+    'STATUS:CONFIRMED',
     ...dtLines,
     `SUMMARY:${icsEscape(event.title)}`,
     ...(event.description ? [`DESCRIPTION:${icsEscape(event.description)}`] : []),
     ...(event.location ? [`LOCATION:${icsEscape(event.location)}`] : []),
+    // Gmail and Google Calendar only render a METHOD:REQUEST as an actionable
+    // invite when it names both an organizer and an attendee; without them the
+    // file degrades to a plain attachment the recipient has to open by hand.
+    ...personLines('ORGANIZER', event.organizer),
+    ...personLines('ATTENDEE', event.attendee),
     'END:VEVENT',
     'END:VCALENDAR',
   ];
@@ -77,7 +125,7 @@ export function googleCalendarUrl(event: WashEvent): string {
   const duration = event.durationMins ?? DEFAULT_DURATION_MINS;
   let dates: string;
   if (parsed) {
-    const end = [parsed[0] + Math.floor((parsed[1] + duration) / 60), (parsed[1] + duration) % 60] as const;
+    const end = endClock(parsed[0], parsed[1], duration);
     dates = `${localStamp(event.date, parsed[0], parsed[1])}/${localStamp(event.date, end[0], end[1])}`;
   } else {
     const d = new Date(`${event.date}T12:00:00Z`);
