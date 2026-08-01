@@ -72,38 +72,26 @@ export default async function BookOperator({
     <>
       <PageHeader eyebrow={building.name} title={operator.name} />
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2 space-y-4">
-          <div className="card p-6">
-            <p className="text-ink-200 leading-relaxed">{operator.description}</p>
-            {operator.rating_count > 0 && (
-              <div className="mt-5">
-                <div className="text-xs text-ink-400">Rating</div>
-                <div className="font-display text-2xl">★ {Number(operator.rating_avg).toFixed(1)}</div>
-                <div className="text-xs text-ink-400">{operator.rating_count} reviews</div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        <BookingForm
-          operatorId={operator.id}
-          operatorName={operator.name}
-          basePriceCents={operator.base_price_cents}
-          openSlotPriceCents={operator.open_slot_price_cents}
-          buildingPriceCents={buildingPriceCents}
-          jobDetails={jobDetails}
-          vehicles={vehicles ?? []}
-          isPartner={isPartner}
-          partnershipId={searchParams.partnershipId}
-          initialDate={searchParams.date}
-          initialTimeSlot={searchParams.time}
-          waiverAccepted={!!waiver}
-          addons={addons}
-          initialAddonIds={recurringAddonIds}
-          packages={packages}
-        />
-      </div>
+      <BookingForm
+        operatorId={operator.id}
+        operatorName={operator.name}
+        operatorDescription={operator.description}
+        ratingAvg={operator.rating_avg}
+        ratingCount={operator.rating_count}
+        basePriceCents={operator.base_price_cents}
+        openSlotPriceCents={operator.open_slot_price_cents}
+        buildingPriceCents={buildingPriceCents}
+        jobDetails={jobDetails}
+        vehicles={vehicles ?? []}
+        isPartner={isPartner}
+        partnershipId={searchParams.partnershipId}
+        initialDate={searchParams.date}
+        initialTimeSlot={searchParams.time}
+        waiverAccepted={!!waiver}
+        addons={addons}
+        initialAddonIds={recurringAddonIds}
+        packages={packages}
+      />
     </>
   );
 }

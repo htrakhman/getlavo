@@ -41,9 +41,15 @@ export function BookingForm({
   packages,
   buildingPriceCents,
   jobDetails,
+  operatorDescription,
+  ratingAvg,
+  ratingCount,
 }: {
   operatorId: string;
   operatorName: string;
+  operatorDescription: string | null;
+  ratingAvg: number | null;
+  ratingCount: number;
   basePriceCents: number;
   openSlotPriceCents: number | null;
   /** The rate the operator agreed for this building, when one is set. */
@@ -89,6 +95,7 @@ export function BookingForm({
   // present, the date/time pickers are constrained to it; otherwise the
   // free-form inputs below remain as a fallback.
   const [availability, setAvailability] = useState<AvailabilityDay[] | null>(null);
+  const [loadingAvailability, setLoadingAvailability] = useState(true);
 
   useEffect(() => {
     fetch(`/api/availability?operatorId=${encodeURIComponent(operatorId)}`)
@@ -99,7 +106,8 @@ export function BookingForm({
         // bookable day — otherwise keep the free-form fallback inputs.
         if (days.some((day) => day.slots.length > 0)) setAvailability(days);
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setLoadingAvailability(false));
   }, [operatorId]);
 
   const availableDay = availability?.find((d) => d.date === date) ?? null;
@@ -117,15 +125,9 @@ export function BookingForm({
   const [recurring, setRecurring] = useState<'none' | 'weekly' | 'biweekly' | 'monthly'>('none');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  const [promoCode, setPromoCode] = useState('');
   // Anything the resident already asked for on every wash starts ticked.
   const [addonIds, setAddonIds] = useState<string[]>(initialAddonIds);
   const [residentNotes, setResidentNotes] = useState('');
-
-  useEffect(() => {
-    const stored = typeof window !== 'undefined' ? localStorage.getItem('lavo_promo_code') : null;
-    if (stored) setPromoCode(stored);
-  }, []);
 
   const washCents = resolveWashPriceCents({
     packagePriceCents: selectedPackage?.price_cents,
@@ -145,39 +147,8 @@ export function BookingForm({
   const selectedAddons = addons.filter((a) => addonIds.includes(a.id));
   const addonCents = selectedAddons.reduce((sum, a) => sum + a.price_cents, 0);
 
-  // The promo is priced by the server against the same rules checkout uses, so
-  // what's on screen is what gets charged. Entering a code no longer leaves the
-  // total at full price all the way to the Stripe redirect.
-  const [promo, setPromo] = useState<{ discountCents: number; reason?: string } | null>(null);
-  const [promoChecking, setPromoChecking] = useState(false);
 
-  useEffect(() => {
-    const code = promoCode.trim();
-    if (!code) { setPromo(null); setPromoChecking(false); return; }
-
-    let cancelled = false;
-    setPromoChecking(true);
-    const timer = setTimeout(() => {
-      fetch('/api/promo/preview', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code, operatorId, bookingType, packageId: packageId || undefined }),
-      })
-        .then((r) => (r.ok ? r.json() : null))
-        .then((j) => {
-          if (cancelled) return;
-          if (!j) { setPromo(null); return; }
-          setPromo(j.valid ? { discountCents: j.discountCents ?? 0 } : { discountCents: 0, reason: j.reason });
-        })
-        .catch(() => { if (!cancelled) setPromo(null); })
-        .finally(() => { if (!cancelled) setPromoChecking(false); });
-    }, 400);
-
-    return () => { cancelled = true; clearTimeout(timer); };
-  }, [promoCode, operatorId, bookingType, packageId]);
-
-  const discountCents = Math.min(promo?.reason ? 0 : (promo?.discountCents ?? 0), washCents);
-  const priceCents = Math.max(0, washCents - discountCents) + addonCents;
+  const priceCents = washCents + addonCents;
 
   async function book() {
     if (!vehicleId || !date) { setErr('Please select a vehicle and date'); return; }
@@ -197,7 +168,6 @@ export function BookingForm({
           recurringCadence: recurring === 'none' ? undefined : recurring,
           addonIds,
           residentNotes: residentNotes.trim() || undefined,
-          promoCode: promoCode.trim() || undefined,
           waiverAccepted: needsWaiver ? agreeWaiver : undefined,
         }),
       });
@@ -234,7 +204,150 @@ export function BookingForm({
   }
 
   return (
-    <div className="card sticky top-6 h-fit p-6 space-y-5">
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div className="space-y-6 lg:col-span-2">
+        {operatorDescription && (
+          <div className="card p-6">
+            <p className="leading-relaxed text-ink-200">{operatorDescription}</p>
+            {ratingCount > 0 && (
+              <div className="mt-5">
+                <div className="text-xs text-ink-400">Rating</div>
+                <div className="font-display text-2xl">★ {Number(ratingAvg ?? 0).toFixed(1)}</div>
+                <div className="text-xs text-ink-400">{ratingCount} reviews</div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* The calendar is the centre of this page: the building's agreed wash
+            days with this operator, and the hours the operator works them. */}
+        <div className="card p-6">
+          <div className="flex items-baseline justify-between gap-3">
+            <h3 className="font-display text-xl">Pick a day &amp; time</h3>
+            <span className="text-xs text-ink-400">Next two weeks</span>
+          </div>
+          <p className="mt-1 text-sm text-ink-400">
+            Your building&rsquo;s wash days with {operatorName}, and the times they have open.
+          </p>
+
+          <div className="mt-5">
+            {availability ? (
+              <DayTimePicker
+                days={availability}
+                selectedDate={date || null}
+                selectedTime={timeSlot || null}
+                onSelectDate={(d) => setDate(d)}
+                onSelectTime={(t) => setTimeSlot(t)}
+              />
+            ) : loadingAvailability ? (
+              <div>
+                <div className="flex gap-2">
+                  {Array.from({ length: 7 }).map((_, i) => (
+                    <div key={i} className="h-16 w-14 shrink-0 animate-pulse rounded-xl bg-white/5" />
+                  ))}
+                </div>
+                <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-4">
+                  {Array.from({ length: 8 }).map((_, i) => (
+                    <div key={i} className="h-10 animate-pulse rounded-xl bg-white/5" />
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <p className="text-sm text-amber-600">
+                  No wash days are published for your building yet — pick any date and we&rsquo;ll
+                  confirm the time with {operatorName}.
+                </p>
+                <input
+                  className="field"
+                  type="date"
+                  min={isoDateMin()}
+                  max={isoDateMax()}
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                />
+                <select className="field" value={timeSlot} onChange={(e) => setTimeSlot(e.target.value)}>
+                  {slotOptions.map((t) => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </div>
+            )}
+          </div>
+
+          <div className="mt-5 border-t border-white/10 pt-4 text-sm">
+            {date ? (
+              <span>
+                Selected:{' '}
+                <span className="font-medium text-gleam">
+                  {new Date(`${date}T12:00:00`).toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    month: 'long',
+                    day: 'numeric',
+                  })}
+                  {timeSlot ? ` at ${timeSlot}` : ''}
+                </span>
+              </span>
+            ) : (
+              <span className="text-ink-500">Pick a day above to continue.</span>
+            )}
+          </div>
+        </div>
+
+        {/* What gets handed to the operator with this job. Shown so the resident
+            can catch a wrong spot or a missing gate instruction before paying. */}
+        <div className="card p-6">
+          <div className="text-xs uppercase tracking-widest text-ink-400">What the operator gets</div>
+          <dl className="mt-3 space-y-1.5 text-sm">
+            {jobDetails.buildingName && (
+              <div className="flex justify-between gap-3">
+                <dt className="text-ink-400">Building</dt>
+                <dd className="text-right">{jobDetails.buildingName}</dd>
+              </div>
+            )}
+            {jobDetails.address && (
+              <div className="flex justify-between gap-3">
+                <dt className="text-ink-400">Address</dt>
+                <dd className="text-right">
+                  {jobDetails.address}
+                  {jobDetails.cityLine && <span className="block text-xs text-ink-500">{jobDetails.cityLine}</span>}
+                </dd>
+              </div>
+            )}
+            {jobDetails.unitNumber && (
+              <div className="flex justify-between gap-3">
+                <dt className="text-ink-400">Unit</dt>
+                <dd className="text-right">{jobDetails.unitNumber}</dd>
+              </div>
+            )}
+            <div className="flex justify-between gap-3">
+              <dt className="text-ink-400">Parking spot</dt>
+              <dd className={`text-right ${jobDetails.spotLabel ? '' : 'text-amber-600'}`}>
+                {jobDetails.spotLabel ?? 'Not set'}
+                {jobDetails.floorNumber != null && jobDetails.spotLabel && (
+                  <span className="text-ink-500"> · Floor {jobDetails.floorNumber}</span>
+                )}
+              </dd>
+            </div>
+            <div className="flex justify-between gap-3">
+              <dt className="text-ink-400">Keys</dt>
+              <dd className="text-right">Front desk</dd>
+            </div>
+            {jobDetails.accessNotes && (
+              <div className="flex justify-between gap-3">
+                <dt className="text-ink-400">Access notes</dt>
+                <dd className="text-right">{jobDetails.accessNotes}</dd>
+              </div>
+            )}
+          </dl>
+          <p className="mt-3 text-[11px] text-ink-500">
+            Pulled from your profile.{' '}
+            <a href="/resident/vehicle" className="text-gleam underline underline-offset-2">
+              Update spot &amp; access
+            </a>
+          </p>
+        </div>
+      </div>
+
+      <div className="card sticky top-6 h-fit p-6 space-y-5">
       <h3 className="font-display text-xl">Book a wash</h3>
 
       {isPartner && openSlotPriceCents && (
@@ -400,49 +513,6 @@ export function BookingForm({
       </div>
 
       <div>
-        <label className="label">Promo code (optional)</label>
-        <input
-          className="field"
-          value={promoCode}
-          onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
-          placeholder="FIRSTWASH"
-          autoCapitalize="characters"
-        />
-        {promoChecking && <p className="mt-1 text-xs text-ink-500">Checking code…</p>}
-        {!promoChecking && promo?.reason && <p className="mt-1 text-xs text-red-400">{promo.reason}</p>}
-        {!promoChecking && !promo?.reason && discountCents > 0 && (
-          <p className="mt-1 text-xs text-gleam">Code applied — {money(discountCents)} off this wash.</p>
-        )}
-      </div>
-
-      <div>
-        <label className="label">Date & time</label>
-        {availability ? (
-          <DayTimePicker
-            days={availability}
-            selectedDate={date || null}
-            selectedTime={timeSlot || null}
-            onSelectDate={(d) => setDate(d)}
-            onSelectTime={(t) => setTimeSlot(t)}
-          />
-        ) : (
-          <div className="space-y-3">
-            <input
-              className="field"
-              type="date"
-              min={isoDateMin()}
-              max={isoDateMax()}
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-            />
-            <select className="field" value={timeSlot} onChange={(e) => setTimeSlot(e.target.value)}>
-              {slotOptions.map((t) => <option key={t} value={t}>{t}</option>)}
-            </select>
-          </div>
-        )}
-      </div>
-
-      <div>
         <label className="label">Anything else the crew should know (optional)</label>
         <textarea
           className="field min-h-[72px]"
@@ -451,60 +521,6 @@ export function BookingForm({
           maxLength={2000}
           placeholder="Dent on the rear bumper, please skip the wheels…"
         />
-      </div>
-
-      {/* What gets handed to the operator with this job. Shown so the resident
-          can catch a wrong spot or a missing gate instruction before paying. */}
-      <div className="rounded-xl border border-white/10 bg-ink-800/50 p-4">
-        <div className="text-xs uppercase tracking-widest text-ink-400">What the operator gets</div>
-        <dl className="mt-3 space-y-1.5 text-sm">
-          {jobDetails.buildingName && (
-            <div className="flex justify-between gap-3">
-              <dt className="text-ink-400">Building</dt>
-              <dd className="text-right">{jobDetails.buildingName}</dd>
-            </div>
-          )}
-          {jobDetails.address && (
-            <div className="flex justify-between gap-3">
-              <dt className="text-ink-400">Address</dt>
-              <dd className="text-right">
-                {jobDetails.address}
-                {jobDetails.cityLine && <span className="block text-xs text-ink-500">{jobDetails.cityLine}</span>}
-              </dd>
-            </div>
-          )}
-          {jobDetails.unitNumber && (
-            <div className="flex justify-between gap-3">
-              <dt className="text-ink-400">Unit</dt>
-              <dd className="text-right">{jobDetails.unitNumber}</dd>
-            </div>
-          )}
-          <div className="flex justify-between gap-3">
-            <dt className="text-ink-400">Parking spot</dt>
-            <dd className={`text-right ${jobDetails.spotLabel ? '' : 'text-amber-600'}`}>
-              {jobDetails.spotLabel ?? 'Not set'}
-              {jobDetails.floorNumber != null && jobDetails.spotLabel && (
-                <span className="text-ink-500"> · Floor {jobDetails.floorNumber}</span>
-              )}
-            </dd>
-          </div>
-          <div className="flex justify-between gap-3">
-            <dt className="text-ink-400">Keys</dt>
-            <dd className="text-right">Front desk</dd>
-          </div>
-          {jobDetails.accessNotes && (
-            <div className="flex justify-between gap-3">
-              <dt className="text-ink-400">Access notes</dt>
-              <dd className="text-right">{jobDetails.accessNotes}</dd>
-            </div>
-          )}
-        </dl>
-        <p className="mt-3 text-[11px] text-ink-500">
-          Pulled from your profile.{' '}
-          <a href="/resident/vehicle" className="text-gleam underline underline-offset-2">
-            Update spot &amp; access
-          </a>
-        </p>
       </div>
 
       <div className="rounded-xl border border-white/10 bg-ink-800/50 p-4 space-y-2">
@@ -518,12 +534,6 @@ export function BookingForm({
             <span>{money(a.price_cents)}</span>
           </div>
         ))}
-        {discountCents > 0 && (
-          <div className="flex items-center justify-between text-sm text-gleam">
-            <span>Promo {promoCode.trim()}</span>
-            <span>−{money(discountCents)}</span>
-          </div>
-        )}
         <div className="flex items-center justify-between border-t border-white/10 pt-2 text-sm font-medium">
           <span>Total</span>
           <span>{money(priceCents)}</span>
@@ -565,7 +575,8 @@ export function BookingForm({
           ? (priceCents > 0 ? 'Redirecting to payment…' : 'Booking…')
           : (priceCents > 0 ? `Pay ${money(priceCents)}` : 'Book free wash')}
       </button>
-      <p className="text-[11px] text-ink-400 text-center">Secure payment via Stripe. Cancellation available up to 24h before.</p>
+        <p className="text-[11px] text-ink-400 text-center">Secure payment via Stripe. Cancellation available up to 24h before.</p>
+      </div>
     </div>
   );
 }
