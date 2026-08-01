@@ -2,6 +2,14 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabaseBrowser } from '@/lib/supabase/client';
+import {
+  VEHICLE_SIZES,
+  parseSizePrices,
+  seedSizePriceInputs,
+  sizeLabel,
+  sizePriceRowsFromInputs,
+  type VehicleSizeId,
+} from '@/lib/vehicle-sizes';
 
 const TYPES: { value: string; label: string }[] = [
   { value: 'interior_detail', label: 'Interior Detail' },
@@ -27,7 +35,7 @@ export function AddonsEditor({ operatorId, initial }: { operatorId: string; init
     <div className="card p-6">
       <div className="mb-3 flex items-center justify-between">
         <h3 className="font-display text-xl">Add-ons</h3>
-        <button onClick={() => setAdding(true)} className="btn-quiet text-sm">+ Add add-on</button>
+        <button onClick={() => { setEditing(null); setAdding(true); }} className="btn-quiet text-sm">+ Add add-on</button>
       </div>
 
       <div className="space-y-2">
@@ -45,17 +53,34 @@ export function AddonsEditor({ operatorId, initial }: { operatorId: string; init
                 onCancel={() => setEditing(null)}
               />
             ) : (
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-sm">{a.label}</div>
-                  <div className="text-xs text-ink-500">{TYPES.find((t) => t.value === a.type)?.label ?? a.type}</div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-gleam text-sm">${(a.price_cents / 100).toFixed(2)}</span>
-                  <button onClick={() => setEditing(a.id)} className="text-xs text-gleam">✎</button>
-                  <button onClick={() => remove(a.id)} className="text-xs text-ink-400 hover:text-red-400">Remove</button>
-                </div>
-              </div>
+              (() => {
+                const sizePrices = parseSizePrices(a.size_prices);
+                return (
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="text-sm">{a.label}</div>
+                      <div className="text-xs text-ink-500">{TYPES.find((t) => t.value === a.type)?.label ?? a.type}</div>
+                      {sizePrices.length > 0 && (
+                        <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-xs text-ink-400">
+                          {sizePrices.map((sp) => (
+                            <span key={sp.size}>
+                              {sizeLabel(sp.size)}{' '}
+                              <span className="text-gleam">${(sp.price_cents / 100).toFixed(0)}</span>
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex shrink-0 items-center gap-3">
+                      <span className="text-gleam text-sm">
+                        {sizePrices.length > 0 ? 'from ' : ''}${(a.price_cents / 100).toFixed(2)}
+                      </span>
+                      <button onClick={() => { setAdding(false); setEditing(a.id); }} className="text-xs text-gleam">✎</button>
+                      <button onClick={() => remove(a.id)} className="text-xs text-ink-400 hover:text-red-400">Remove</button>
+                    </div>
+                  </div>
+                );
+              })()
             )}
           </div>
         ))}
@@ -86,15 +111,44 @@ function AddonForm({ operatorId, addon, onDone, onCancel }: { operatorId: string
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
+  // Optional per-vehicle-type pricing, same shape as a service package: a
+  // truck's interior takes longer than a coupe's, so an add-on prices by
+  // vehicle too. Seeded from any saved tiers so editing shows what's there.
+  const [sizeOn, setSizeOn] = useState(parseSizePrices(addon?.size_prices).length > 0);
+  const [sizePrices, setSizePrices] = useState<Record<VehicleSizeId, string>>(() =>
+    seedSizePriceInputs(addon?.size_prices),
+  );
+
   async function save() {
     setBusy(true);
     setErr(null);
+
+    // With tiers on, the stored price is the lowest of them, so every
+    // single-price display of this add-on stays coherent with the menu.
+    let sizePriceRows: { size: VehicleSizeId; price_cents: number }[] = [];
+    let basePriceCents = Math.round(parseFloat(price) * 100);
+    if (sizeOn) {
+      sizePriceRows = sizePriceRowsFromInputs(sizePrices);
+      if (sizePriceRows.length === 0) {
+        setBusy(false);
+        setErr('Add a price for at least one vehicle type, or turn off vehicle-type pricing.');
+        return;
+      }
+      basePriceCents = Math.min(...sizePriceRows.map((r) => r.price_cents));
+    }
+    if (!Number.isFinite(basePriceCents) || basePriceCents <= 0) {
+      setBusy(false);
+      setErr('Enter a valid price.');
+      return;
+    }
+
     const sb = supabaseBrowser();
     const payload: any = {
       operator_id: operatorId,
       label,
       type,
-      price_cents: Math.round(parseFloat(price) * 100),
+      price_cents: basePriceCents,
+      size_prices: sizePriceRows,
       active: true,
     };
     const { data, error } = addon?.id
@@ -116,10 +170,49 @@ function AddonForm({ operatorId, addon, onDone, onCancel }: { operatorId: string
       <select className="field md:col-span-4" value={type} onChange={(e) => setType(e.target.value)}>
         {TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
       </select>
-      <input className="field md:col-span-2" type="number" step="0.01" placeholder="Price" value={price} onChange={(e) => setPrice(e.target.value)} />
+      <input
+        className="field md:col-span-3"
+        type="number"
+        step="0.01"
+        placeholder={sizeOn ? 'From' : 'Price'}
+        value={price}
+        onChange={(e) => setPrice(e.target.value)}
+        disabled={sizeOn}
+      />
+
+      <div className="md:col-span-12 rounded-xl border border-ink-800 p-3">
+        <label className="flex items-center gap-2 text-sm cursor-pointer">
+          <input type="checkbox" checked={sizeOn} onChange={(e) => setSizeOn(e.target.checked)} />
+          <span>Price varies by vehicle type</span>
+        </label>
+        {sizeOn && (
+          <>
+            <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
+              {VEHICLE_SIZES.map((s) => (
+                <div key={s.id}>
+                  <label className="label">{s.label}</label>
+                  <input
+                    className="field"
+                    type="number"
+                    step="0.01"
+                    min="1"
+                    placeholder="$"
+                    value={sizePrices[s.id]}
+                    onChange={(e) => setSizePrices((prev) => ({ ...prev, [s.id]: e.target.value }))}
+                  />
+                </div>
+              ))}
+            </div>
+            <p className="mt-2 text-xs text-ink-500">
+              Leave a type blank to skip it. The add-on lists from the lowest price you set.
+            </p>
+          </>
+        )}
+      </div>
+
       {err && <div className="md:col-span-12 text-sm text-red-400">{err}</div>}
       <div className="md:col-span-12 flex gap-2">
-        <button onClick={save} disabled={busy || !label || !price} className="btn-primary text-sm">{busy ? 'Saving…' : 'Save'}</button>
+        <button onClick={save} disabled={busy || !label || (!sizeOn && !price)} className="btn-primary text-sm">{busy ? 'Saving…' : 'Save'}</button>
         <button onClick={onCancel} className="btn-quiet text-sm">Cancel</button>
       </div>
     </div>

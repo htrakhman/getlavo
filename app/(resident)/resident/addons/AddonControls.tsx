@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabaseBrowser } from '@/lib/supabase/client';
+import { parseSizePrices, sizeLabel } from '@/lib/vehicle-sizes';
 
 export function AddonRow({ residentId, addon, operatorName, alreadyRecurring }: { residentId: string; addon: any; operatorName: string; alreadyRecurring: boolean }) {
   const router = useRouter();
@@ -19,11 +20,26 @@ export function AddonRow({ residentId, addon, operatorName, alreadyRecurring }: 
     router.refresh();
   }
 
+  const tiers = parseSizePrices(addon.size_prices);
+
   return (
     <div className="card p-6">
       <div className="font-display text-2xl">{addon.label}</div>
       <div className="mt-1 text-sm text-ink-400">{operatorName}</div>
-      <div className="mt-4 font-display text-2xl text-gleam">${(addon.price_cents / 100).toFixed(2)}</div>
+      <div className="mt-4 font-display text-2xl text-gleam">
+        {tiers.length > 0 && <span className="text-base text-ink-400">from </span>}
+        ${(addon.price_cents / 100).toFixed(2)}
+      </div>
+      {tiers.length > 0 && (
+        <div className="mt-2 space-y-1 text-xs text-ink-400">
+          {tiers.map((t) => (
+            <div key={t.size} className="flex justify-between gap-3">
+              <span>{sizeLabel(t.size)}</span>
+              <span className="text-gleam">${(t.price_cents / 100).toFixed(2)}</span>
+            </div>
+          ))}
+        </div>
+      )}
       <div className="mt-4 flex flex-col gap-2">
         <button
           onClick={addRecurring}
@@ -58,7 +74,10 @@ export function RecurringAddons({ items }: { items: any[] }) {
         <div key={row.id} className="card flex items-center justify-between p-4">
           <div>
             <div className="font-medium">{row.operator_addon?.label}</div>
-            <div className="text-xs text-ink-400">${(row.operator_addon?.price_cents / 100).toFixed(2)} per wash</div>
+            <div className="text-xs text-ink-400">
+              {parseSizePrices(row.operator_addon?.size_prices).length > 0 ? 'from ' : ''}
+              ${(row.operator_addon?.price_cents / 100).toFixed(2)} per wash
+            </div>
           </div>
           <button onClick={() => remove(row.id)} disabled={busyId === row.id} className="text-xs text-ink-400 hover:text-red-400">
             Remove
