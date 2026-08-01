@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { sendAdminNotification, sendPartnershipRequest } from '@/lib/email/resend';
+import { operatorSetup, pendingLabel } from '@/lib/operator-readiness';
 import { z } from 'zod';
 
 const Body = z.object({
@@ -45,26 +46,27 @@ export async function POST(req: Request) {
     );
   }
 
-  // Fetch operator and owner email. Operators mid-setup and operators still
-  // awaiting review are both listed in the marketplace, so "not ready" is a
-  // distinct, explainable answer rather than a 404 — the UI disables the
-  // button, this backs it up.
+  // Fetch operator and owner email. Every signed-up operator is listed in the
+  // marketplace, so "not ready" is a distinct, explainable answer rather than a
+  // 404 — the UI disables the button, this backs it up with the same checklist.
   const { data: operator } = await admin
     .from('operators')
-    .select('id, name, owner_id, status, stripe_onboarding_complete, profiles:profiles!operators_owner_id_fkey(email, full_name)')
+    .select('id, name, owner_id, status, stripe_onboarding_complete, hours_json, base_price_cents, insurance_doc_url, profiles:profiles!operators_owner_id_fkey(email, full_name)')
     .eq('id', operatorId)
     .in('status', ['approved', 'pending_review'])
     .single();
   if (!operator) return NextResponse.json({ error: 'Operator not found or not available' }, { status: 404 });
-  if (operator.status !== 'approved') {
+
+  const { count: activePackages } = await admin
+    .from('service_packages')
+    .select('*', { count: 'exact', head: true })
+    .eq('operator_id', operator.id)
+    .eq('active', true);
+
+  const setup = operatorSetup(operator, activePackages ?? 0);
+  if (!setup.requestable) {
     return NextResponse.json(
-      { error: `${operator.name} is still being verified by Lavo. You'll be able to request them once that's done.` },
-      { status: 409 },
-    );
-  }
-  if (!operator.stripe_onboarding_complete) {
-    return NextResponse.json(
-      { error: `${operator.name} hasn't finished setting up their payment account yet. You'll be able to request them once they do.` },
+      { error: `${operator.name} hasn't finished setting up yet — still waiting on ${pendingLabel(setup.pending)}. You'll be able to request them once that's done.` },
       { status: 409 },
     );
   }
