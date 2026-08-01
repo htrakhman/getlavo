@@ -15,7 +15,21 @@ export type BuildingPackages = {
   packages: ServicePackage[];
 };
 
-/** Active, published service packages an operator sells — the wash "types" a resident picks between. */
+/** A package is sellable once it has a real price — a flat one or a vehicle tier. */
+export function isPriced(pkg: { price_cents?: number | null; size_prices?: unknown }): boolean {
+  if ((pkg.price_cents ?? 0) > 0) return true;
+  const tiers = Array.isArray(pkg.size_prices) ? pkg.size_prices : [];
+  return tiers.some((t: any) => (t?.price_cents ?? 0) > 0);
+}
+
+/**
+ * Active, published service packages an operator sells — the wash "types" a
+ * resident picks between.
+ *
+ * Unpriced rows are dropped rather than listed at $0.00. A package with no
+ * price is an unfinished draft, not free work, and a resident who taps one
+ * would be quoted nothing and charged nothing.
+ */
 export async function getPackagesForOperator(admin: SupabaseClient, operatorId: string): Promise<ServicePackage[]> {
   const { data, error } = await admin
     .from('service_packages')
@@ -28,7 +42,7 @@ export async function getPackagesForOperator(admin: SupabaseClient, operatorId: 
     console.error('getPackagesForOperator: query failed:', error.message);
     return [];
   }
-  return (data ?? []) as ServicePackage[];
+  return ((data ?? []) as ServicePackage[]).filter(isPriced);
 }
 
 /**
