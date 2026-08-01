@@ -21,10 +21,22 @@ export async function sendBookingConfirmation(args: {
   timeSlot: string | null;
   grossCents: number;
   bookingId: string;
+  /** What the resident has to do before the appointment (see lib/booking-calendar). */
+  nextSteps?: string[];
   /** ICS calendar invite attached so the wash lands on the resident's calendar. */
   ics?: string;
 }) {
   const price = (args.grossCents / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+  // The key hand-off is the one thing that decides whether the wash can happen
+  // at all, so it goes in the body — not only in the calendar attachment's
+  // description, which most mail clients collapse or hide.
+  const steps = args.nextSteps?.length
+    ? `
+      <h3 style="margin:24px 0 8px;font-size:16px">Before your appointment</h3>
+      <ol style="margin:0;padding-left:20px;color:#333;line-height:1.6">
+        ${args.nextSteps.map((s) => `<li style="margin:6px 0">${escapeHtml(s)}</li>`).join('')}
+      </ol>`
+    : '';
   return client().emails.send({
     from: FROM,
     to: args.to,
@@ -41,7 +53,9 @@ export async function sendBookingConfirmation(args: {
         ${args.timeSlot ? `<tr><td style="padding:8px 0;color:#666">Time</td><td style="padding:8px 0;font-weight:600">${escapeHtml(args.timeSlot)}</td></tr>` : ''}
         <tr><td style="padding:8px 0;color:#666">Amount paid</td><td style="padding:8px 0;font-weight:600">${price}</td></tr>
       </table>
-      <p><a href="${APP_URL}/resident/bookings" style="display:inline-block;padding:12px 18px;border-radius:8px;background:#00ff88;color:#000;font-weight:600;text-decoration:none">View booking</a></p>
+      ${steps}
+      <p style="margin-top:24px"><a href="${APP_URL}/resident/bookings" style="display:inline-block;padding:12px 18px;border-radius:8px;background:#00ff88;color:#000;font-weight:600;text-decoration:none">View booking</a></p>
+      <p style="color:#666;font-size:13px">The calendar invite attached to this email adds the wash to your calendar.</p>
     `,
   });
 }
@@ -52,6 +66,9 @@ export async function sendBookingNotification(args: {
   buildingName: string;
   residentName: string;
   vehicleDescription: string;
+  /** Parking spot, so the crew can find the car without opening the app. */
+  spotLabel?: string | null;
+  addonLabels?: string[];
   scheduledFor: string;
   timeSlot: string | null;
   netCents: number;
@@ -59,6 +76,8 @@ export async function sendBookingNotification(args: {
   ics?: string;
 }) {
   const net = (args.netCents / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+  const row = (label: string, value: string) =>
+    `<tr><td style="padding:8px 0;color:#666">${label}</td><td style="padding:8px 0;font-weight:600">${escapeHtml(value)}</td></tr>`;
   return client().emails.send({
     from: FROM,
     to: args.to,
@@ -71,9 +90,12 @@ export async function sendBookingNotification(args: {
       <p>A resident at <strong>${escapeHtml(args.buildingName)}</strong> has booked a wash.</p>
       <table style="border-collapse:collapse;width:100%;max-width:400px;margin:16px 0">
         <tr><td style="padding:8px 0;color:#666">Resident</td><td style="padding:8px 0;font-weight:600">${escapeHtml(args.residentName)}</td></tr>
-        <tr><td style="padding:8px 0;color:#666">Vehicle</td><td style="padding:8px 0;font-weight:600">${escapeHtml(args.vehicleDescription)}</td></tr>
-        <tr><td style="padding:8px 0;color:#666">Date</td><td style="padding:8px 0;font-weight:600">${escapeHtml(args.scheduledFor)}</td></tr>
-        ${args.timeSlot ? `<tr><td style="padding:8px 0;color:#666">Time</td><td style="padding:8px 0;font-weight:600">${escapeHtml(args.timeSlot)}</td></tr>` : ''}
+        ${row('Vehicle', args.vehicleDescription)}
+        ${args.spotLabel ? row('Spot', args.spotLabel) : ''}
+        ${row('Keys', 'Front desk')}
+        ${args.addonLabels?.length ? row('Add-ons', args.addonLabels.join(', ')) : ''}
+        ${row('Date', args.scheduledFor)}
+        ${args.timeSlot ? row('Time', args.timeSlot) : ''}
         <tr><td style="padding:8px 0;color:#666">Your payout</td><td style="padding:8px 0;font-weight:600">${net}</td></tr>
       </table>
       <p><a href="${APP_URL}/operator/bookings" style="display:inline-block;padding:12px 18px;border-radius:8px;background:#00ff88;color:#000;font-weight:600;text-decoration:none">View bookings</a></p>
