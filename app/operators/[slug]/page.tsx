@@ -39,15 +39,19 @@ export default async function PublicOperatorPage({ params }: { params: { slug: s
         {(pkgs ?? []).map((p) => {
           const sizePrices = parseSizePrices(p.size_prices);
           return (
-            <div key={p.name} className="card p-4 flex justify-between gap-3">
-              <div>
-                <div className="font-medium">{p.name}</div>
-                <PackageDescription text={p.description} className="mt-1 text-xs text-ink-500" />
-                <SizePriceList raw={p.size_prices} description={p.description} className="mt-2 text-xs text-ink-500" />
+            <div key={p.name} className="card p-4">
+              <div className="flex justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="font-medium">{p.name}</div>
+                  <PackageDescription text={p.description} className="mt-1 text-xs text-ink-500" />
+                </div>
+                <div className="text-gleam font-display whitespace-nowrap">
+                  {sizePrices.length > 0 ? 'from ' : ''}${((p.price_cents ?? 0) / 100).toFixed(0)}
+                </div>
               </div>
-              <div className="text-gleam font-display whitespace-nowrap">
-                {sizePrices.length > 0 ? 'from ' : ''}${((p.price_cents ?? 0) / 100).toFixed(0)}
-              </div>
+              {/* Full card width, not the header's left column — that column is
+                  narrowed by the headline price, which differs per package. */}
+              <SizePriceList raw={p.size_prices} description={p.description} className="mt-2 text-xs text-ink-500" />
             </div>
           );
         })}

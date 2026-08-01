@@ -57,21 +57,25 @@ export function AddonsEditor({ operatorId, initial }: { operatorId: string; init
               (() => {
                 const sizePrices = parseSizePrices(a.size_prices);
                 return (
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="text-sm">{a.label}</div>
-                      <div className="text-xs text-ink-500">{TYPES.find((t) => t.value === a.type)?.label ?? a.type}</div>
-                      {/* Blanks kept here: this is where the operator fills them in. */}
-                      <SizePriceList raw={a.size_prices} decimals={2} placeholders className="mt-1.5 text-xs text-ink-400" />
+                  <>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="text-sm">{a.label}</div>
+                        <div className="text-xs text-ink-500">{TYPES.find((t) => t.value === a.type)?.label ?? a.type}</div>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-3">
+                        <span className="text-gleam text-sm">
+                          {sizePrices.length > 0 ? 'from ' : ''}${(a.price_cents / 100).toFixed(2)}
+                        </span>
+                        <button onClick={() => { setAdding(false); setEditing(a.id); }} className="text-xs text-gleam">✎</button>
+                        <button onClick={() => remove(a.id)} className="text-xs text-ink-400 hover:text-red-400">Remove</button>
+                      </div>
                     </div>
-                    <div className="flex shrink-0 items-center gap-3">
-                      <span className="text-gleam text-sm">
-                        {sizePrices.length > 0 ? 'from ' : ''}${(a.price_cents / 100).toFixed(2)}
-                      </span>
-                      <button onClick={() => { setAdding(false); setEditing(a.id); }} className="text-xs text-gleam">✎</button>
-                      <button onClick={() => remove(a.id)} className="text-xs text-ink-400 hover:text-red-400">Remove</button>
-                    </div>
-                  </div>
+                    {/* Blanks kept here: this is where the operator fills them
+                        in. Full width, so every add-on's tier prices sit in the
+                        same column instead of following its own header. */}
+                    <SizePriceList raw={a.size_prices} decimals={2} placeholders className="mt-1.5 text-xs text-ink-400" />
+                  </>
                 );
               })()
             )}

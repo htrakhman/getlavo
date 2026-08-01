@@ -134,19 +134,23 @@ export default async function BuildingCanonicalPage({ params }: { params: { slug
                             <div className="font-display text-lg">{p.name}</div>
                             <PackageDescription text={p.description} className="mt-1.5 text-sm text-ink-300" />
                             {p.est_minutes && <div className="mt-1 text-xs text-ink-500">~{p.est_minutes} min</div>}
-                            <SizePriceList
-                              raw={p.size_prices}
-                              description={p.description}
-                              format={money}
-                              priceStyle={accentText}
-                              className="mt-2 text-xs text-ink-400"
-                            />
                           </div>
                           <div className="font-display text-xl text-gleam shrink-0" style={accentText}>
                             {sizePrices.length > 0 && <span className="text-xs text-ink-400 font-normal">from </span>}
                             {money(p.price_cents)}
                           </div>
                         </div>
+                        {/* Below the header rather than inside its left column:
+                            that column is only as wide as the package's own
+                            headline price leaves it, so nesting the tiers there
+                            landed each card's prices at a different x. */}
+                        <SizePriceList
+                          raw={p.size_prices}
+                          description={p.description}
+                          format={money}
+                          priceStyle={accentText}
+                          className="mt-2 text-xs text-ink-400"
+                        />
                       </div>
                     );
                   })}
