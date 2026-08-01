@@ -104,12 +104,8 @@ export function PlanPicker({
                   {p.name}
                   {currentPackageId === p.id && <span className="chip ml-2 text-gleam">current</span>}
                 </div>
-                <PackageDescription
-                  text={p.description}
-                  showPricing={parseSizePrices(p.size_prices).length === 0}
-                  className="mt-1.5 text-sm text-ink-300"
-                />
-                <SizePriceList raw={p.size_prices} className="mt-2 text-xs text-ink-400" />
+                <PackageDescription text={p.description} className="mt-1.5 text-sm text-ink-300" />
+                <SizePriceList raw={p.size_prices} description={p.description} className="mt-2 text-xs text-ink-400" />
               </div>
               <div className="shrink-0 text-right">
                 {/* With the vehicle tier known this is the resident's own rate,

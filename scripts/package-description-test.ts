@@ -11,7 +11,7 @@
  * must survive untouched.
  */
 
-import { parsePackageDescription } from '../lib/package-description';
+import { parsePackageDescription, splitTierPricing, tierFromLabel, typedTierPrices } from '../lib/package-description';
 
 let failures = 0;
 function check(name: string, cond: boolean) {
@@ -80,6 +80,63 @@ function main() {
   check('…and is not deleted from the text', priceless.lead.includes('ask your operator'));
   const unlabeled = parsePackageDescription('Wash. Pricing: $70 flat');
   check('a tier with no parsable price still shows its text', unlabeled.pricing[0].label === '$70 flat');
+
+  // ── typed prices land on the vehicle tier row ───────────────────────────
+  // A package priced in prose has to end up looking like a package priced in
+  // size_prices: icons with numbers, not icons with em dashes and the numbers
+  // stranded in a block underneath (QA, Aug 2026).
+  const tiers = typedTierPrices(REAL);
+  check('a typed sedan price lands on the sedan tier', tiers.sedan === '$70');
+  check('a typed SUV price lands on the SUV tier', tiers.suv === '$80');
+  check('a typed 3-row price lands on the xl tier', tiers.xl === '$85');
+
+  // The labels overlap on purpose — the bracket is named by the biggest thing
+  // in it, so "SUV/Small Pickup" is not the pickup tier and "3-Row SUV" is not
+  // the SUV tier. The leading segment decides.
+  const LABELS: [string, string | null][] = [
+    ['Sedan/Coupe', 'sedan'],
+    ['Sedan', 'sedan'],
+    ['Coupes', 'sedan'],
+    ['SUV/Small Pickup', 'suv'],
+    ['Small SUV', 'suv'],
+    ['Crossover', 'suv'],
+    ['3-Row SUV/Minivan/Pickup', 'xl'],
+    ['3 Row', 'xl'],
+    ['Large SUV', 'xl'],
+    ['Truck', 'xl'],
+    ['Minivan', 'xl'],
+    ['Full-size pickup', 'xl'],
+    ['Ceramic coating', null],
+    ['Add pet hair removal', null],
+  ];
+  for (const [label, expected] of LABELS) {
+    check(`"${label}" reads as ${expected ?? 'no tier'}`, tierFromLabel(label) === (expected as any));
+  }
+
+  // A tail that isn't a bracket has nowhere else to go, so it stays in the
+  // description rather than being swallowed by the tier row.
+  const mixed = parsePackageDescription('Wash. Pricing: Sedan $70 • SUV $80 • Add ceramic $30');
+  const split = splitTierPricing(mixed.pricing);
+  check('bracket lines are lifted out of the description', split.rest.length === 1);
+  check('…and the non-bracket line is the one left behind', split.rest[0].label === 'Add ceramic');
+  check('the xl tier stays empty when nothing names it', split.tiers.xl === undefined);
+
+  // A label with no price can't fill a tier — there'd be nothing to draw.
+  const noPrice = splitTierPricing([{ label: 'Sedan', price: null }]);
+  check('a priceless tier label fills no tier', noPrice.tiers.sedan === undefined);
+  check('…and is kept in the description', noPrice.rest.length === 1);
+
+  // Two labels can fold onto one tier; the first wins and the second is kept
+  // rather than silently overwriting it.
+  const dupe = splitTierPricing([
+    { label: 'Sedan', price: '$70' },
+    { label: 'Coupe', price: '$75' },
+  ]);
+  check('the first line to claim a tier keeps it', dupe.tiers.sedan === '$70');
+  check('…and the runner-up is not dropped', dupe.rest.length === 1);
+
+  check('a description with no prices fills no tiers', Object.keys(typedTierPrices('Just a wash.')).length === 0);
+  check('no description fills no tiers', Object.keys(typedTierPrices(null)).length === 0);
 
   // ── nothing in, nothing out ─────────────────────────────────────────────
   for (const empty of [null, undefined, '', '   ']) {

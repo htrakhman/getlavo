@@ -96,15 +96,11 @@ export function PackagesEditor({ operatorId, initial }: { operatorId: string; in
                             <span className="text-xs text-ink-500">~{pkg.est_minutes} min</span>
                           )}
                         </div>
-                        <SizePriceList raw={pkg.size_prices} className="mt-1.5 text-xs text-ink-400" />
+                        <SizePriceList raw={pkg.size_prices} description={pkg.description} className="mt-1.5 text-xs text-ink-400" />
                       </>
                     );
                   })()}
-                  <PackageDescription
-                    text={pkg.description}
-                    showPricing={parseSizePrices(pkg.size_prices).length === 0}
-                    className="mt-1.5 text-sm text-ink-400"
-                  />
+                  <PackageDescription text={pkg.description} className="mt-1.5 text-sm text-ink-400" />
                 </div>
                 <div className="flex gap-3 text-sm shrink-0">
                   <button onClick={() => { setAdding(false); setEditing(pkg.id); }} className="text-gleam hover:text-gleam/70">Edit</button>

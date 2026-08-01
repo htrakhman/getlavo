@@ -132,14 +132,11 @@ export default async function BuildingCanonicalPage({ params }: { params: { slug
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex-1 min-w-0">
                             <div className="font-display text-lg">{p.name}</div>
-                            <PackageDescription
-                              text={p.description}
-                              showPricing={sizePrices.length === 0}
-                              className="mt-1.5 text-sm text-ink-300"
-                            />
+                            <PackageDescription text={p.description} className="mt-1.5 text-sm text-ink-300" />
                             {p.est_minutes && <div className="mt-1 text-xs text-ink-500">~{p.est_minutes} min</div>}
                             <SizePriceList
                               raw={p.size_prices}
+                              description={p.description}
                               format={money}
                               priceStyle={accentText}
                               className="mt-2 text-xs text-ink-400"

@@ -1,4 +1,4 @@
-import { parsePackageDescription } from '@/lib/package-description';
+import { parsePackageDescription, splitTierPricing } from '@/lib/package-description';
 
 /**
  * A package's description, laid out instead of dumped.
@@ -8,7 +8,9 @@ import { parsePackageDescription } from '@/lib/package-description';
  * print `description` raw, which turned an operator's "sentence • step • step •
  * … | Pricing: …" into an unreadable paragraph. One component so the same text
  * reads the same way everywhere: opening line, what's included as a list, and
- * the typed-out prices last.
+ * whatever's left of the typed-out prices last — the per-vehicle brackets are
+ * lifted onto the tier row (see SizePriceList), so what lands here is only the
+ * money that names no vehicle.
  *
  * Renders nothing for an empty description, so callers can drop it in
  * unconditionally.
@@ -16,20 +18,17 @@ import { parsePackageDescription } from '@/lib/package-description';
 export function PackageDescription({
   text,
   className = 'text-sm text-ink-300',
-  /**
-   * Whether to show the "Pricing: …" tail an operator typed into the
-   * description. Pass false where per-vehicle `size_prices` are already on
-   * screen — those are the rates that actually get charged, and printing a
-   * second, hand-typed set next to them only invites a contradiction.
-   */
-  showPricing = true,
 }: {
   text: string | null | undefined;
   className?: string;
-  showPricing?: boolean;
 }) {
   const { lead, points, pricing } = parsePackageDescription(text);
-  const prices = showPricing ? pricing : [];
+  // Any line of the typed "Pricing: …" tail that names a vehicle tier is drawn
+  // by SizePriceList, on the row with the icons, whether or not the operator
+  // also filled in size_prices — so it must not be printed a second time here.
+  // What's left is a price that isn't a bracket ("Add ceramic $30"); it has
+  // nowhere else to go and stays.
+  const prices = splitTierPricing(pricing).rest;
   if (!lead && points.length === 0 && prices.length === 0) return null;
 
   return (

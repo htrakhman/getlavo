@@ -735,12 +735,8 @@ export function BookingForm({
                 >
                   <div className="min-w-0">
                     <div className="text-sm font-medium">{p.name}</div>
-                    <PackageDescription
-                      text={p.description}
-                      showPricing={tiers.length === 0}
-                      className="mt-1 text-xs text-ink-400"
-                    />
-                    <SizePriceList raw={p.size_prices} format={money} className="mt-2 text-xs text-ink-500" />
+                    <PackageDescription text={p.description} className="mt-1 text-xs text-ink-400" />
+                    <SizePriceList raw={p.size_prices} description={p.description} format={money} className="mt-2 text-xs text-ink-500" />
                   </div>
                   <span className="whitespace-nowrap font-display text-sm">
                     {tiers.length > 0 && !vehicleSize ? `from ${money(price)}` : money(price)}
