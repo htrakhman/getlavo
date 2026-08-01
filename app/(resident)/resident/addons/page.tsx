@@ -32,7 +32,7 @@ export default async function AddonsPage() {
 
   const { data: recurring } = await sb
     .from('resident_addons')
-    .select('id, operator_addon:operator_addons(id, label, price_cents)')
+    .select('id, operator_addon:operator_addons(id, label, price_cents, size_prices)')
     .eq('resident_id', r.id)
     .eq('active', true);
 

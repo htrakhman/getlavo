@@ -18,6 +18,12 @@ export type BookableAddon = {
   id: string;
   label: string;
   price_cents: number;
+  /**
+   * Optional per-vehicle-type prices (see lib/vehicle-sizes). When set,
+   * price_cents is the lowest of them — the "from" price the menu quotes and
+   * the amount charged, since a booking has no vehicle size to price against.
+   */
+  size_prices?: unknown;
 };
 
 /** Active add-ons an operator offers, for the booking form. */
@@ -27,7 +33,7 @@ export async function listBookableAddons(
 ): Promise<BookableAddon[]> {
   const { data, error } = await admin
     .from('operator_addons')
-    .select('id, label, price_cents')
+    .select('id, label, price_cents, size_prices')
     .eq('operator_id', operatorId)
     .eq('active', true)
     .order('price_cents');

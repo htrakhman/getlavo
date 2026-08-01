@@ -2,7 +2,14 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabaseBrowser } from '@/lib/supabase/client';
-import { VEHICLE_SIZES, parseSizePrices, sizeLabel, type VehicleSizeId } from '@/lib/vehicle-sizes';
+import {
+  VEHICLE_SIZES,
+  parseSizePrices,
+  seedSizePriceInputs,
+  sizeLabel,
+  sizePriceRowsFromInputs,
+  type VehicleSizeId,
+} from '@/lib/vehicle-sizes';
 
 type Pkg = {
   id: string;
@@ -138,15 +145,12 @@ function PackageForm({
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
-  // Optional per-vehicle-size pricing. Seed the inputs from any saved tiers so
+  // Optional per-vehicle-type pricing. Seed the inputs from any saved tiers so
   // editing an existing package shows what's already there.
-  const savedSizePrices = parseSizePrices(pkg?.size_prices);
-  const [sizeOn, setSizeOn] = useState(savedSizePrices.length > 0);
-  const [sizePrices, setSizePrices] = useState<Record<VehicleSizeId, string>>(() => {
-    const seed = { sedan: '', suv: '', xl: '' } as Record<VehicleSizeId, string>;
-    for (const sp of savedSizePrices) seed[sp.size] = (sp.price_cents / 100).toFixed(2);
-    return seed;
-  });
+  const [sizeOn, setSizeOn] = useState(parseSizePrices(pkg?.size_prices).length > 0);
+  const [sizePrices, setSizePrices] = useState<Record<VehicleSizeId, string>>(() =>
+    seedSizePriceInputs(pkg?.size_prices),
+  );
 
   async function save() {
     setBusy(true);
@@ -157,12 +161,10 @@ function PackageForm({
     let sizePriceRows: { size: VehicleSizeId; price_cents: number }[] = [];
     let basePriceCents = Math.round(parseFloat(price) * 100);
     if (sizeOn) {
-      sizePriceRows = VEHICLE_SIZES
-        .map((s) => ({ size: s.id, price_cents: Math.round(parseFloat(sizePrices[s.id]) * 100) }))
-        .filter((r) => Number.isFinite(r.price_cents) && r.price_cents > 0);
+      sizePriceRows = sizePriceRowsFromInputs(sizePrices);
       if (sizePriceRows.length === 0) {
         setBusy(false);
-        setErr('Add a price for at least one vehicle size, or turn off size-based pricing.');
+        setErr('Add a price for at least one vehicle type, or turn off vehicle-type pricing.');
         return;
       }
       basePriceCents = Math.min(...sizePriceRows.map((r) => r.price_cents));
@@ -218,17 +220,17 @@ function PackageForm({
             onChange={(e) => setPrice(e.target.value)}
             disabled={sizeOn}
           />
-          {sizeOn && <p className="mt-1 text-xs text-ink-500">Set from the lowest vehicle-size price below.</p>}
+          {sizeOn && <p className="mt-1 text-xs text-ink-500">Set from the lowest vehicle-type price below.</p>}
         </div>
       </div>
 
       <div className="rounded-xl border border-ink-800 p-3">
         <label className="flex items-center gap-2 text-sm cursor-pointer">
           <input type="checkbox" checked={sizeOn} onChange={(e) => setSizeOn(e.target.checked)} />
-          <span>Price varies by vehicle size</span>
+          <span>Price varies by vehicle type</span>
         </label>
         {sizeOn && (
-          <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
+          <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
             {VEHICLE_SIZES.map((s) => (
               <div key={s.id}>
                 <label className="label">{s.label}</label>

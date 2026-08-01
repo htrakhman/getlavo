@@ -1,5 +1,6 @@
 'use client';
 import { money, plateLabel } from '@/lib/format';
+import { parseSizePrices, sizeLabel } from '@/lib/vehicle-sizes';
 import { captureEvent } from '@/lib/analytics';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -45,7 +46,7 @@ export function BookingForm({
   initialDate?: string;
   initialTimeSlot?: string;
   waiverAccepted: boolean;
-  addons: { id: string; label: string; price_cents: number }[];
+  addons: { id: string; label: string; price_cents: number; size_prices?: unknown }[];
   initialAddonIds: string[];
 }) {
   const router = useRouter();
@@ -254,17 +255,18 @@ export function BookingForm({
           <div className="space-y-2">
             {addons.map((a) => {
               const checked = addonIds.includes(a.id);
+              const tiers = parseSizePrices(a.size_prices);
               return (
                 <label
                   key={a.id}
-                  className={`flex w-full cursor-pointer items-center justify-between gap-3 rounded-xl border px-4 py-3 transition ${
+                  className={`flex w-full cursor-pointer items-start justify-between gap-3 rounded-xl border px-4 py-3 transition ${
                     checked ? 'border-gleam/60 bg-gleam/5' : 'border-white/10 hover:border-white/20'
                   }`}
                 >
-                  <span className="flex items-center gap-3">
+                  <span className="flex min-w-0 items-start gap-3">
                     <input
                       type="checkbox"
-                      className="h-4 w-4 shrink-0 accent-gleam"
+                      className="mt-0.5 h-4 w-4 shrink-0 accent-gleam"
                       checked={checked}
                       onChange={(e) =>
                         setAddonIds((prev) =>
@@ -272,13 +274,32 @@ export function BookingForm({
                         )
                       }
                     />
-                    <span className="text-sm font-medium">{a.label}</span>
+                    <span className="min-w-0">
+                      <span className="block text-sm font-medium">{a.label}</span>
+                      {tiers.length > 0 && (
+                        <span className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-ink-500">
+                          {tiers.map((t) => (
+                            <span key={t.size}>
+                              {sizeLabel(t.size)} {money(t.price_cents)}
+                            </span>
+                          ))}
+                        </span>
+                      )}
+                    </span>
                   </span>
-                  <span className="font-display text-sm">+{money(a.price_cents)}</span>
+                  <span className="whitespace-nowrap font-display text-sm">
+                    {tiers.length > 0 ? `from ${money(a.price_cents)}` : `+${money(a.price_cents)}`}
+                  </span>
                 </label>
               );
             })}
           </div>
+          {addons.some((a) => parseSizePrices(a.size_prices).length > 0) && (
+            <p className="mt-1 text-xs text-ink-500">
+              Add-ons priced by vehicle type check out at the starting rate — your operator confirms
+              the rate for your vehicle.
+            </p>
+          )}
           {initialAddonIds.length > 0 && (
             <p className="mt-1 text-xs text-ink-500">
               Your “on every wash” add-ons are pre-selected. Untick to skip them this time.
