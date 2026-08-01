@@ -6,7 +6,7 @@ import { BookingCalendar, longLabel } from '@/components/BookingCalendar';
 import { ReadonlyField, EditableField } from '@/components/ResidentField';
 import type { AvailabilityDay } from '@/components/DayTimePicker';
 import { captureEvent } from '@/lib/analytics';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -47,6 +47,19 @@ function fallbackDays(): AvailabilityDay[] {
     const d = new Date(start);
     d.setDate(start.getDate() + i);
     return { date: isoLocal(d), dow: DOW[d.getDay()], slots: TIME_SLOTS, full: false };
+  });
+}
+
+/**
+ * Bring a section to the top of the viewport once React has painted the
+ * layout change that prompted the move (collapsing the calendar shortens the
+ * page, so scrolling before the repaint lands in the wrong place).
+ */
+function scrollSectionIntoView(ref: { current: HTMLElement | null }) {
+  if (typeof window === 'undefined') return;
+  const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+  requestAnimationFrame(() => {
+    ref.current?.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
   });
 }
 
@@ -121,12 +134,22 @@ export function BookingForm({
   const [packageId, setPackageId] = useState(standardWashAvailable ? '' : (packages[0]?.id ?? ''));
   const selectedPackage = packages.find((p) => p.id === packageId) ?? null;
   // A slot picked on the QR landing calendar arrives via query params.
-  const [date, setDate] = useState(() =>
-    initialDate && initialDate >= isoDateMin() && initialDate <= isoDateMax() ? initialDate : ''
+  const preselectedDate = useMemo(
+    () => (initialDate && initialDate >= isoDateMin() && initialDate <= isoDateMax() ? initialDate : ''),
+    [initialDate]
   );
+  const [date, setDate] = useState(preselectedDate);
   const [timeSlot, setTimeSlot] = useState(() =>
     initialTimeSlot && TIME_SLOTS.includes(initialTimeSlot) ? initialTimeSlot : TIME_SLOTS[0]
   );
+
+  // Once a date is chosen the month grid is dead weight, so it folds into a
+  // one-line summary and the page scrolls the times — then the details to
+  // confirm — up into view. A slot carried over from the landing page arrives
+  // already picked, so it starts folded.
+  const [calendarCollapsed, setCalendarCollapsed] = useState(Boolean(preselectedDate));
+  const calendarRef = useRef<HTMLDivElement | null>(null);
+  const reviewRef = useRef<HTMLDivElement | null>(null);
 
   // Live availability (operator hours + agreed wash days + capacity). Until it
   // lands the calendar draws the open fallback window, so residents never see
@@ -151,8 +174,12 @@ export function BookingForm({
 
   useEffect(() => {
     if (!availability) return;
-    // Snap stale selections to the live schedule.
-    if (date && !availability.some((d) => d.date === date && d.slots.length > 0)) setDate('');
+    // Snap stale selections to the live schedule — and reopen the grid, since
+    // there's no longer a date for the collapsed summary to show.
+    if (date && !availability.some((d) => d.date === date && d.slots.length > 0)) {
+      setDate('');
+      setCalendarCollapsed(false);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [availability]);
 
@@ -269,7 +296,7 @@ export function BookingForm({
 
         {/* The calendar — the centerpiece of the page, and the first thing
             the resident acts on. */}
-        <div className="card relative overflow-hidden p-6">
+        <div ref={calendarRef} className="card relative scroll-mt-4 overflow-hidden p-6">
           {/* A soft accent wash behind the header so the booking card reads as
               the centrepiece rather than one panel among many. */}
           <div className="pointer-events-none absolute inset-x-0 -top-8 h-48 bg-gleam-fade" aria-hidden />
@@ -348,8 +375,23 @@ export function BookingForm({
               days={calendarDays}
               selectedDate={date || null}
               selectedTime={timeSlot || null}
-              onSelectDate={(d) => setDate(d)}
-              onSelectTime={(t) => setTimeSlot(t)}
+              collapsed={calendarCollapsed}
+              onSelectDate={(d) => {
+                setDate(d);
+                setCalendarCollapsed(true);
+                // Pull the (now short) calendar to the top so the times sit
+                // right under the thumb instead of below a month of squares.
+                scrollSectionIntoView(calendarRef);
+              }}
+              onSelectTime={(t) => {
+                setTimeSlot(t);
+                // Slot settled — jump to the summary they need to confirm.
+                if (t !== timeSlot) scrollSectionIntoView(reviewRef);
+              }}
+              onExpand={() => {
+                setCalendarCollapsed(false);
+                scrollSectionIntoView(calendarRef);
+              }}
             />
           </div>
         </div>
@@ -469,7 +511,7 @@ export function BookingForm({
         </div>
 
         {/* Summary + checkout. */}
-        <div className="card p-6 space-y-4">
+        <div ref={reviewRef} className="card scroll-mt-4 p-6 space-y-4">
           <h3 className="font-display text-lg">Review &amp; confirm</h3>
 
           <div className="rounded-xl border border-white/10 bg-ink-800/50 p-4 space-y-2">
