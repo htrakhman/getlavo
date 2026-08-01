@@ -9,61 +9,76 @@ import type { VehicleSizeId } from '@/lib/vehicle-sizes';
  * any size, and stroked in currentColor so each icon takes the tone of
  * whatever it sits in — muted in a list, gleam when the tier is selected.
  *
- * All three share a 64x32 grid with wheels at x=17 / x=48, r=5.5, so the
- * silhouettes line up when stacked and read as one set. What separates them is
- * what actually separates the vehicles: roof height, length, and glass count.
+ * All three sit on one 64x32 grid sharing a ground line, and are drawn to
+ * scale against each other: the tier that costs more is visibly the bigger
+ * vehicle. Roofline alone was not enough — a small SUV and a 3-row read as the
+ * same thing until the small one also got shorter, so each has its own length
+ * and wheelbase rather than being stretched to fill the box:
  *
- * The grid is deliberately short: at roughly 3.5 body-lengths to one height a
- * silhouette reads as a car, and stretching it past ~4 turns any of them into
- * a limousine no matter how the roofline is drawn.
+ *   sedan  60 long, roof at 9    — long and low
+ *   suv    50 long, roof at 6.5  — tall but clearly stubby
+ *   xl     60 long, roof at 4.3  — long AND tall, the biggest of the three
+ *
+ * Keep any future tier near 3.5 body-lengths to one height. Past about 4 the
+ * silhouette reads as a limousine no matter how the roofline is drawn.
  */
 
-const WHEEL_X = [17, 48];
-const WHEEL_Y = 24;
-const WHEEL_R = 5.5;
+const GROUND = 24;
 
-// Every body ends with the two wheel arches, so the wheels sit in cutouts
-// rather than on top of a flat sill.
-const ARCHES = 'L53.5,24 A5.5,5.5 0 0 0 42.5,24 L22.5,24 A5.5,5.5 0 0 0 11.5,24 Z';
+type Shape = {
+  /** Body outline, ending at the front bottom corner. Arches are appended. */
+  body: string;
+  glass: string[];
+  wheels: { cx: number; r: number }[];
+};
 
-const SHAPES: Record<VehicleSizeId, { body: string; glass: string[] }> = {
-  // Low roofline, sloping tail, distinct trunk deck.
+const SHAPES: Record<VehicleSizeId, Shape> = {
+  // Long, low, with a sloping tail and a distinct trunk deck.
   sedan: {
     body:
-      'M2,24 L2,20.5 C2,19 2.8,18 4.2,17.6 L16,15.6 L23,9 C23.9,8.1 25,7.6 26.3,7.6 ' +
-      'L38,7.6 C39.4,7.6 40.7,8.1 41.7,9 L48,15.6 L58.5,17.4 C60.8,17.8 62,19.2 62,21 L62,24 ' +
-      ARCHES,
-    glass: ['M24.2,9.6 L30.5,9.6 L30.5,15.2 L18.8,15.2 Z', 'M32.5,9.6 L38.5,9.6 L44.6,15.2 L32.5,15.2 Z'],
+      'M2,24 L2,20.8 C2,19.4 2.8,18.4 4.2,18 L16,16.2 L23,10.2 C23.9,9.4 25,9 26.3,9 ' +
+      'L38,9 C39.4,9 40.7,9.4 41.7,10.2 L48,16.2 L58.5,17.8 C60.8,18.2 62,19.5 62,21.2 L62,24',
+    glass: ['M24.4,10.9 L30.5,10.9 L30.5,15.9 L19.2,15.9 Z', 'M32.5,10.9 L38.5,10.9 L44.3,15.9 L32.5,15.9 Z'],
+    wheels: [{ cx: 17, r: 5.5 }, { cx: 48, r: 5.5 }],
   },
-  // Upright rear, taller cabin, two rows of glass, and — the cue that keeps it
-  // from reading as a wagon — a short, high, flat hood over the front wheel
-  // ending in a tall blunt nose.
+  // Compact crossover: upright like the big one, but 10 units shorter with a
+  // tighter wheelbase and smaller wheels. The stubbiness is what keeps it from
+  // reading as a 3-row.
   suv: {
     body:
-      'M2,24 L2,10.5 C2,8.4 3.4,6.8 5.5,6.5 L40,5.8 C41.9,5.8 43.6,6.7 44.6,8.3 L48.4,15 ' +
-      'L58.8,16.6 C61,17 62,18.6 62,20.6 L62,24 ' +
-      ARCHES,
-    glass: [
-      'M5.9,8.4 L20,8.1 L20,15 L5.9,15 Z',
-      'M22,8.1 L34,7.9 L34,15 L22,15 Z',
-      'M36,7.9 L39.8,7.8 L44,15 L36,15 Z',
-    ],
+      'M7,24 L7,11 C7,9.2 8.2,7.8 10,7.5 L38,6.9 C39.7,6.9 41.2,7.7 42.1,9.1 L45.4,14.6 ' +
+      'L53.6,15.9 C55.8,16.3 57,17.7 57,19.5 L57,24',
+    glass: ['M10.4,9.3 L24,9.1 L24,14.6 L10.4,14.6 Z', 'M25.8,9.1 L37.8,8.8 L41.4,14.6 L25.8,14.6 Z'],
+    wheels: [{ cx: 19, r: 5 }, { cx: 45, r: 5 }],
   },
-  // The big bracket — 3-row SUV, pickup and minivan priced together. Drawn as
-  // the body they share: taller roof than the SUV, a third row of glass, and a
-  // more upright windshield sitting further forward.
+  // The big bracket — 3-row SUV, pickup and minivan priced together. Full
+  // length, tallest roof, three rows of glass.
   xl: {
     body:
       'M2,24 L2,9.4 C2,7.3 3.4,5.7 5.5,5.4 L43,4.7 C45,4.7 46.8,5.7 47.8,7.4 L51,15 ' +
-      'L59,16.6 C61.2,17 62,18.6 62,20.6 L62,24 ' +
-      ARCHES,
+      'L59,16.6 C61.2,17 62,18.6 62,20.6 L62,24',
     glass: [
       'M5.9,7.3 L17.5,7.1 L17.5,15 L5.9,15 Z',
       'M19.5,7.1 L29.5,6.9 L29.5,15 L19.5,15 Z',
       'M31.5,6.9 L42.8,6.7 L47,15 L31.5,15 Z',
     ],
+    wheels: [{ cx: 17, r: 5.5 }, { cx: 48, r: 5.5 }],
   },
 };
+
+/**
+ * Close the body along the ground, cutting an arch over each wheel so the
+ * wheels sit in the bodywork instead of on a flat sill. Derived from the wheel
+ * positions rather than hand-written, so an arch can never drift off its wheel.
+ */
+function archPath(wheels: Shape['wheels']): string {
+  return (
+    [...wheels]
+      .sort((a, b) => b.cx - a.cx) // right to left, following the path direction
+      .map((w) => `L${w.cx + w.r},${GROUND} A${w.r},${w.r} 0 0 0 ${w.cx - w.r},${GROUND}`)
+      .join(' ') + ' Z'
+  );
+}
 
 export function VehicleTypeIcon({
   type,
@@ -92,14 +107,14 @@ export function VehicleTypeIcon({
       aria-hidden={title ? undefined : true}
     >
       {title && <title>{title}</title>}
-      <path d={shape.body} />
+      <path d={`${shape.body} ${archPath(shape.wheels)}`} />
       {shape.glass.map((d, i) => (
         <path key={i} d={d} fill="currentColor" opacity={0.18} stroke="none" />
       ))}
-      {WHEEL_X.map((cx) => (
-        <g key={cx}>
-          <circle cx={cx} cy={WHEEL_Y} r={WHEEL_R} />
-          <circle cx={cx} cy={WHEEL_Y} r={2} fill="currentColor" opacity={0.35} stroke="none" />
+      {shape.wheels.map((w) => (
+        <g key={w.cx}>
+          <circle cx={w.cx} cy={GROUND} r={w.r} />
+          <circle cx={w.cx} cy={GROUND} r={w.r * 0.36} fill="currentColor" opacity={0.35} stroke="none" />
         </g>
       ))}
     </svg>
