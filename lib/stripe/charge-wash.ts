@@ -1,6 +1,7 @@
 import Stripe from 'stripe';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { calculateFee } from '@/lib/fee';
+import { normalizeSize, priceForVehicle } from '@/lib/vehicle-sizes';
 import {
   recurringAddonsForWash,
   recordWashAddonOrders,
@@ -28,7 +29,8 @@ export async function chargeWash(
     .from('washes')
     .select(`
       id, wash_day_id,
-      resident:residents(id, stripe_customer_id, stripe_payment_method_id, package:service_packages(id, price_cents)),
+      vehicle:vehicles(size),
+      resident:residents(id, stripe_customer_id, stripe_payment_method_id, package:service_packages(id, price_cents, size_prices)),
       wash_day:wash_days(operator_id, operator:operators(stripe_account_id, stripe_onboarding_complete))
     `)
     .eq('id', washRecordId)
@@ -39,7 +41,15 @@ export async function chargeWash(
   const resident = wash.resident as any;
   const operator = (wash.wash_day as any)?.operator;
   const operatorId = (wash.wash_day as any)?.operator_id ?? null;
-  const packageCents: number | null = resident?.package?.price_cents ?? null;
+
+  // A package priced by vehicle type bills the tier for the car that was
+  // actually washed. Without this the monthly plan charged the starting rate
+  // for every vehicle, which is the same lapse the booking form had: the
+  // operator set an SUV price and never got it.
+  const vehicleSize = normalizeSize((wash as any).vehicle?.size);
+  const packageCents: number | null = resident?.package
+    ? priceForVehicle(resident.package, vehicleSize) || null
+    : null;
 
   // Add-ons the resident asked for on every wash. Until now that choice was
   // stored and then ignored — never billed, never shown to the crew. Resolved
@@ -147,7 +157,7 @@ export async function chargeWash(
   // rows are normally written when the roster is built; make sure they exist,
   // then bill exactly the unpaid ones — which is what the crew was told to do.
   if (resident?.id) {
-    const recurringAddons = await recurringAddonsForWash(admin, resident.id, operatorId);
+    const recurringAddons = await recurringAddonsForWash(admin, resident.id, operatorId, vehicleSize);
     await recordWashAddonOrders(admin, { washId: washRecordId, residentId: resident.id, addons: recurringAddons });
 
     const billableAddons = await unpaidWashAddons(admin, washRecordId);

@@ -40,7 +40,7 @@ export default async function BookOperator({
   const [{ data: vehicles }, { data: waiver }, addons, recurringAddonIds, packages, washPricing] = await Promise.all([
     admin
       .from('vehicles')
-      .select('id, make, model, color, year, license_plate, notes, is_primary')
+      .select('id, make, model, color, year, license_plate, notes, is_primary, size')
       .eq('resident_id', resident.id)
       .order('is_primary', { ascending: false }),
     admin

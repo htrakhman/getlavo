@@ -8,6 +8,7 @@ import { priceAddonSelection, recordBookingAddonOrders, releaseBookingAddonOrder
 import { syncWashDayRoster } from '@/lib/wash-roster';
 import { WAIVER_VERSION } from '@/lib/waiver';
 import { standardWashPricing, washCentsFor } from '@/lib/wash-pricing';
+import { normalizeSize, priceForVehicle } from '@/lib/vehicle-sizes';
 import Stripe from 'stripe';
 import { z } from 'zod';
 
@@ -124,11 +125,24 @@ async function createBooking(req: Request) {
 
   const { data: vehicle } = await admin
     .from('vehicles')
-    .select('id, make, model, color, license_plate')
+    .select('id, make, model, color, license_plate, size')
     .eq('id', vehicleId)
     .eq('resident_id', resident.id)
     .single();
   if (!vehicle) return NextResponse.json({ error: 'Vehicle not found' }, { status: 404 });
+
+  // The vehicle's tier decides the price of everything below when the operator
+  // prices by vehicle type. Vehicles added before that field existed have none;
+  // the booking form asks for it before checkout, so reaching here without one
+  // means a stale tab. Better to send them back for one tap than to charge the
+  // sedan rate for a pickup.
+  const vehicleSize = normalizeSize(vehicle.size);
+  if (!vehicleSize) {
+    return NextResponse.json(
+      { error: 'Please choose your vehicle type before booking — it sets the price for your wash.' },
+      { status: 400 },
+    );
+  }
 
   const { data: operator, error: operatorError } = await sb
     .from('operators')
@@ -151,11 +165,15 @@ async function createBooking(req: Request) {
   // building-day/on-demand price. Re-read from the operator's live catalogue —
   // the client is never trusted for price, and a stale or foreign id is
   // rejected rather than silently falling back to the flat price.
+  //
+  // A package the operator prices by vehicle type rings up at the tier for this
+  // resident's vehicle, not at the starting rate — same resolution the form
+  // quoted (lib/vehicle-sizes).
   let packageRow: { id: string; name: string; price_cents: number } | null = null;
   if (packageId) {
     const { data: pkg, error: pkgError } = await admin
       .from('service_packages')
-      .select('id, name, price_cents')
+      .select('id, name, price_cents, size_prices')
       .eq('id', packageId)
       .eq('operator_id', operatorId)
       .eq('active', true)
@@ -163,11 +181,12 @@ async function createBooking(req: Request) {
     if (pkgError || !pkg) {
       return NextResponse.json({ error: 'That wash package is no longer available' }, { status: 400 });
     }
+    const packageCents = priceForVehicle(pkg, vehicleSize);
     // An unpriced package isn't listed on the form, and isn't free work either.
-    if (!((pkg.price_cents ?? 0) > 0)) {
+    if (!(packageCents > 0)) {
       return NextResponse.json({ error: 'That wash package isn’t priced yet' }, { status: 400 });
     }
-    packageRow = pkg;
+    packageRow = { id: pkg.id, name: pkg.name, price_cents: packageCents };
   }
 
   // No package selected means the standard wash: the rate the operator set for
@@ -203,7 +222,7 @@ async function createBooking(req: Request) {
 
   // Add-ons are priced from the operator's live catalogue, never from the
   // client, and sit outside the promo: "free first wash" covers the wash.
-  const addonResult = await priceAddonSelection(admin, operatorId, addonIds);
+  const addonResult = await priceAddonSelection(admin, operatorId, addonIds, vehicleSize);
   if (!addonResult.ok) {
     return NextResponse.json({ error: addonResult.error }, { status: 400 });
   }

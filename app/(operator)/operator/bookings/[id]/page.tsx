@@ -14,7 +14,7 @@ export default async function OperatorBookingPage({ params }: { params: { id: st
   const { data: booking } = await sb
     .from('bookings')
     .select(
-      'id, scheduled_for, time_slot, status, gross_cents, pre_wash_photo_urls, post_wash_photo_urls, building:buildings(name), resident:residents(profile:profiles(full_name)), vehicle:vehicles(make, model, color, license_plate), addon_orders(id, amount_cents, paid_at, operator_addon:operator_addons(label))',
+      'id, scheduled_for, time_slot, status, gross_cents, pre_wash_photo_urls, post_wash_photo_urls, building:buildings(name), resident:residents(profile:profiles(full_name)), vehicle:vehicles(make, model, color, license_plate, size), addon_orders(id, amount_cents, paid_at, operator_addon:operator_addons(label))',
     )
     .eq('id', params.id)
     .eq('operator_id', op.id)
