@@ -11,6 +11,7 @@ import { parseDateList } from '@/lib/wash-dates';
 import Link from 'next/link';
 import { money, dateShort } from '@/lib/format';
 import { hasApprovedInsurance } from '@/lib/insurance';
+import { operatorSetup, pendingLabel } from '@/lib/operator-readiness';
 import { OperatorTabs } from './OperatorTabs';
 
 export default async function MyOperator() {
@@ -79,11 +80,13 @@ export default async function MyOperator() {
         .order('scheduled_for', { ascending: true })
     : { data: null };
 
-  // Load marketplace operators when no partner assigned
+  // Load marketplace operators when no partner assigned. Operators still
+  // finishing setup are listed too — they're badged below rather than hidden,
+  // so a manager can see who is coming online in their area.
   const { data: operators } = !operator
     ? await sb
         .from('operators')
-        .select('id, name, description, rating_avg, rating_count, base_price_cents, open_slot_price_cents, service_radius_miles, insurance_expires_at, insurance_review_status')
+        .select('id, name, description, rating_avg, rating_count, base_price_cents, open_slot_price_cents, service_radius_miles, insurance_expires_at, insurance_review_status, stripe_onboarding_complete')
         .eq('status', 'approved')
         .order('promoted_listing', { ascending: false })
         .order('rating_avg', { ascending: false })
@@ -145,11 +148,13 @@ export default async function MyOperator() {
 
             {operators && operators.length > 0 ? (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                {operators.map((op: any) => (
+                {operators.map((op: any) => {
+                  const setup = operatorSetup(op);
+                  return (
                   <Link
                     key={op.id}
                     href={`/building/marketplace/${op.id}`}
-                    className="card p-5 hover:border-gleam/40 transition-colors block"
+                    className={`card p-5 hover:border-gleam/40 transition-colors block ${setup.requestable ? '' : 'border-amber-500/30'}`}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
@@ -178,10 +183,21 @@ export default async function MyOperator() {
                       {hasApprovedInsurance(op) && (
                         <span className="chip text-gleam/80">✓ Insured</span>
                       )}
+                      {!setup.requestable && (
+                        <span className="chip text-amber-600">Setting up</span>
+                      )}
                     </div>
-                    <div className="mt-4 text-xs text-gleam">View & request →</div>
+                    {setup.requestable ? (
+                      <div className="mt-4 text-xs text-gleam">View &amp; request →</div>
+                    ) : (
+                      <div className="mt-4 text-xs text-amber-600">
+                        Still finishing their {pendingLabel(setup.pending)} — you can view their
+                        profile, but can&rsquo;t request them yet.
+                      </div>
+                    )}
                   </Link>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <div className="card p-6 text-center text-sm text-ink-400">

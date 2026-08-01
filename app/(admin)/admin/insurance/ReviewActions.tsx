@@ -7,6 +7,13 @@ export function ReviewActions({ operatorId }: { operatorId: string }) {
   const [busy, setBusy] = useState(false);
   const [rejecting, setRejecting] = useState(false);
   const [note, setNote] = useState('');
+  const [emailState, setEmailState] = useState<'idle' | 'sending' | 'sent' | 'failed'>('idle');
+
+  async function emailToAdmin() {
+    setEmailState('sending');
+    const res = await fetch(`/api/admin/insurance/${operatorId}/email`, { method: 'POST' }).catch(() => null);
+    setEmailState(res?.ok ? 'sent' : 'failed');
+  }
 
   async function call(decision: 'approved' | 'rejected', noteText?: string) {
     setBusy(true);
@@ -34,9 +41,23 @@ export function ReviewActions({ operatorId }: { operatorId: string }) {
   }
 
   return (
-    <div className="flex gap-2">
+    <div className="flex items-center gap-2">
       <button onClick={() => call('approved')} disabled={busy} className="btn-primary text-sm">Approve</button>
       <button onClick={() => setRejecting(true)} disabled={busy} className="btn-quiet text-sm">Reject</button>
+      <button
+        onClick={emailToAdmin}
+        disabled={emailState === 'sending'}
+        title="Email the certificate to the admin inbox as an attachment"
+        className="btn-quiet text-sm"
+      >
+        {emailState === 'sending'
+          ? 'Emailing…'
+          : emailState === 'sent'
+            ? '✓ Emailed'
+            : emailState === 'failed'
+              ? 'Retry email'
+              : 'Email me the form'}
+      </button>
     </div>
   );
 }

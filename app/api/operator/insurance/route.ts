@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { sendAdminNotification } from '@/lib/email/resend';
+import { insuranceDocFile, insuranceDocViewUrl } from '@/lib/insurance-doc';
 
 export async function PATCH(req: Request) {
   const session = await getSessionUser();
@@ -52,6 +53,14 @@ export async function PATCH(req: Request) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   if (fileUploaded) {
+    // The certificate rides along on the email so it can be read without
+    // clicking through. Both the download and the signed link are
+    // best-effort — a storage hiccup must not swallow the notification.
+    const [file, viewUrl] = await Promise.all([
+      insuranceDocFile(nextDocUrl).catch(() => null),
+      insuranceDocViewUrl(nextDocUrl).catch(() => null),
+    ]);
+
     await sendAdminNotification({
       subject: `Insurance certificate awaiting review: ${op.name}`,
       lines: [
@@ -60,9 +69,17 @@ export async function PATCH(req: Request) {
         policyNumber ? `Policy #: ${policyNumber}` : '',
         coverageCents ? `Coverage: $${Math.round(coverageCents / 100).toLocaleString()}` : '',
         expiresAt ? `Expires: ${expiresAt}` : '',
+        file
+          ? `The certificate is attached to this email.`
+          : viewUrl
+            ? `Certificate (link valid for 1 hour): ${viewUrl}`
+            : `No certificate file could be retrieved — check the operator's profile.`,
         `Open the review queue below to approve or reject it.`,
       ].filter(Boolean),
       action: { url: '/admin/insurance', label: 'Review — approve or reject →' },
+      attachments: file
+        ? [{ filename: `${op.name ?? 'operator'}-certificate-of-insurance-${file.filename}`.replace(/[^a-z0-9.\-]+/gi, '-'), content: file.bytes }]
+        : undefined,
     }).catch((e) => {
       console.error('insurance review admin email failed:', e);
     });
