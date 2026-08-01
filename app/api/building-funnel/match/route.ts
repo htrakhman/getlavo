@@ -76,11 +76,15 @@ export async function POST(req: NextRequest) {
     description: string | null;
     price_cents: number;
     est_minutes: number | null;
+    // The onboarding plan step draws the per-vehicle tier row off these; without
+    // them every package there showed three unpriced tiers even when the
+    // operator had filled them in.
+    size_prices: unknown;
   }[] = [];
   if (operator?.id) {
     const { data: pkgs } = await sb
       .from('service_packages')
-      .select('id, name, description, price_cents, est_minutes')
+      .select('id, name, description, price_cents, est_minutes, size_prices')
       .eq('operator_id', operator.id)
       .eq('active', true)
       .order('price_cents', { ascending: true });

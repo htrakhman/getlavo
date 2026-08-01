@@ -42,12 +42,8 @@ export default async function PublicOperatorPage({ params }: { params: { slug: s
             <div key={p.name} className="card p-4 flex justify-between gap-3">
               <div>
                 <div className="font-medium">{p.name}</div>
-                <PackageDescription
-                  text={p.description}
-                  showPricing={sizePrices.length === 0}
-                  className="mt-1 text-xs text-ink-500"
-                />
-                <SizePriceList raw={p.size_prices} className="mt-2 text-xs text-ink-500" />
+                <PackageDescription text={p.description} className="mt-1 text-xs text-ink-500" />
+                <SizePriceList raw={p.size_prices} description={p.description} className="mt-2 text-xs text-ink-500" />
               </div>
               <div className="text-gleam font-display whitespace-nowrap">
                 {sizePrices.length > 0 ? 'from ' : ''}${((p.price_cents ?? 0) / 100).toFixed(0)}

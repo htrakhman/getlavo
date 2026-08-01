@@ -14,6 +14,8 @@
  * so an operator still edits the same text they typed.
  */
 
+import { type VehicleSizeId } from './vehicle-sizes';
+
 export type PackagePricingLine = {
   label: string;
   /** Already formatted by the operator ("$70", "$85.00"); null if we can't find one. */
@@ -109,4 +111,77 @@ export function parsePackageDescription(raw: string | null | undefined): ParsedP
   const points = chunks.map(tidyItem).filter(Boolean);
 
   return { lead: lead.trim(), points, pricing };
+}
+
+/** Typed-out tier prices lifted off a description, keyed by tier. Strings, not
+ *  cents — these are the operator's own text, not something anything can charge
+ *  against. */
+export type TypedTierPrices = Partial<Record<VehicleSizeId, string>>;
+
+/**
+ * How a typed pricing label maps onto the three canonical tiers. Order is the
+ * whole trick, because operators name a bracket by the biggest thing in it and
+ * the words overlap: "3-Row SUV/Minivan/Pickup" says SUV, "SUV/Small Pickup"
+ * says pickup, and only one of them is the top tier. Size qualifiers are read
+ * first, then the body style, then the big-vehicle words — so "3-Row SUV" and
+ * "Large SUV" land on `xl` while "Small SUV" and a bare "SUV" stay on `suv`.
+ */
+const TIER_PATTERNS: { size: VehicleSizeId; re: RegExp }[] = [
+  { size: 'xl', re: /\b(3\s*-?\s*row|three\s*-?\s*row|third\s*row|full[\s-]*size|extra[\s-]*large|x-?large|xl|large|oversize\w*)\b/ },
+  { size: 'sedan', re: /\b(sedans?|coupes?|compact|hatchback|cars?)\b/ },
+  { size: 'suv', re: /\b(suv|crossover|cuv|wagon|jeep)\b/ },
+  { size: 'xl', re: /\b(pickup|truck|minivan|van|3rd\s*row)\b/ },
+];
+
+/**
+ * Which tier a typed pricing label names, or null when it names none.
+ *
+ * Read the leading segment first — an operator writes the bracket's own name
+ * ahead of the slash and the examples after it ("SUV/Small Pickup"), so the
+ * segment before the first "/" or "," is the authoritative one. Only when that
+ * says nothing do we fall back to the whole label.
+ */
+export function tierFromLabel(label: string): VehicleSizeId | null {
+  const full = label.toLowerCase();
+  const head = full.split(/[/,]/)[0].trim();
+  for (const text of [head, full]) {
+    if (!text) continue;
+    const hit = TIER_PATTERNS.find((p) => p.re.test(text));
+    if (hit) return hit.size;
+  }
+  return null;
+}
+
+/**
+ * Split a typed pricing tail into the lines that name a vehicle tier and the
+ * lines that don't.
+ *
+ * The tier lines belong on the tier row next to the vehicle icons, where they
+ * read as the same thing as a package that has real `size_prices` — an operator
+ * who typed their brackets into the description shouldn't leave the resident
+ * staring at three em dashes with the numbers stranded in a footnote below.
+ * Anything else in that tail ("Add ceramic $30") is not a bracket and stays in
+ * the description, because dropping it would lose text the operator wrote.
+ *
+ * First line wins a tier: two labels can collide once the synonyms fold in, and
+ * a repeat is more likely to be a stray line than a correction.
+ */
+export function splitTierPricing(pricing: PackagePricingLine[]): {
+  tiers: TypedTierPrices;
+  rest: PackagePricingLine[];
+} {
+  const tiers: TypedTierPrices = {};
+  const rest: PackagePricingLine[] = [];
+  for (const line of pricing) {
+    // A label with no price can't fill a tier — there'd be nothing to show.
+    const size = line.price ? tierFromLabel(line.label) : null;
+    if (!size || tiers[size]) rest.push(line);
+    else tiers[size] = line.price as string;
+  }
+  return { tiers, rest };
+}
+
+/** The tier prices an operator typed into a description, ready for the tier row. */
+export function typedTierPrices(text: string | null | undefined): TypedTierPrices {
+  return splitTierPricing(parsePackageDescription(text).pricing).tiers;
 }
