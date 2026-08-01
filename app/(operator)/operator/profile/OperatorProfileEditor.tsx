@@ -72,7 +72,6 @@ export function OperatorProfileEditor({ op }: { op: any }) {
     setOpenGroups((prev) => (prev.includes(label) ? prev.filter((l) => l !== label) : [...prev, label]));
   }
   const [customTagInput, setCustomTagInput] = useState('');
-  const [rateCents, setRateCents] = useState(op.base_price_cents);
   const [radius, setRadius] = useState(op.service_radius_miles ?? 15);
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(op.cover_photo_url ?? null);
@@ -119,7 +118,6 @@ export function OperatorProfileEditor({ op }: { op: any }) {
       years_experience: yearsExp ? parseInt(yearsExp, 10) : null,
       specialties,
       cover_photo_url: coverPhotoUrl,
-      base_price_cents: Number(rateCents),
       service_radius_miles: Number(radius),
     }).eq('id', op.id);
 
@@ -194,16 +192,6 @@ export function OperatorProfileEditor({ op }: { op: any }) {
             placeholder="e.g. 5"
             value={yearsExp}
             onChange={(e) => setYearsExp(e.target.value)}
-          />
-        </div>
-
-        <div>
-          <label className="label">Building day rate (cents)</label>
-          <input
-            className="field"
-            type="number"
-            value={rateCents}
-            onChange={(e) => setRateCents(parseInt(e.target.value || '0', 10))}
           />
         </div>
 
