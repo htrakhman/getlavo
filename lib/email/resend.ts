@@ -57,8 +57,25 @@ export async function sendBookingNotification(args: {
   netCents: number;
   /** ICS calendar invite attached so the job lands on the operator's calendar automatically. */
   ics?: string;
+  /**
+   * Everything the crew needs to find the car and get into the building. Sent
+   * in the booking email so the job is actionable from the inbox rather than
+   * only after signing in.
+   */
+  address?: string | null;
+  unitNumber?: string | null;
+  spotLabel?: string | null;
+  floorNumber?: number | null;
+  licensePlate?: string | null;
+  accessNotes?: string | null;
+  packageName?: string | null;
+  addonLabels?: string[];
+  residentNotes?: string | null;
 }) {
   const net = (args.netCents / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+  const spot = [args.spotLabel, args.floorNumber != null ? `Floor ${args.floorNumber}` : null]
+    .filter(Boolean)
+    .join(' · ');
   return client().emails.send({
     from: FROM,
     to: args.to,
@@ -69,13 +86,25 @@ export async function sendBookingNotification(args: {
     html: `
       <p>Hi ${escapeHtml(args.operatorName)},</p>
       <p>A resident at <strong>${escapeHtml(args.buildingName)}</strong> has booked a wash.</p>
-      <table style="border-collapse:collapse;width:100%;max-width:400px;margin:16px 0">
-        <tr><td style="padding:8px 0;color:#666">Resident</td><td style="padding:8px 0;font-weight:600">${escapeHtml(args.residentName)}</td></tr>
-        <tr><td style="padding:8px 0;color:#666">Vehicle</td><td style="padding:8px 0;font-weight:600">${escapeHtml(args.vehicleDescription)}</td></tr>
-        <tr><td style="padding:8px 0;color:#666">Date</td><td style="padding:8px 0;font-weight:600">${escapeHtml(args.scheduledFor)}</td></tr>
-        ${args.timeSlot ? `<tr><td style="padding:8px 0;color:#666">Time</td><td style="padding:8px 0;font-weight:600">${escapeHtml(args.timeSlot)}</td></tr>` : ''}
-        <tr><td style="padding:8px 0;color:#666">Your payout</td><td style="padding:8px 0;font-weight:600">${net}</td></tr>
-      </table>
+      ${detailRows([
+        ['Date', args.scheduledFor],
+        ['Time', args.timeSlot],
+        ['Service', args.packageName],
+        ['Add-ons', args.addonLabels?.length ? args.addonLabels.join(', ') : null],
+        ['Your payout', net],
+      ])}
+      <p style="margin:20px 0 0;font-weight:600">Where the car is</p>
+      ${detailRows([
+        ['Address', args.address],
+        ['Unit', args.unitNumber],
+        ['Parking spot', spot || null],
+        ['Vehicle', args.vehicleDescription],
+        ['Plate', args.licensePlate],
+        ['Resident', args.residentName],
+        ['Keys', 'Front desk'],
+        ['Access notes', args.accessNotes],
+        ['Resident notes', args.residentNotes],
+      ])}
       <p><a href="${APP_URL}/operator/bookings" style="display:inline-block;padding:12px 18px;border-radius:8px;background:#00ff88;color:#000;font-weight:600;text-decoration:none">View bookings</a></p>
     `,
   });

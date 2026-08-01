@@ -35,10 +35,12 @@ export async function confirmPaidBookingAndNotify(
     .from('bookings')
     .select(`
         id, scheduled_for, time_slot, gross_cents, wash_day_id, resident_id, vehicle_id,
-        resident:residents(spot_label, profile:profiles(email, full_name)),
+        resident:residents(spot_label, unit_number, floor_number, vehicle_access_notes, profile:profiles(email, full_name)),
         operator:operators(name, owner_id, profiles:profiles!operators_owner_id_fkey(email, full_name)),
-        building:buildings(name, address_line1, city, region),
-        vehicle:vehicles(make, model, color)
+        building:buildings(name, address_line1, address_line2, city, region, postal_code),
+        vehicle:vehicles(make, model, color, license_plate),
+        package:service_packages(name),
+        addon_orders(operator_addon:operator_addons(label))
       `)
     .eq('id', bookingId)
     .single();
@@ -88,17 +90,41 @@ export async function confirmPaidBookingAndNotify(
   const vehicle = booking.vehicle as any;
   const ownerProfile = operator?.profiles;
 
+  // Read separately, and tolerate the column being absent: this runs on the
+  // paid-booking path, and a deploy that lands ahead of migration 0052 must
+  // still send both emails and build the crew roster.
+  const { data: notesRow } = await admin
+    .from('bookings')
+    .select('resident_notes')
+    .eq('id', bookingId)
+    .maybeSingle();
+  const residentNotes = (notesRow as any)?.resident_notes ?? null;
+
   const location = [building?.address_line1, building?.city, building?.region]
     .filter(Boolean)
     .join(', ');
   const vehicleDesc = vehicle ? `${vehicle.color} ${vehicle.make} ${vehicle.model}` : 'Vehicle';
+  const residentRowForIcs = booking.resident as any;
+  // The invite has to stand on its own on the operator's calendar — spot and
+  // access notes there mean the crew never has to go back to the app.
+  const icsDescription = [
+    `Car wash at ${building?.name ?? 'your building'}.`,
+    vehicle?.license_plate ? `Vehicle: ${vehicleDesc} (${vehicle.license_plate})` : `Vehicle: ${vehicleDesc}`,
+    residentRowForIcs?.unit_number ? `Unit: ${residentRowForIcs.unit_number}` : null,
+    residentRowForIcs?.spot_label ? `Spot: ${residentRowForIcs.spot_label}` : null,
+    'Keys at the front desk before the appointment.',
+    residentRowForIcs?.vehicle_access_notes ? `Access: ${residentRowForIcs.vehicle_access_notes}` : null,
+    residentNotes ? `Resident notes: ${residentNotes}` : null,
+  ]
+    .filter(Boolean)
+    .join('\n');
   // METHOD:REQUEST makes mail clients render this as a real calendar invite,
   // so the booking lands on both calendars automatically.
   const ics = buildIcs(
     {
       uid: `${bookingId}@getlavo.io`,
       title: `Lavo wash · ${vehicleDesc}`,
-      description: `Car wash at ${building?.name ?? 'your building'}. Keys at the front desk before the appointment.`,
+      description: icsDescription,
       location,
       date: booking.scheduled_for,
       time: booking.time_slot,
@@ -122,16 +148,31 @@ export async function confirmPaidBookingAndNotify(
 
   if (ownerProfile?.email) {
     const { data: fullBooking } = await admin.from('bookings').select('net_cents').eq('id', bookingId).single();
+    const residentRow = booking.resident as any;
     await sendBookingNotification({
       to: ownerProfile.email,
       operatorName: ownerProfile.full_name ?? operator.name,
       buildingName: building?.name ?? '',
       residentName: resident?.full_name ?? '',
-      vehicleDescription: vehicle ? `${vehicle.color} ${vehicle.make} ${vehicle.model}` : '',
+      vehicleDescription: vehicleDesc,
       scheduledFor: booking.scheduled_for,
       timeSlot: booking.time_slot,
       netCents: fullBooking?.net_cents ?? 0,
       ics,
+      // Everything the crew needs to find the car, straight from the inbox.
+      address: [building?.address_line1, building?.address_line2, building?.city, building?.region, building?.postal_code]
+        .filter(Boolean)
+        .join(', ') || null,
+      unitNumber: residentRow?.unit_number ?? null,
+      spotLabel: residentRow?.spot_label ?? null,
+      floorNumber: residentRow?.floor_number ?? null,
+      licensePlate: vehicle?.license_plate ?? null,
+      accessNotes: residentRow?.vehicle_access_notes ?? null,
+      packageName: (booking.package as any)?.name ?? null,
+      addonLabels: ((booking.addon_orders as any[]) ?? [])
+        .map((a) => a?.operator_addon?.label)
+        .filter(Boolean),
+      residentNotes,
     }).catch(() => {});
   }
 }

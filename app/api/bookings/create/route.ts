@@ -6,6 +6,7 @@ import { applyPromoToBooking, recordPromoRedemption } from '@/lib/promo';
 import { confirmPaidBookingAndNotify } from '@/lib/booking-confirm';
 import { priceAddonSelection, recordBookingAddonOrders, releaseBookingAddonOrders } from '@/lib/addons';
 import { syncWashDayRoster } from '@/lib/wash-roster';
+import { getBuildingWashPriceCents, resolveWashPriceCents } from '@/lib/building-price';
 import { WAIVER_VERSION } from '@/lib/waiver';
 import Stripe from 'stripe';
 import { z } from 'zod';
@@ -22,6 +23,7 @@ const Body = z.object({
   addonIds: z.array(z.string().uuid()).max(10).optional(),
   promoCode: z.string().optional(),
   waiverAccepted: z.boolean().optional(),
+  residentNotes: z.string().max(2000).optional(),
 });
 
 /**
@@ -84,7 +86,7 @@ async function createBooking(req: Request) {
   }
   const body = Body.safeParse(raw);
   if (!body.success) return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
-  const { operatorId, vehicleId, scheduledFor, timeSlot, bookingType, packageId, partnershipId, recurringCadence, addonIds, promoCode, waiverAccepted } =
+  const { operatorId, vehicleId, scheduledFor, timeSlot, bookingType, packageId, partnershipId, recurringCadence, addonIds, promoCode, waiverAccepted, residentNotes } =
     body.data;
 
   const admin = supabaseAdmin();
@@ -165,11 +167,15 @@ async function createBooking(req: Request) {
     packageRow = pkg;
   }
 
-  const baseGrossCents = packageRow
-    ? packageRow.price_cents
-    : bookingType === 'building_day'
-      ? operator.base_price_cents
-      : (operator.open_slot_price_cents ?? operator.base_price_cents);
+  const buildingPriceCents = await getBuildingWashPriceCents(admin, resident.building_id, operatorId);
+
+  const baseGrossCents = resolveWashPriceCents({
+    packagePriceCents: packageRow?.price_cents,
+    buildingPriceCents,
+    bookingType,
+    basePriceCents: operator.base_price_cents,
+    openSlotPriceCents: operator.open_slot_price_cents,
+  });
 
   const promoResult = await applyPromoToBooking(admin, {
     rawCode: promoCode,
@@ -266,6 +272,7 @@ async function createBooking(req: Request) {
       partnership_id: partnershipId ?? null,
       wash_day_id: washDayId,
       package_id: packageRow?.id ?? null,
+      resident_notes: residentNotes?.trim() || null,
       booking_type: bookingType,
       scheduled_for: scheduledFor,
       time_slot: timeSlot ?? null,

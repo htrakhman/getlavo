@@ -3,6 +3,7 @@ import { getSessionUser, supabaseServer, supabaseAdmin } from '@/lib/supabase/se
 import { WAIVER_VERSION } from '@/lib/waiver';
 import { listBookableAddons, listRecurringAddonIds } from '@/lib/addons';
 import { getPackagesForOperator } from '@/lib/service-packages';
+import { getBuildingWashPriceCents } from '@/lib/building-price';
 import { redirect } from 'next/navigation';
 import { BookingForm } from './BookingForm';
 
@@ -21,7 +22,7 @@ export default async function BookOperator({
 
   const [{ data: resident }, { data: operator }] = await Promise.all([
     admin.from('residents')
-      .select('id, building_id, building:buildings(name)')
+      .select('id, building_id, unit_number, spot_label, floor_number, vehicle_access_method, vehicle_access_notes, building:buildings(name, address_line1, address_line2, city, region, postal_code)')
       .eq('profile_id', session.user.id)
       .single(),
     admin.from('operators')
@@ -34,7 +35,7 @@ export default async function BookOperator({
 
   if (!resident || !operator) redirect('/resident/book');
 
-  const [{ data: vehicles }, { data: waiver }, addons, recurringAddonIds, packages] = await Promise.all([
+  const [{ data: vehicles }, { data: waiver }, addons, recurringAddonIds, packages, buildingPriceCents] = await Promise.all([
     admin
       .from('vehicles')
       .select('id, make, model, color, license_plate, is_primary')
@@ -49,10 +50,23 @@ export default async function BookOperator({
     listBookableAddons(admin, operator.id),
     listRecurringAddonIds(admin, resident.id, operator.id),
     getPackagesForOperator(admin, operator.id),
+    getBuildingWashPriceCents(admin, resident.building_id, operator.id),
   ]);
 
   const isPartner = !!searchParams.partnershipId;
   const building = resident.building as any;
+
+  // What the operator gets handed with the job. Shown back to the resident so
+  // they can see (and fix) what the crew will be working from before paying.
+  const jobDetails = {
+    buildingName: building?.name ?? null,
+    address: [building?.address_line1, building?.address_line2].filter(Boolean).join(', ') || null,
+    cityLine: [building?.city, building?.region, building?.postal_code].filter(Boolean).join(', ') || null,
+    unitNumber: resident.unit_number ?? null,
+    spotLabel: resident.spot_label ?? null,
+    floorNumber: resident.floor_number ?? null,
+    accessNotes: resident.vehicle_access_notes ?? null,
+  };
 
   return (
     <>
@@ -77,6 +91,8 @@ export default async function BookOperator({
           operatorName={operator.name}
           basePriceCents={operator.base_price_cents}
           openSlotPriceCents={operator.open_slot_price_cents}
+          buildingPriceCents={buildingPriceCents}
+          jobDetails={jobDetails}
           vehicles={vehicles ?? []}
           isPartner={isPartner}
           partnershipId={searchParams.partnershipId}

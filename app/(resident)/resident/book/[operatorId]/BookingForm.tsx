@@ -3,6 +3,7 @@ import { money, plateLabel } from '@/lib/format';
 import { parseSizePrices } from '@/lib/vehicle-sizes';
 import { SizePriceList } from '@/components/SizePriceList';
 import { DayTimePicker, type AvailabilityDay } from '@/components/DayTimePicker';
+import { resolveWashPriceCents } from '@/lib/building-price';
 import { captureEvent } from '@/lib/analytics';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -38,11 +39,24 @@ export function BookingForm({
   addons,
   initialAddonIds,
   packages,
+  buildingPriceCents,
+  jobDetails,
 }: {
   operatorId: string;
   operatorName: string;
   basePriceCents: number;
   openSlotPriceCents: number | null;
+  /** The rate the operator agreed for this building, when one is set. */
+  buildingPriceCents: number | null;
+  jobDetails: {
+    buildingName: string | null;
+    address: string | null;
+    cityLine: string | null;
+    unitNumber: string | null;
+    spotLabel: string | null;
+    floorNumber: number | null;
+    accessNotes: string | null;
+  };
   vehicles: { id: string; make: string; model: string; color: string; license_plate: string; is_primary: boolean }[];
   isPartner: boolean;
   partnershipId?: string;
@@ -106,17 +120,27 @@ export function BookingForm({
   const [promoCode, setPromoCode] = useState('');
   // Anything the resident already asked for on every wash starts ticked.
   const [addonIds, setAddonIds] = useState<string[]>(initialAddonIds);
+  const [residentNotes, setResidentNotes] = useState('');
 
   useEffect(() => {
     const stored = typeof window !== 'undefined' ? localStorage.getItem('lavo_promo_code') : null;
     if (stored) setPromoCode(stored);
   }, []);
 
-  const washCents = selectedPackage
-    ? selectedPackage.price_cents
-    : bookingType === 'building_day'
-      ? basePriceCents
-      : (openSlotPriceCents ?? basePriceCents);
+  const washCents = resolveWashPriceCents({
+    packagePriceCents: selectedPackage?.price_cents,
+    buildingPriceCents,
+    bookingType,
+    basePriceCents,
+    openSlotPriceCents,
+  });
+  // The standard-wash tile quotes the same rate with no package chosen.
+  const standardWashCents = resolveWashPriceCents({
+    buildingPriceCents,
+    bookingType,
+    basePriceCents,
+    openSlotPriceCents,
+  });
 
   const selectedAddons = addons.filter((a) => addonIds.includes(a.id));
   const addonCents = selectedAddons.reduce((sum, a) => sum + a.price_cents, 0);
@@ -137,7 +161,7 @@ export function BookingForm({
       fetch('/api/promo/preview', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code, operatorId, bookingType }),
+        body: JSON.stringify({ code, operatorId, bookingType, packageId: packageId || undefined }),
       })
         .then((r) => (r.ok ? r.json() : null))
         .then((j) => {
@@ -150,7 +174,7 @@ export function BookingForm({
     }, 400);
 
     return () => { cancelled = true; clearTimeout(timer); };
-  }, [promoCode, operatorId, bookingType]);
+  }, [promoCode, operatorId, bookingType, packageId]);
 
   const discountCents = Math.min(promo?.reason ? 0 : (promo?.discountCents ?? 0), washCents);
   const priceCents = Math.max(0, washCents - discountCents) + addonCents;
@@ -172,6 +196,7 @@ export function BookingForm({
           partnershipId: partnershipId ?? undefined,
           recurringCadence: recurring === 'none' ? undefined : recurring,
           addonIds,
+          residentNotes: residentNotes.trim() || undefined,
           promoCode: promoCode.trim() || undefined,
           waiverAccepted: needsWaiver ? agreeWaiver : undefined,
         }),
@@ -263,9 +288,7 @@ export function BookingForm({
                   {isPartner && openSlotPriceCents ? 'Priced by booking type above' : 'The operator’s regular wash'}
                 </div>
               </div>
-              <span className="font-display">
-                {money(bookingType === 'building_day' ? basePriceCents : (openSlotPriceCents ?? basePriceCents))}
-              </span>
+              <span className="font-display">{money(standardWashCents)}</span>
             </button>
             {packages.map((p) => {
               const tiers = parseSizePrices(p.size_prices);
@@ -417,6 +440,71 @@ export function BookingForm({
             </select>
           </div>
         )}
+      </div>
+
+      <div>
+        <label className="label">Anything else the crew should know (optional)</label>
+        <textarea
+          className="field min-h-[72px]"
+          value={residentNotes}
+          onChange={(e) => setResidentNotes(e.target.value)}
+          maxLength={2000}
+          placeholder="Dent on the rear bumper, please skip the wheels…"
+        />
+      </div>
+
+      {/* What gets handed to the operator with this job. Shown so the resident
+          can catch a wrong spot or a missing gate instruction before paying. */}
+      <div className="rounded-xl border border-white/10 bg-ink-800/50 p-4">
+        <div className="text-xs uppercase tracking-widest text-ink-400">What the operator gets</div>
+        <dl className="mt-3 space-y-1.5 text-sm">
+          {jobDetails.buildingName && (
+            <div className="flex justify-between gap-3">
+              <dt className="text-ink-400">Building</dt>
+              <dd className="text-right">{jobDetails.buildingName}</dd>
+            </div>
+          )}
+          {jobDetails.address && (
+            <div className="flex justify-between gap-3">
+              <dt className="text-ink-400">Address</dt>
+              <dd className="text-right">
+                {jobDetails.address}
+                {jobDetails.cityLine && <span className="block text-xs text-ink-500">{jobDetails.cityLine}</span>}
+              </dd>
+            </div>
+          )}
+          {jobDetails.unitNumber && (
+            <div className="flex justify-between gap-3">
+              <dt className="text-ink-400">Unit</dt>
+              <dd className="text-right">{jobDetails.unitNumber}</dd>
+            </div>
+          )}
+          <div className="flex justify-between gap-3">
+            <dt className="text-ink-400">Parking spot</dt>
+            <dd className={`text-right ${jobDetails.spotLabel ? '' : 'text-amber-600'}`}>
+              {jobDetails.spotLabel ?? 'Not set'}
+              {jobDetails.floorNumber != null && jobDetails.spotLabel && (
+                <span className="text-ink-500"> · Floor {jobDetails.floorNumber}</span>
+              )}
+            </dd>
+          </div>
+          <div className="flex justify-between gap-3">
+            <dt className="text-ink-400">Keys</dt>
+            <dd className="text-right">Front desk</dd>
+          </div>
+          {jobDetails.accessNotes && (
+            <div className="flex justify-between gap-3">
+              <dt className="text-ink-400">Access notes</dt>
+              <dd className="text-right">{jobDetails.accessNotes}</dd>
+            </div>
+          )}
+        </dl>
+        <p className="mt-3 text-[11px] text-ink-500">
+          Pulled from your profile.{' '}
+          <a href="/resident/vehicle" className="text-gleam underline underline-offset-2">
+            Update spot &amp; access
+          </a>
+        </p>
       </div>
 
       <div className="rounded-xl border border-white/10 bg-ink-800/50 p-4 space-y-2">

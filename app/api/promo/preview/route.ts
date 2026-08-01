@@ -2,12 +2,14 @@ import { NextResponse } from 'next/server';
 import { getSessionUser } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { applyPromoToBooking } from '@/lib/promo';
+import { getBuildingWashPriceCents, resolveWashPriceCents } from '@/lib/building-price';
 import { z } from 'zod';
 
 const Body = z.object({
   code: z.string().max(64),
   operatorId: z.string().uuid(),
   bookingType: z.enum(['building_day', 'open_slot']).default('open_slot'),
+  packageId: z.string().uuid().optional(),
 });
 
 /**
@@ -30,13 +32,13 @@ export async function POST(req: Request) {
 
   const body = Body.safeParse(await req.json().catch(() => null));
   if (!body.success) return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
-  const { code, operatorId, bookingType } = body.data;
+  const { code, operatorId, bookingType, packageId } = body.data;
 
   const admin = supabaseAdmin();
 
   const { data: resident } = await admin
     .from('residents')
-    .select('id')
+    .select('id, building_id')
     .eq('profile_id', session.user.id)
     .single();
   if (!resident) return NextResponse.json({ error: 'Resident record not found' }, { status: 404 });
@@ -49,10 +51,28 @@ export async function POST(req: Request) {
     .single();
   if (!operator) return NextResponse.json({ error: 'Operator not available' }, { status: 404 });
 
-  const baseGrossCents =
-    bookingType === 'building_day'
-      ? operator.base_price_cents
-      : (operator.open_slot_price_cents ?? operator.base_price_cents);
+  // Same price resolution the booking route uses, so the quoted discount is
+  // priced against the wash the resident actually configured.
+  const [{ data: pkg }, buildingPriceCents] = await Promise.all([
+    packageId
+      ? admin
+          .from('service_packages')
+          .select('price_cents')
+          .eq('id', packageId)
+          .eq('operator_id', operatorId)
+          .eq('active', true)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+    getBuildingWashPriceCents(admin, resident.building_id, operatorId),
+  ]);
+
+  const baseGrossCents = resolveWashPriceCents({
+    packagePriceCents: pkg?.price_cents,
+    buildingPriceCents,
+    bookingType,
+    basePriceCents: operator.base_price_cents,
+    openSlotPriceCents: operator.open_slot_price_cents,
+  });
 
   const result = await applyPromoToBooking(admin, {
     rawCode: code,
