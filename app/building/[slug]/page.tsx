@@ -3,6 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
 import { money } from '@/lib/format';
 import { parseSizePrices } from '@/lib/vehicle-sizes';
 import { SizePriceList } from '@/components/SizePriceList';
+import { PackageDescription } from '@/components/PackageDescription';
 import Link from 'next/link';
 import { BuildingAttributor } from '@/app/b/[slug]/BuildingAttributor';
 import { Logo } from '@/components/Logo';
@@ -131,7 +132,11 @@ export default async function BuildingCanonicalPage({ params }: { params: { slug
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex-1 min-w-0">
                             <div className="font-display text-lg">{p.name}</div>
-                            {p.description && <p className="mt-1 text-sm text-ink-300">{p.description}</p>}
+                            <PackageDescription
+                              text={p.description}
+                              showPricing={sizePrices.length === 0}
+                              className="mt-1.5 text-sm text-ink-300"
+                            />
                             {p.est_minutes && <div className="mt-1 text-xs text-ink-500">~{p.est_minutes} min</div>}
                             <SizePriceList
                               raw={p.size_prices}

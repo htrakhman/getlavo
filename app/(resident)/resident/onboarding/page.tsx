@@ -4,6 +4,7 @@ import { supabaseBrowser } from '@/lib/supabase/client';
 import { safeInternalPath } from '@/lib/safe-redirect';
 import { parseSizePrices } from '@/lib/vehicle-sizes';
 import { SizePriceList } from '@/components/SizePriceList';
+import { PackageDescription } from '@/components/PackageDescription';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -350,7 +351,11 @@ Thanks!`}
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <div className="font-display text-lg">{p.name}</div>
-                    {p.description && <p className="mt-1 text-sm text-ink-300">{p.description}</p>}
+                    <PackageDescription
+                      text={p.description}
+                      showPricing={parseSizePrices(p.size_prices).length === 0}
+                      className="mt-1.5 text-sm text-ink-300"
+                    />
                     {p.est_minutes && <div className="mt-1 text-xs text-ink-500">~{p.est_minutes} min</div>}
                     <SizePriceList raw={p.size_prices} className="mt-2 text-xs text-ink-400" />
                   </div>

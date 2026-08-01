@@ -2,6 +2,7 @@ import { supabaseServer } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
 import { parseSizePrices } from '@/lib/vehicle-sizes';
 import { SizePriceList } from '@/components/SizePriceList';
+import { PackageDescription } from '@/components/PackageDescription';
 
 export default async function PublicOperatorPage({ params }: { params: { slug: string } }) {
   const sb = supabaseServer();
@@ -41,7 +42,11 @@ export default async function PublicOperatorPage({ params }: { params: { slug: s
             <div key={p.name} className="card p-4 flex justify-between gap-3">
               <div>
                 <div className="font-medium">{p.name}</div>
-                {p.description && <div className="text-xs text-ink-500 mt-1">{p.description}</div>}
+                <PackageDescription
+                  text={p.description}
+                  showPricing={sizePrices.length === 0}
+                  className="mt-1 text-xs text-ink-500"
+                />
                 <SizePriceList raw={p.size_prices} className="mt-2 text-xs text-ink-500" />
               </div>
               <div className="text-gleam font-display whitespace-nowrap">

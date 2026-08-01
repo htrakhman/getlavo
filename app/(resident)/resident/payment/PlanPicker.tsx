@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { parseSizePrices } from '@/lib/vehicle-sizes';
 import { SizePriceList } from '@/components/SizePriceList';
+import { PackageDescription } from '@/components/PackageDescription';
 
 type Pkg = {
   id: string;
@@ -100,7 +101,11 @@ export function PlanPicker({
                   {p.name}
                   {currentPackageId === p.id && <span className="chip ml-2 text-gleam">current</span>}
                 </div>
-                {p.description && <p className="mt-1 text-sm text-ink-300">{p.description}</p>}
+                <PackageDescription
+                  text={p.description}
+                  showPricing={parseSizePrices(p.size_prices).length === 0}
+                  className="mt-1.5 text-sm text-ink-300"
+                />
                 <SizePriceList raw={p.size_prices} className="mt-2 text-xs text-ink-400" />
               </div>
               <div className="shrink-0 text-right">
