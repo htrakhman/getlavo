@@ -1,5 +1,6 @@
 import { getSessionUser } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
+import { destinationChargeParams, resolveSplit } from '@/lib/stripe/connect-split';
 import { normalizeSize, priceForVehicle } from '@/lib/vehicle-sizes';
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
@@ -74,6 +75,21 @@ export async function POST(req: NextRequest) {
     vehicleSize = normalizeSize(primaryVehicle?.size);
   }
   const amountCents = priceForVehicle(addon, vehicleSize);
+  if (!(amountCents > 0)) {
+    return NextResponse.json({ error: 'That add-on isn’t priced yet' }, { status: 400 });
+  }
+
+  // A one-off add-on is a resident payment like any other: the operator's share
+  // transfers automatically and Lavo keeps the same 10%. This flow used to send
+  // the operator 100% and take nothing, so add-on revenue was the one part of
+  // the marketplace the take rate never touched.
+  if (!operator?.stripe_account_id) {
+    return NextResponse.json(
+      { error: 'This operator can’t take payments right now — please try again later.' },
+      { status: 409 },
+    );
+  }
+  const split = resolveSplit(amountCents);
 
   const { data: order, error: orderError } = await admin
     .from('addon_orders')
@@ -113,9 +129,10 @@ export async function POST(req: NextRequest) {
           quantity: 1,
         },
       ],
-      payment_intent_data: operator?.stripe_account_id
-        ? { transfer_data: { destination: operator.stripe_account_id }, metadata: { addon_order_id: order.id } }
-        : { metadata: { addon_order_id: order.id } },
+      payment_intent_data: {
+        ...destinationChargeParams(split, operator.stripe_account_id),
+        metadata: { addon_order_id: order.id },
+      },
       success_url: `${url.origin}/resident?addon=success`,
       cancel_url: `${url.origin}/resident/addons`,
       metadata: { addon_order_id: order.id, addon_id: addonId, user_id: session.user.id },
