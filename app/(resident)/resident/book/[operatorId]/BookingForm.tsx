@@ -479,24 +479,27 @@ export function BookingForm({
 
             {selectedVehicle && (
               <>
-                {/* The one vehicle detail that moves the price. Answered here
-                    when it's missing, so a resident is never sent off to their
-                    profile mid-booking, and read-only once it's on file. */}
-                <div className="sm:col-span-2">
-                  {vehicleSize ? (
-                    <ReadonlyField
-                      label="Vehicle type"
-                      value={sizeLabel(vehicleSize)}
-                      lockedNote="Edit under Manage vehicles"
-                      hint="Sets your rate when this operator prices by vehicle type."
-                    />
-                  ) : (
+                {/* The one vehicle detail that moves the price, so it sits
+                    directly under the vehicle it describes. Answered here when
+                    it's missing — a resident is never sent off to their profile
+                    mid-booking — and read-only once it's on file. Unanswered it
+                    takes the full row, because the three silhouettes need the
+                    width; answered it's an ordinary field like the rest. */}
+                {vehicleSize ? (
+                  <ReadonlyField
+                    label="Vehicle type"
+                    value={sizeLabel(vehicleSize)}
+                    lockedNote="Edit under Manage vehicles"
+                    hint="Sets your rate when this operator prices by vehicle type."
+                  />
+                ) : (
+                  <div className="sm:col-span-2">
                     <VehicleSizeSetter
                       vehicleId={selectedVehicle.id}
                       onSaved={(size) => setSizeById((prev) => ({ ...prev, [selectedVehicle.id]: size }))}
                     />
-                  )}
-                </div>
+                  </div>
+                )}
 
                 <ReadonlyField
                   label="Make & model"
