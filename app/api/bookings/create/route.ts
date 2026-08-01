@@ -23,6 +23,7 @@ const Body = z.object({
   addonIds: z.array(z.string().uuid()).max(10).optional(),
   promoCode: z.string().optional(),
   waiverAccepted: z.boolean().optional(),
+  residentNotes: z.string().max(2000).optional(),
 });
 
 /**
@@ -85,7 +86,7 @@ async function createBooking(req: Request) {
   }
   const body = Body.safeParse(raw);
   if (!body.success) return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
-  const { operatorId, vehicleId, scheduledFor, timeSlot, bookingType, packageId, partnershipId, recurringCadence, addonIds, promoCode, waiverAccepted } =
+  const { operatorId, vehicleId, scheduledFor, timeSlot, bookingType, packageId, partnershipId, recurringCadence, addonIds, promoCode, waiverAccepted, residentNotes } =
     body.data;
 
   const admin = supabaseAdmin();
@@ -272,6 +273,7 @@ async function createBooking(req: Request) {
       partnership_id: partnershipId ?? null,
       wash_day_id: washDayId,
       package_id: packageRow?.id ?? null,
+      resident_notes: residentNotes?.trim() || null,
       booking_type: bookingType,
       scheduled_for: scheduledFor,
       time_slot: timeSlot ?? null,
