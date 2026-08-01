@@ -67,7 +67,7 @@ export default async function ResidentWashes() {
     // Same "is there really an operator serving this building?" check that
     // /resident/book uses, so the two pages can't disagree about coverage.
     sbAdmin.from('partnerships')
-      .select('operator:operators(status, stripe_onboarding_complete)')
+      .select('operator:operators(name, status, stripe_onboarding_complete)')
       .eq('building_id', resident.building_id)
       .eq('status', 'active')
       .maybeSingle(),
@@ -97,6 +97,13 @@ export default async function ResidentWashes() {
   return (
     <>
       <PageHeader eyebrow={building?.name} title="My account" />
+
+      <div className="-mt-6 mb-6 text-sm text-ink-400">
+        Operator:{' '}
+        <span className={partnerOp?.name ? 'text-ink-200' : 'text-amber-600'}>
+          {partnerOp?.name ?? 'Not assigned yet'}
+        </span>
+      </div>
 
       {!history?.length && (bookingIsNext || nextWashDay) && (
         <div className="mb-6 card border-gleam/30 p-5 text-sm text-ink-200">
