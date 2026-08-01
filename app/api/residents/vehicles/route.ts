@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSessionUser } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
+import { VEHICLE_SIZE_IDS } from '@/lib/vehicle-sizes';
 import { z } from 'zod';
 
 const VehicleFields = z.object({
@@ -9,6 +10,11 @@ const VehicleFields = z.object({
   year: z.number().int().nullable().optional(),
   color: z.string().max(40).optional(),
   plate: z.string().max(20).nullable().optional(),
+  // Required on create: it decides what every wash on this vehicle costs when
+  // the operator prices by vehicle type, so a vehicle added without one would
+  // be quoted the sedan rate forever. Optional on PATCH only because a PATCH
+  // may be touching one other field.
+  size: z.enum(VEHICLE_SIZE_IDS),
 });
 
 async function ownedResident(userId: string) {
@@ -61,6 +67,7 @@ export async function POST(req: Request) {
     year: b.year ?? null,
     color: b.color ?? 'White',
     license_plate: b.plate?.trim() || null,
+    size: b.size,
     is_primary: !!b.isPrimary,
   });
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -108,6 +115,7 @@ export async function PATCH(req: Request) {
   if (b.year !== undefined) patch.year = b.year;
   if (b.color !== undefined) patch.color = b.color;
   if (b.plate !== undefined) patch.license_plate = b.plate?.trim() || null;
+  if (b.size !== undefined) patch.size = b.size;
   if (!Object.keys(patch).length) return NextResponse.json({ error: 'Nothing to update' }, { status: 400 });
 
   const { error } = await admin.from('vehicles').update(patch).eq('id', b.id);

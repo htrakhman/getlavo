@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { money, dateShort, plateLabel } from '@/lib/format';
+import { normalizeSize, sizeLabel } from '@/lib/vehicle-sizes';
 
 export function OperatorBookingDetail({
   booking,
@@ -16,7 +17,7 @@ export function OperatorBookingDetail({
     post_wash_photo_urls: string[] | null;
     building: { name: string } | null;
     resident: { profile: { full_name: string | null } | null } | null;
-    vehicle: { make: string; model: string; color: string; license_plate: string } | null;
+    vehicle: { make: string; model: string; color: string; license_plate: string; size?: string | null } | null;
     addon_orders?:
       | { id: string; amount_cents: number; paid_at: string | null; operator_addon: { label: string } | null }[]
       | null;
@@ -78,6 +79,13 @@ export function OperatorBookingDetail({
               }`
             : ''}
         </p>
+        {/* The tier this job was priced at, so the rate on the booking can be
+            checked against the menu without opening the resident's profile. */}
+        {normalizeSize(booking.vehicle?.size) && (
+          <p className="mt-1 text-xs text-ink-500">
+            Vehicle type: {sizeLabel(normalizeSize(booking.vehicle!.size)!)}
+          </p>
+        )}
         {addons.length > 0 && (
           <div className="mt-4 rounded-xl border border-gleam/30 bg-gleam/5 p-3">
             <div className="text-xs uppercase tracking-widest text-gleam">Paid add-ons</div>

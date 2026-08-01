@@ -1,6 +1,7 @@
 import { PortalShell } from '@/components/PortalShell';
 import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
+import { normalizeSize } from '@/lib/vehicle-sizes';
 
 const NAV = [
   { href: '/resident/washes', label: 'My account' },
@@ -31,11 +32,16 @@ export default async function ResidentLayout({ children }: { children: React.Rea
     .maybeSingle();
   const alerts: string[] = [];
   if (resident) {
-    const { count: vehicleCount } = await sb
+    const { data: vehicles } = await sb
       .from('vehicles')
-      .select('*', { count: 'exact', head: true })
+      .select('id, size')
       .eq('resident_id', resident.id);
-    if (!vehicleCount) alerts.push('/resident/vehicle');
+    // No vehicle at all, or one added before vehicle-type pricing and still
+    // missing its type — either way the resident can't be quoted properly until
+    // they visit the page.
+    if (!vehicles?.length || vehicles.some((v) => !normalizeSize(v.size))) {
+      alerts.push('/resident/vehicle');
+    }
     if (!resident.stripe_payment_method_id) alerts.push('/resident/payment');
   }
 

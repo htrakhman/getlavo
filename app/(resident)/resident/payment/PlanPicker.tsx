@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { parseSizePrices } from '@/lib/vehicle-sizes';
+import { parseSizePrices, priceForVehicle, sizeLabel, type VehicleSizeId } from '@/lib/vehicle-sizes';
 import { SizePriceList } from '@/components/SizePriceList';
 
 type Pkg = {
@@ -17,10 +17,13 @@ export function PlanPicker({
   packages,
   currentPackageId,
   operatorName,
+  vehicleSize,
 }: {
   packages: Pkg[];
   currentPackageId: string | null;
   operatorName: string | null;
+  /** The resident's vehicle tier — what each plan actually bills them per wash. */
+  vehicleSize: VehicleSizeId | null;
 }) {
   const router = useRouter();
   const [selected, setSelected] = useState(currentPackageId ?? '');
@@ -104,10 +107,15 @@ export function PlanPicker({
                 <SizePriceList raw={p.size_prices} className="mt-2 text-xs text-ink-400" />
               </div>
               <div className="shrink-0 text-right">
+                {/* With the vehicle tier known this is the resident's own rate,
+                    not a starting price — it's what the per-wash charge bills. */}
                 <div className="font-display text-lg text-gleam">
-                  {(parseSizePrices(p.size_prices).length ? 'from ' : '') + `$${(p.price_cents / 100).toFixed(0)}`}
+                  {(parseSizePrices(p.size_prices).length && !vehicleSize ? 'from ' : '') +
+                    `$${(priceForVehicle(p, vehicleSize) / 100).toFixed(0)}`}
                 </div>
-                <div className="text-xs text-ink-400">per wash</div>
+                <div className="text-xs text-ink-400">
+                  per wash{vehicleSize && parseSizePrices(p.size_prices).length ? ` · ${sizeLabel(vehicleSize)}` : ''}
+                </div>
               </div>
             </div>
           </button>

@@ -4,7 +4,10 @@
 // each carry an optional price per tier on top of their base price. Labels
 // mirror the language detailers already use on their menus.
 
-export type VehicleSizeId = 'sedan' | 'suv' | 'xl';
+/** The tier ids, smallest first. A tuple so request validators can enum over it. */
+export const VEHICLE_SIZE_IDS = ['sedan', 'suv', 'xl'] as const;
+
+export type VehicleSizeId = (typeof VEHICLE_SIZE_IDS)[number];
 
 export const VEHICLE_SIZES: { id: VehicleSizeId; label: string; short: string }[] = [
   { id: 'sedan', label: 'Sedan / Coupe', short: 'Sedan' },
@@ -14,7 +17,7 @@ export const VEHICLE_SIZES: { id: VehicleSizeId; label: string; short: string }[
 
 export type SizePrice = { size: VehicleSizeId; price_cents: number };
 
-const SIZE_ORDER = VEHICLE_SIZES.map((s) => s.id);
+const SIZE_ORDER: readonly VehicleSizeId[] = VEHICLE_SIZE_IDS;
 
 // A brief four-tier version (migration 0049) split the top tier into a 3-row
 // and a pickup/minivan tier. Operators price those together, so 0050 collapsed
@@ -22,7 +25,13 @@ const SIZE_ORDER = VEHICLE_SIZES.map((s) => s.id);
 // window still renders its price instead of silently losing a tier.
 const LEGACY_SIZES: Record<string, VehicleSizeId> = { three_row: 'xl', truck: 'xl' };
 
-function normalizeSize(raw: unknown): VehicleSizeId | null {
+/**
+ * Read any stored size value as one of the three current tiers. Exported
+ * because `vehicles.size` is stored as free text and arrives from the database
+ * untyped — every caller reading a vehicle's tier goes through here so a legacy
+ * or malformed value degrades to "not answered" instead of throwing.
+ */
+export function normalizeSize(raw: unknown): VehicleSizeId | null {
   if (typeof raw !== 'string') return null;
   if ((SIZE_ORDER as string[]).includes(raw)) return raw as VehicleSizeId;
   return LEGACY_SIZES[raw] ?? null;
@@ -62,6 +71,40 @@ export function sizeLabel(id: VehicleSizeId): string {
 export function fromPriceCents(sizePrices: SizePrice[], fallback: number): number {
   if (!sizePrices.length) return fallback;
   return Math.min(...sizePrices.map((s) => s.price_cents));
+}
+
+/** A priced menu row — a service package or an add-on — as it comes off the database. */
+export type SizedPriceRow = { price_cents?: number | null; size_prices?: unknown };
+
+/**
+ * What this row costs for this vehicle: the one function every quote, checkout
+ * line and charge resolves through, so the price on the booking form is the
+ * price on the receipt.
+ *
+ * - No tier pricing on the row → its flat price, whatever the vehicle is.
+ * - Unknown vehicle tier → the "from" price, which is what the menu advertised.
+ *   Callers that take money require a tier first; this is the display fallback.
+ * - A tier for exactly this vehicle → that price. The ordinary case.
+ * - A gap in the operator's tiers (they priced sedan and 3-row but not SUV) →
+ *   the next tier *up*. A tier has to cover the biggest vehicle that falls into
+ *   it, so an unpriced middle bracket rounds toward the larger vehicle rather
+ *   than handing an SUV the sedan rate at the operator's expense. Above the
+ *   top priced tier there is nothing to round up to, so the top tier stands.
+ */
+export function priceForVehicle(row: SizedPriceRow, size: VehicleSizeId | null): number {
+  const base = Number.isFinite(row.price_cents) && (row.price_cents ?? 0) > 0 ? (row.price_cents as number) : 0;
+  const tiers = parseSizePrices(row.size_prices);
+  if (!tiers.length) return base;
+  if (!size) return fromPriceCents(tiers, base);
+
+  const exact = tiers.find((t) => t.size === size);
+  if (exact) return exact.price_cents;
+
+  const wanted = SIZE_ORDER.indexOf(size);
+  // parseSizePrices returns tiers in ascending size order, so the first one
+  // above the vehicle is the next bracket up.
+  const above = tiers.find((t) => SIZE_ORDER.indexOf(t.size) > wanted);
+  return above?.price_cents ?? tiers[tiers.length - 1].price_cents;
 }
 
 /**

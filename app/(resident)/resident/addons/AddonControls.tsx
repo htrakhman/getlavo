@@ -2,10 +2,10 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabaseBrowser } from '@/lib/supabase/client';
-import { parseSizePrices } from '@/lib/vehicle-sizes';
+import { parseSizePrices, priceForVehicle, type VehicleSizeId } from '@/lib/vehicle-sizes';
 import { SizePriceList } from '@/components/SizePriceList';
 
-export function AddonRow({ residentId, addon, operatorName, alreadyRecurring }: { residentId: string; addon: any; operatorName: string; alreadyRecurring: boolean }) {
+export function AddonRow({ residentId, addon, operatorName, alreadyRecurring, vehicleSize }: { residentId: string; addon: any; operatorName: string; alreadyRecurring: boolean; vehicleSize: VehicleSizeId | null }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
 
@@ -28,8 +28,10 @@ export function AddonRow({ residentId, addon, operatorName, alreadyRecurring }: 
       <div className="font-display text-2xl">{addon.label}</div>
       <div className="mt-1 text-sm text-ink-400">{operatorName}</div>
       <div className="mt-4 font-display text-2xl text-gleam">
-        {tiers.length > 0 && <span className="text-base text-ink-400">from </span>}
-        ${(addon.price_cents / 100).toFixed(2)}
+        {/* The resident's own rate once their vehicle type is on file — this is
+            what a wash with this add-on actually bills. */}
+        {tiers.length > 0 && !vehicleSize && <span className="text-base text-ink-400">from </span>}
+        ${(priceForVehicle(addon, vehicleSize) / 100).toFixed(2)}
       </div>
       <SizePriceList raw={addon.size_prices} decimals={2} className="mt-3 text-xs text-ink-400" />
       <div className="mt-4 flex flex-col gap-2">
@@ -48,7 +50,7 @@ export function AddonRow({ residentId, addon, operatorName, alreadyRecurring }: 
   );
 }
 
-export function RecurringAddons({ items }: { items: any[] }) {
+export function RecurringAddons({ items, vehicleSize }: { items: any[]; vehicleSize: VehicleSizeId | null }) {
   const router = useRouter();
   const [busyId, setBusyId] = useState<string | null>(null);
 
@@ -67,8 +69,8 @@ export function RecurringAddons({ items }: { items: any[] }) {
           <div>
             <div className="font-medium">{row.operator_addon?.label}</div>
             <div className="text-xs text-ink-400">
-              {parseSizePrices(row.operator_addon?.size_prices).length > 0 ? 'from ' : ''}
-              ${(row.operator_addon?.price_cents / 100).toFixed(2)} per wash
+              {parseSizePrices(row.operator_addon?.size_prices).length > 0 && !vehicleSize ? 'from ' : ''}
+              ${(priceForVehicle(row.operator_addon ?? {}, vehicleSize) / 100).toFixed(2)} per wash
             </div>
           </div>
           <button onClick={() => remove(row.id)} disabled={busyId === row.id} className="text-xs text-ink-400 hover:text-red-400">
