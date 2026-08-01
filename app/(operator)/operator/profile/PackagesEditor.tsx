@@ -96,7 +96,8 @@ export function PackagesEditor({ operatorId, initial }: { operatorId: string; in
                             <span className="text-xs text-ink-500">~{pkg.est_minutes} min</span>
                           )}
                         </div>
-                        <SizePriceList raw={pkg.size_prices} className="mt-1.5 text-xs text-ink-400" />
+                        {/* Blanks kept here: this is where the operator fills them in. */}
+                        <SizePriceList raw={pkg.size_prices} placeholders className="mt-1.5 text-xs text-ink-400" />
                       </>
                     );
                   })()}

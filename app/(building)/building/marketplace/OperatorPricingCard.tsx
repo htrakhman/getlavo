@@ -32,7 +32,7 @@ function PriceLine({ item }: { item: PricedItem }) {
       </div>
       {/* Drawn whether or not the tiers are priced — a manager comparing
           operators should see who prices by vehicle type and who hasn't. */}
-      <SizePriceList raw={item.sizePrices} className="mt-1.5 text-[11px] text-ink-400" />
+      <SizePriceList raw={item.sizePrices} placeholders className="mt-1.5 text-[11px] text-ink-400" />
     </li>
   );
 }

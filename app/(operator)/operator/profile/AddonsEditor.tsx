@@ -61,7 +61,8 @@ export function AddonsEditor({ operatorId, initial }: { operatorId: string; init
                     <div className="min-w-0">
                       <div className="text-sm">{a.label}</div>
                       <div className="text-xs text-ink-500">{TYPES.find((t) => t.value === a.type)?.label ?? a.type}</div>
-                      <SizePriceList raw={a.size_prices} decimals={2} className="mt-1.5 text-xs text-ink-400" />
+                      {/* Blanks kept here: this is where the operator fills them in. */}
+                      <SizePriceList raw={a.size_prices} decimals={2} placeholders className="mt-1.5 text-xs text-ink-400" />
                     </div>
                     <div className="flex shrink-0 items-center gap-3">
                       <span className="text-gleam text-sm">
