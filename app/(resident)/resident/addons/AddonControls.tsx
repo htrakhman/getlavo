@@ -2,7 +2,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabaseBrowser } from '@/lib/supabase/client';
-import { parseSizePrices, sizeLabel } from '@/lib/vehicle-sizes';
+import { parseSizePrices } from '@/lib/vehicle-sizes';
+import { SizePriceList } from '@/components/SizePriceList';
 
 export function AddonRow({ residentId, addon, operatorName, alreadyRecurring }: { residentId: string; addon: any; operatorName: string; alreadyRecurring: boolean }) {
   const router = useRouter();
@@ -30,16 +31,7 @@ export function AddonRow({ residentId, addon, operatorName, alreadyRecurring }: 
         {tiers.length > 0 && <span className="text-base text-ink-400">from </span>}
         ${(addon.price_cents / 100).toFixed(2)}
       </div>
-      {tiers.length > 0 && (
-        <div className="mt-2 space-y-1 text-xs text-ink-400">
-          {tiers.map((t) => (
-            <div key={t.size} className="flex justify-between gap-3">
-              <span>{sizeLabel(t.size)}</span>
-              <span className="text-gleam">${(t.price_cents / 100).toFixed(2)}</span>
-            </div>
-          ))}
-        </div>
-      )}
+      <SizePriceList raw={addon.size_prices} decimals={2} className="mt-3 text-xs text-ink-400" />
       <div className="mt-4 flex flex-col gap-2">
         <button
           onClick={addRecurring}

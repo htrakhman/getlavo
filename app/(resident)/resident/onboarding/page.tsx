@@ -2,6 +2,8 @@
 import { Logo } from '@/components/Logo';
 import { supabaseBrowser } from '@/lib/supabase/client';
 import { safeInternalPath } from '@/lib/safe-redirect';
+import { parseSizePrices } from '@/lib/vehicle-sizes';
+import { SizePriceList } from '@/components/SizePriceList';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -350,10 +352,11 @@ Thanks!`}
                     <div className="font-display text-lg">{p.name}</div>
                     {p.description && <p className="mt-1 text-sm text-ink-300">{p.description}</p>}
                     {p.est_minutes && <div className="mt-1 text-xs text-ink-500">~{p.est_minutes} min</div>}
+                    <SizePriceList raw={p.size_prices} className="mt-2 text-xs text-ink-400" />
                   </div>
                   <div className="shrink-0 text-right">
                     <div className="font-display text-xl text-gleam">
-                      {(p.size_prices?.length ? 'from ' : '') + `$${(p.price_cents / 100).toFixed(0)}`}
+                      {(parseSizePrices(p.size_prices).length ? 'from ' : '') + `$${(p.price_cents / 100).toFixed(0)}`}
                     </div>
                     <div className="text-xs text-ink-400">per wash</div>
                   </div>
