@@ -42,10 +42,15 @@ export default async function OperatorDetail({ params }: { params: { id: string 
 
       {!setup.requestable && (
         <div className="mb-6 rounded-xl border border-amber-500/30 bg-amber-500/5 px-5 py-4 text-sm text-amber-600">
-          <div className="font-medium">{op.name} hasn&rsquo;t finished setting up their account</div>
+          <div className="font-medium">
+            {setup.awaitingReview
+              ? `${op.name} is new to Lavo and hasn't been verified yet`
+              : `${op.name} hasn't finished setting up their account`}
+          </div>
           <p className="mt-1 text-xs text-amber-600/80">
             Still outstanding: {pendingLabel(setup.pending)}. You can review their profile and
-            pricing now — requesting a partnership unlocks once their payment account is connected.
+            pricing now — requesting a partnership unlocks once
+            {setup.awaitingReview ? ' Lavo verifies them and' : ''} their payment account is connected.
           </p>
         </div>
       )}

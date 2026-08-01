@@ -71,10 +71,10 @@ export function PartnershipConnector({
       {(status === 'none' || status === 'declined') && setupPending && (
         <>
           <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 text-sm text-amber-600">
-            <div className="font-medium">Account setup in progress</div>
+            <div className="font-medium">Not available to request yet</div>
             <p className="mt-1 text-xs text-amber-600/80">
-              This crew is still finishing their {setupPending}. You&rsquo;ll be able to request a
-              partnership once their payment account is connected.
+              This crew is still waiting on {setupPending}. You&rsquo;ll be able to request a
+              partnership once that&rsquo;s done.
             </p>
           </div>
           <button disabled className="btn-primary w-full cursor-not-allowed opacity-50">
