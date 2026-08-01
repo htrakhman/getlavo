@@ -154,6 +154,9 @@ export function BookingForm({
   const [calendarCollapsed, setCalendarCollapsed] = useState(Boolean(preselectedDate));
   const calendarRef = useRef<HTMLDivElement | null>(null);
   const reviewRef = useRef<HTMLDivElement | null>(null);
+  // The summary sends the resident back here when the type is still unanswered,
+  // since that's the one missing answer that leaves the total a "from" price.
+  const vehicleTypeRef = useRef<HTMLDivElement | null>(null);
 
   // Live availability (operator hours + agreed wash days + capacity). Until it
   // lands the calendar draws the open fallback window, so residents never see
@@ -241,6 +244,14 @@ export function BookingForm({
   const addonCents = selectedAddons.reduce((sum, a) => sum + a.price_cents, 0);
 
   const priceCents = washCents + addonCents;
+
+  // Whether anything on this booking is actually tiered by vehicle type. Drives
+  // the wording in the summary: with tiers the type is what sets the total, so
+  // it's stated as such; without them it's still shown, but only as a detail the
+  // operator is given.
+  const sizePricedBooking =
+    (selectedPackage ? parseSizePrices(selectedPackage.size_prices).length > 0 : false) ||
+    selectedAddons.some((a) => parseSizePrices(a.size_prices).length > 0);
 
   async function book() {
     if (!vehicleId || !date) { setErr('Please select a vehicle and date'); return; }
@@ -486,21 +497,21 @@ export function BookingForm({
                     mid-booking — and read-only once it's on file. Unanswered it
                     takes the full row, because the three silhouettes need the
                     width; answered it's an ordinary field like the rest. */}
-                {vehicleSize ? (
-                  <ReadonlyField
-                    label="Vehicle type"
-                    value={sizeLabel(vehicleSize)}
-                    lockedNote="Edit under Manage vehicles"
-                    hint="Sets your rate when this operator prices by vehicle type."
-                  />
-                ) : (
-                  <div className="sm:col-span-2">
+                <div ref={vehicleTypeRef} className={vehicleSize ? 'scroll-mt-4' : 'sm:col-span-2 scroll-mt-4'}>
+                  {vehicleSize ? (
+                    <ReadonlyField
+                      label="Vehicle type"
+                      value={sizeLabel(vehicleSize)}
+                      lockedNote="Edit under Manage vehicles"
+                      hint="Sets your rate when this operator prices by vehicle type."
+                    />
+                  ) : (
                     <VehicleSizeSetter
                       vehicleId={selectedVehicle.id}
                       onSaved={(size) => setSizeById((prev) => ({ ...prev, [selectedVehicle.id]: size }))}
                     />
-                  </div>
-                )}
+                  )}
+                </div>
 
                 <ReadonlyField
                   label="Make & model"
@@ -558,14 +569,15 @@ export function BookingForm({
           <h3 className="font-display text-lg">Review &amp; confirm</h3>
 
           <div className="rounded-xl border border-white/10 bg-ink-800/50 p-4 space-y-2">
-            {/* Where a line's price came from a vehicle tier, the tier is named
-                on the line. The receipt should explain its own numbers — "why
-                is this $95" is answered here rather than after the wash. */}
+            {/* The receipt should explain its own numbers — "why is this $95"
+                is answered here rather than after the wash. A tiered line is
+                marked as such; the tier itself is named once, on its own row
+                below, instead of repeated under every line. */}
             <div className="flex items-start justify-between gap-3 text-sm">
               <span className="text-ink-400">
                 {selectedPackage ? selectedPackage.name : 'Standard wash'}
-                {selectedPackage && vehicleSize && parseSizePrices(selectedPackage.size_prices).length > 0 && (
-                  <span className="block text-xs text-ink-500">{sizeLabel(vehicleSize)} rate</span>
+                {selectedPackage && parseSizePrices(selectedPackage.size_prices).length > 0 && (
+                  <span className="block text-xs text-ink-500">Priced by vehicle type</span>
                 )}
               </span>
               <span>{money(washCents)}</span>
@@ -574,8 +586,8 @@ export function BookingForm({
               <div key={a.id} className="flex items-start justify-between gap-3 text-sm">
                 <span className="text-ink-400">
                   {a.label}
-                  {vehicleSize && parseSizePrices(a.size_prices).length > 0 && (
-                    <span className="block text-xs text-ink-500">{sizeLabel(vehicleSize)} rate</span>
+                  {parseSizePrices(a.size_prices).length > 0 && (
+                    <span className="block text-xs text-ink-500">Priced by vehicle type</span>
                   )}
                 </span>
                 <span>{money(a.price_cents)}</span>
@@ -590,11 +602,35 @@ export function BookingForm({
                 <span className="text-ink-400">Vehicle</span>
                 <span className="text-right">
                   {selectedVehicle.color} {selectedVehicle.make} {selectedVehicle.model}
-                  {/* The type is on the receipt because it's an input to the
-                      price, not decoration — a resident checking the total
-                      should be able to see which tier they were charged at. */}
-                  {vehicleSize && <span className="block text-xs text-ink-500">{sizeLabel(vehicleSize)}</span>}
                 </span>
+              </div>
+            )}
+            {/* The type gets its own line rather than a footnote under the car:
+                it's an input to the price, so a resident checking the total can
+                see which tier they're being charged at without inferring it. */}
+            {selectedVehicle && (
+              <div className="flex items-center justify-between gap-3 text-sm">
+                <span className="text-ink-400">Vehicle type</span>
+                {vehicleSize ? (
+                  <span className="text-right">
+                    {sizeLabel(vehicleSize)}
+                    {sizePricedBooking && (
+                      <span className="block text-xs text-ink-500">Sets the rates above</span>
+                    )}
+                  </span>
+                ) : (
+                  // Unanswered, the total above is only a "from" price, so this
+                  // says so and goes back to the question rather than letting a
+                  // resident read a number that isn't theirs yet.
+                  <button
+                    type="button"
+                    onClick={() => scrollSectionIntoView(vehicleTypeRef)}
+                    className="text-right text-amber-300"
+                  >
+                    <span className="underline underline-offset-2">Choose your type</span>
+                    <span className="block text-xs text-ink-500">Prices shown are “from” until you do</span>
+                  </button>
+                )}
               </div>
             )}
             <div className="flex items-center justify-between text-sm">
