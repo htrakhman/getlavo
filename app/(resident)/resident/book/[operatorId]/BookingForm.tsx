@@ -480,24 +480,27 @@ export function BookingForm({
 
             {selectedVehicle && (
               <>
-                {/* The one vehicle detail that moves the price. Answered here
-                    when it's missing, so a resident is never sent off to their
-                    profile mid-booking, and read-only once it's on file. */}
-                <div className="sm:col-span-2">
-                  {vehicleSize ? (
-                    <ReadonlyField
-                      label="Vehicle type"
-                      value={sizeLabel(vehicleSize)}
-                      lockedNote="Edit under Manage vehicles"
-                      hint="Sets your rate when this operator prices by vehicle type."
-                    />
-                  ) : (
+                {/* The one vehicle detail that moves the price, so it sits
+                    directly under the vehicle it describes. Answered here when
+                    it's missing — a resident is never sent off to their profile
+                    mid-booking — and read-only once it's on file. Unanswered it
+                    takes the full row, because the three silhouettes need the
+                    width; answered it's an ordinary field like the rest. */}
+                {vehicleSize ? (
+                  <ReadonlyField
+                    label="Vehicle type"
+                    value={sizeLabel(vehicleSize)}
+                    lockedNote="Edit under Manage vehicles"
+                    hint="Sets your rate when this operator prices by vehicle type."
+                  />
+                ) : (
+                  <div className="sm:col-span-2">
                     <VehicleSizeSetter
                       vehicleId={selectedVehicle.id}
                       onSaved={(size) => setSizeById((prev) => ({ ...prev, [selectedVehicle.id]: size }))}
                     />
-                  )}
-                </div>
+                  </div>
+                )}
 
                 <ReadonlyField
                   label="Make & model"
@@ -555,13 +558,26 @@ export function BookingForm({
           <h3 className="font-display text-lg">Review &amp; confirm</h3>
 
           <div className="rounded-xl border border-white/10 bg-ink-800/50 p-4 space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-ink-400">{selectedPackage ? selectedPackage.name : 'Standard wash'}</span>
+            {/* Where a line's price came from a vehicle tier, the tier is named
+                on the line. The receipt should explain its own numbers — "why
+                is this $95" is answered here rather than after the wash. */}
+            <div className="flex items-start justify-between gap-3 text-sm">
+              <span className="text-ink-400">
+                {selectedPackage ? selectedPackage.name : 'Standard wash'}
+                {selectedPackage && vehicleSize && parseSizePrices(selectedPackage.size_prices).length > 0 && (
+                  <span className="block text-xs text-ink-500">{sizeLabel(vehicleSize)} rate</span>
+                )}
+              </span>
               <span>{money(washCents)}</span>
             </div>
             {selectedAddons.map((a) => (
-              <div key={a.id} className="flex items-center justify-between text-sm">
-                <span className="text-ink-400">{a.label}</span>
+              <div key={a.id} className="flex items-start justify-between gap-3 text-sm">
+                <span className="text-ink-400">
+                  {a.label}
+                  {vehicleSize && parseSizePrices(a.size_prices).length > 0 && (
+                    <span className="block text-xs text-ink-500">{sizeLabel(vehicleSize)} rate</span>
+                  )}
+                </span>
                 <span>{money(a.price_cents)}</span>
               </div>
             ))}
@@ -570,9 +586,15 @@ export function BookingForm({
               <span>{date ? `${longLabel(date)} · ${timeSlot}` : 'Pick a date above'}</span>
             </div>
             {selectedVehicle && (
-              <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center justify-between gap-3 text-sm">
                 <span className="text-ink-400">Vehicle</span>
-                <span>{selectedVehicle.color} {selectedVehicle.make} {selectedVehicle.model}</span>
+                <span className="text-right">
+                  {selectedVehicle.color} {selectedVehicle.make} {selectedVehicle.model}
+                  {/* The type is on the receipt because it's an input to the
+                      price, not decoration — a resident checking the total
+                      should be able to see which tier they were charged at. */}
+                  {vehicleSize && <span className="block text-xs text-ink-500">{sizeLabel(vehicleSize)}</span>}
+                </span>
               </div>
             )}
             <div className="flex items-center justify-between text-sm">
