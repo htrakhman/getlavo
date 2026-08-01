@@ -9,12 +9,19 @@ export function PartnershipConnector({
   basePriceCents,
   openSlotPriceCents,
   existingStatus,
+  setupPending,
 }: {
   operatorId: string;
   buildingId: string;
   basePriceCents: number;
   openSlotPriceCents: number | null;
   existingStatus: 'none' | 'pending' | 'active' | 'declined';
+  /**
+   * What the operator still owes before a request can be sent ("payment
+   * account and insurance certificate"), or null when they're ready. Requests
+   * are blocked server-side too — this only explains the block.
+   */
+  setupPending?: string | null;
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
@@ -61,7 +68,22 @@ export function PartnershipConnector({
         )}
       </div>
 
-      {status === 'none' && (
+      {(status === 'none' || status === 'declined') && setupPending && (
+        <>
+          <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 text-sm text-amber-600">
+            <div className="font-medium">Account setup in progress</div>
+            <p className="mt-1 text-xs text-amber-600/80">
+              This crew is still finishing their {setupPending}. You&rsquo;ll be able to request a
+              partnership once their payment account is connected.
+            </p>
+          </div>
+          <button disabled className="btn-primary w-full cursor-not-allowed opacity-50">
+            Request partnership
+          </button>
+        </>
+      )}
+
+      {status === 'none' && !setupPending && (
         <>
           <p className="text-sm text-ink-400 leading-relaxed">
             Requesting a partnership sends an invite to this car wash. Once they accept, residents can sign up and book washes immediately.
@@ -85,7 +107,7 @@ export function PartnershipConnector({
         </div>
       )}
 
-      {status === 'declined' && !sent && (
+      {status === 'declined' && !sent && !setupPending && (
         <>
           <div className="rounded-xl border border-red-400/30 bg-red-400/5 p-4 text-sm text-red-500">
             This operator declined your last request. You can send a new one.

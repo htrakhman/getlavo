@@ -4,6 +4,7 @@ import { money, dateShort } from '@/lib/format';
 import { parseDateList, futureDates } from '@/lib/wash-dates';
 import { redirect } from 'next/navigation';
 import { PartnershipConnector } from './PartnershipConnector';
+import { operatorSetup, pendingLabel } from '@/lib/operator-readiness';
 
 export default async function OperatorDetail({ params }: { params: { id: string } }) {
   const session = await getSessionUser();
@@ -33,10 +34,29 @@ export default async function OperatorDetail({ params }: { params: { id: string 
     .maybeSingle();
 
   const existingStatus = (existingPartnership?.status as 'pending' | 'active' | 'declined') ?? 'none';
+  const setup = operatorSetup(op);
 
   return (
     <>
       <PageHeader eyebrow="Marketplace" title={op.name} />
+
+      {!setup.requestable && (
+        <div className="mb-6 rounded-xl border border-amber-500/30 bg-amber-500/5 px-5 py-4 text-sm text-amber-600">
+          <div className="font-medium">{op.name} hasn&rsquo;t finished setting up their account</div>
+          <p className="mt-1 text-xs text-amber-600/80">
+            Still outstanding: {pendingLabel(setup.pending)}. You can review their profile and
+            pricing now — requesting a partnership unlocks once their payment account is connected.
+          </p>
+        </div>
+      )}
+
+      {setup.requestable && !setup.insured && (
+        <div className="mb-6 rounded-xl border border-amber-500/30 bg-amber-500/5 px-5 py-3 text-xs text-amber-600">
+          This crew&rsquo;s certificate of insurance isn&rsquo;t verified yet. You can still request a
+          partnership — the agreement requires proof of insurance before the first service date.
+        </div>
+      )}
+
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">
           <div className="card p-6">
@@ -109,6 +129,7 @@ export default async function OperatorDetail({ params }: { params: { id: string 
           basePriceCents={op.base_price_cents}
           openSlotPriceCents={op.open_slot_price_cents ?? null}
           existingStatus={existingStatus as any}
+          setupPending={setup.requestable ? null : pendingLabel(setup.pending)}
         />
       </div>
     </>

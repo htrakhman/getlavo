@@ -5,10 +5,14 @@ import { parseSizePrices, sizeLabel } from '@/lib/vehicle-sizes';
 export default async function PublicOperatorPage({ params }: { params: { slug: string } }) {
   const sb = supabaseServer();
   const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(params.slug);
+  // Public, indexable page: keep the stricter gate in the query. RLS no longer
+  // requires stripe onboarding (operators are listed to buildings while they
+  // finish setup), but an unfinished account shouldn't get a marketing page.
   let req = sb
     .from('operators')
     .select('id, name, description, base_price_cents, open_slot_price_cents, seo_slug')
-    .eq('status', 'approved');
+    .eq('status', 'approved')
+    .eq('stripe_onboarding_complete', true);
   req = isUuid ? req.eq('id', params.slug) : req.eq('seo_slug', params.slug);
   const { data: op } = await req.maybeSingle();
   if (!op) notFound();

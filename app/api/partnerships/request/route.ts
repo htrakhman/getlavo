@@ -45,15 +45,22 @@ export async function POST(req: Request) {
     );
   }
 
-  // Fetch operator and owner email
+  // Fetch operator and owner email. Operators mid-setup are listed in the
+  // marketplace, so the "not ready" case is a distinct, explainable answer
+  // rather than a 404 — the UI disables the button, this backs it up.
   const { data: operator } = await admin
     .from('operators')
-    .select('id, name, owner_id, profiles:profiles!operators_owner_id_fkey(email, full_name)')
+    .select('id, name, owner_id, status, stripe_onboarding_complete, profiles:profiles!operators_owner_id_fkey(email, full_name)')
     .eq('id', operatorId)
     .eq('status', 'approved')
-    .eq('stripe_onboarding_complete', true)
     .single();
   if (!operator) return NextResponse.json({ error: 'Operator not found or not available' }, { status: 404 });
+  if (!operator.stripe_onboarding_complete) {
+    return NextResponse.json(
+      { error: `${operator.name} hasn't finished setting up their payment account yet. You'll be able to request them once they do.` },
+      { status: 409 },
+    );
+  }
 
   const ownerProfile = (operator.profiles as any);
 
