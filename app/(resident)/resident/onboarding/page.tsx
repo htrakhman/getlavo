@@ -361,7 +361,6 @@ Thanks!`}
                     <div className="font-display text-lg">{p.name}</div>
                     <PackageDescription text={p.description} className="mt-1.5 text-sm text-ink-300" />
                     {p.est_minutes && <div className="mt-1 text-xs text-ink-500">~{p.est_minutes} min</div>}
-                    <SizePriceList raw={p.size_prices} description={p.description} className="mt-2 text-xs text-ink-400" />
                   </div>
                   <div className="shrink-0 text-right">
                     {/* The vehicle type was answered a step ago, so these are
@@ -373,6 +372,10 @@ Thanks!`}
                     <div className="text-xs text-ink-400">per wash</div>
                   </div>
                 </div>
+                {/* Full card width: the header's left column is narrowed by
+                    this package's own price, so tiers nested there sat at a
+                    different x on every card. */}
+                <SizePriceList raw={p.size_prices} description={p.description} className="mt-2 text-xs text-ink-400" />
               </button>
             ))}
           </div>

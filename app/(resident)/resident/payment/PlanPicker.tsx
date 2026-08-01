@@ -105,7 +105,6 @@ export function PlanPicker({
                   {currentPackageId === p.id && <span className="chip ml-2 text-gleam">current</span>}
                 </div>
                 <PackageDescription text={p.description} className="mt-1.5 text-sm text-ink-300" />
-                <SizePriceList raw={p.size_prices} description={p.description} className="mt-2 text-xs text-ink-400" />
               </div>
               <div className="shrink-0 text-right">
                 {/* With the vehicle tier known this is the resident's own rate,
@@ -119,6 +118,10 @@ export function PlanPicker({
                 </div>
               </div>
             </div>
+            {/* Below the header, so the tier prices line up from card to card:
+                inside it they only get what the headline price leaves over,
+                which is a different width on every package. */}
+            <SizePriceList raw={p.size_prices} description={p.description} className="mt-2 text-xs text-ink-400" />
           </button>
         ))}
       </div>

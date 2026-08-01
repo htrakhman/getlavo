@@ -1,3 +1,4 @@
+import { Fragment } from 'react';
 import { VEHICLE_SIZES, parseSizePrices } from '@/lib/vehicle-sizes';
 import { typedTierPrices } from '@/lib/package-description';
 import { VehicleTypeIcon } from './VehicleTypeIcon';
@@ -13,6 +14,10 @@ import { VehicleTypeIcon } from './VehicleTypeIcon';
  * the price is pinned to the right so the three prices read as a column. The
  * tiers used to flow inline and wrap, which put the longest label ("3-Row SUV /
  * Pickup / Minivan") on two lines with its price floating beside the break.
+ *
+ * The three rows are one grid rather than three independent flex rows, so the
+ * icon, label and price columns are measured together — every price in a list
+ * starts at the same x, not just at the same right edge.
  *
  * A tier with no `size_prices` entry falls back to whatever the operator typed
  * into the description ("| Pricing: Sedan/Coupe $70 • …"), which for the many
@@ -69,36 +74,36 @@ export function SizePriceList({
   const show = format ?? ((cents: number) => `$${(cents / 100).toFixed(decimals)}`);
 
   return (
-    <dl className={`space-y-1 ${className}`}>
+    <dl className={`grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-2 gap-y-1 ${className}`}>
       {VEHICLE_SIZES.map((s) => {
         const cents = priced.get(s.id);
         const fromText = cents == null ? typed[s.id] : undefined;
         return (
-          <div key={s.id} className="flex items-center gap-2">
-            <VehicleTypeIcon type={s.id} className="h-4 w-9 shrink-0 opacity-70" />
+          <Fragment key={s.id}>
+            <VehicleTypeIcon type={s.id} className="h-4 w-9 opacity-70" />
             {/* Truncated rather than wrapped: the price has to stay on the
                 label's line, and the icon already says which vehicle it is. */}
-            <dt className="min-w-0 flex-1 truncate" title={s.label}>
+            <dt className="truncate" title={s.label}>
               {s.label}
             </dt>
             {cents != null ? (
-              <dd className="shrink-0 text-gleam" style={priceStyle}>
+              <dd className="justify-self-end text-gleam" style={priceStyle}>
                 {show(cents)}
               </dd>
             ) : fromText ? (
               <dd
-                className="shrink-0 text-gleam"
+                className="justify-self-end text-gleam"
                 style={priceStyle}
                 title="Priced in this package's description"
               >
                 {fromText}
               </dd>
             ) : (
-              <dd className="shrink-0 text-ink-500" title="No price set for this vehicle type yet">
+              <dd className="justify-self-end text-ink-500" title="No price set for this vehicle type yet">
                 —
               </dd>
             )}
-          </div>
+          </Fragment>
         );
       })}
     </dl>

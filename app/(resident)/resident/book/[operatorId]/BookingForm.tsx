@@ -729,18 +729,23 @@ export function BookingForm({
                   type="button"
                   key={p.id}
                   onClick={() => setPackageId(p.id)}
-                  className={`flex w-full items-start justify-between gap-3 rounded-xl border px-4 py-3 text-left transition ${
+                  className={`block w-full rounded-xl border px-4 py-3 text-left transition ${
                     checked ? 'border-gleam/60 bg-gleam/5' : 'border-white/10 hover:border-white/20'
                   }`}
                 >
-                  <div className="min-w-0">
-                    <div className="text-sm font-medium">{p.name}</div>
-                    <PackageDescription text={p.description} className="mt-1 text-xs text-ink-400" />
-                    <SizePriceList raw={p.size_prices} description={p.description} format={money} className="mt-2 text-xs text-ink-500" />
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="text-sm font-medium">{p.name}</div>
+                      <PackageDescription text={p.description} className="mt-1 text-xs text-ink-400" />
+                    </div>
+                    <span className="whitespace-nowrap font-display text-sm">
+                      {tiers.length > 0 && !vehicleSize ? `from ${money(price)}` : money(price)}
+                    </span>
                   </div>
-                  <span className="whitespace-nowrap font-display text-sm">
-                    {tiers.length > 0 && !vehicleSize ? `from ${money(price)}` : money(price)}
-                  </span>
+                  {/* Below the header row, not inside its left column — that
+                      column is narrowed by each package's own price, which put
+                      every card's tier prices at a different x. */}
+                  <SizePriceList raw={p.size_prices} description={p.description} format={money} className="mt-2 text-xs text-ink-500" />
                 </button>
               );
             })}
@@ -765,29 +770,32 @@ export function BookingForm({
                 return (
                   <label
                     key={a.id}
-                    className={`flex w-full cursor-pointer items-start justify-between gap-3 rounded-xl border px-4 py-3 transition ${
+                    className={`block w-full cursor-pointer rounded-xl border px-4 py-3 transition ${
                       checked ? 'border-gleam/60 bg-gleam/5' : 'border-white/10 hover:border-white/20'
                     }`}
                   >
-                    <span className="flex min-w-0 items-start gap-3">
-                      <input
-                        type="checkbox"
-                        className="mt-0.5 h-4 w-4 shrink-0 accent-gleam"
-                        checked={checked}
-                        onChange={(e) =>
-                          setAddonIds((prev) =>
-                            e.target.checked ? [...prev, a.id] : prev.filter((id) => id !== a.id)
-                          )
-                        }
-                      />
-                      <span className="min-w-0">
-                        <span className="block text-sm font-medium">{a.label}</span>
-                        <SizePriceList raw={a.size_prices} format={money} className="mt-1 text-xs text-ink-500" />
+                    <span className="flex items-start justify-between gap-3">
+                      <span className="flex min-w-0 items-start gap-3">
+                        <input
+                          type="checkbox"
+                          className="mt-0.5 h-4 w-4 shrink-0 accent-gleam"
+                          checked={checked}
+                          onChange={(e) =>
+                            setAddonIds((prev) =>
+                              e.target.checked ? [...prev, a.id] : prev.filter((id) => id !== a.id)
+                            )
+                          }
+                        />
+                        <span className="min-w-0 text-sm font-medium">{a.label}</span>
+                      </span>
+                      <span className="whitespace-nowrap font-display text-sm">
+                        {tiers.length > 0 && !vehicleSize ? `from ${money(price)}` : `+${money(price)}`}
                       </span>
                     </span>
-                    <span className="whitespace-nowrap font-display text-sm">
-                      {tiers.length > 0 && !vehicleSize ? `from ${money(price)}` : `+${money(price)}`}
-                    </span>
+                    {/* Full row width rather than beside the checkbox: the
+                        label column shrinks around each add-on's own price,
+                        which staggered the tier prices from row to row. */}
+                    <SizePriceList raw={a.size_prices} format={money} className="mt-1 text-xs text-ink-500" />
                   </label>
                 );
               })}
