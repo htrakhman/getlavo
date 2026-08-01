@@ -19,6 +19,7 @@
     "validate:vehicle-size-pricing": "tsx --tsconfig tsconfig.scripts.json scripts/vehicle-size-pricing-test.ts",
     "validate:insurance-auto-verify": "tsx --tsconfig tsconfig.scripts.json scripts/insurance-auto-verify-test.ts",
     "validate:booking-invite": "tsx --tsconfig tsconfig.scripts.json scripts/booking-invite-test.ts",
+    "validate:connect-split": "tsx --tsconfig tsconfig.scripts.json scripts/connect-split-test.ts",
     "db:push": "supabase db push"
   },
   "dependencies": {

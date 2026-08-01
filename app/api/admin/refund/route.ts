@@ -23,10 +23,28 @@ export async function POST(req: Request) {
   if (!booking.stripe_payment_intent_id) return NextResponse.json({ error: 'no payment to refund' }, { status: 400 });
 
   try {
+    // Stripe rejects `refund_application_fee` on a charge that never carried
+    // one, which is every booking taken before the split started stating an
+    // application fee (lib/stripe/connect-split.ts). Ask the charge first so an
+    // old booking still refunds instead of erroring out.
+    let hasApplicationFee = false;
+    try {
+      const intent = await stripe.paymentIntents.retrieve(booking.stripe_payment_intent_id, {
+        expand: ['latest_charge'],
+      });
+      const charge = intent.latest_charge as Stripe.Charge | null;
+      hasApplicationFee = !!charge?.application_fee;
+    } catch (e: any) {
+      console.error('[admin/refund] could not read the charge before refunding', {
+        bookingId,
+        message: e?.message,
+      });
+    }
+
     const refund = await stripe.refunds.create({
       payment_intent: booking.stripe_payment_intent_id,
       reverse_transfer: true,
-      refund_application_fee: true,
+      ...(hasApplicationFee ? { refund_application_fee: true } : {}),
     });
     await admin.from('bookings').update({ status: 'cancelled' }).eq('id', bookingId);
     // Keep the ledger honest: a refunded booking's mirrored charge is no

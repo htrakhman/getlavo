@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server';
 import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
-import { calculateFee } from '@/lib/fee';
 import { applyPromoToBooking, recordPromoRedemption } from '@/lib/promo';
 import { confirmPaidBookingAndNotify } from '@/lib/booking-confirm';
 import { priceAddonSelection, recordBookingAddonOrders, releaseBookingAddonOrders } from '@/lib/addons';
 import { syncWashDayRoster } from '@/lib/wash-roster';
 import { WAIVER_VERSION } from '@/lib/waiver';
 import { standardWashPricing, washCentsFor } from '@/lib/wash-pricing';
+import { destinationChargeParams, resolveSplit } from '@/lib/stripe/connect-split';
 import { normalizeSize, priceForVehicle } from '@/lib/vehicle-sizes';
 import Stripe from 'stripe';
 import { z } from 'zod';
@@ -160,6 +160,19 @@ async function createBooking(req: Request) {
   if (operator.live_ok === false) {
     return NextResponse.json({ error: 'This operator is not accepting new bookings yet' }, { status: 403 });
   }
+  // No connected account means there is nowhere to send the operator's 90%.
+  // Taking the money anyway would park the whole payment in Lavo's balance with
+  // no automatic transfer and no record of what the operator is owed, so refuse
+  // the booking instead — the same answer the resident gets when Stripe rejects
+  // the destination below.
+  if (!operator.stripe_account_id) {
+    console.error('[bookings/create] operator marked onboarded with no connected account', { operatorId });
+    await admin.from('operators').update({ stripe_onboarding_complete: false }).eq('id', operatorId);
+    return NextResponse.json(
+      { error: 'This operator can’t take payments right now. Please try another operator or check back soon.' },
+      { status: 409 },
+    );
+  }
 
   // A selected wash package (Basic/Premium/etc.) overrides the flat
   // building-day/on-demand price. Re-read from the operator's live catalogue —
@@ -231,7 +244,10 @@ async function createBooking(req: Request) {
   const grossCents = promoResult.finalGrossCents + addonTotalCents;
   const promoDiscountCents = promoResult.discountCents;
   const promoRow = promoResult.promo;
-  const { fee: feeCents, net: netCents } = calculateFee(grossCents);
+  // One split, used for both the booking row and the Stripe charge, so what the
+  // ledger says the operator earned is what Stripe actually sends them.
+  const split = resolveSplit(grossCents);
+  const { feeCents, netCents } = split;
 
   const { count: existingBookings } = await admin
     .from('bookings')
@@ -406,17 +422,19 @@ async function createBooking(req: Request) {
       mode: 'payment',
       ...(process.env.STRIPE_TAX_ENABLED === '1' ? { automatic_tax: { enabled: true } } : {}),
       line_items: lineItems,
-      payment_intent_data: operator.stripe_account_id
-        ? {
-            transfer_data: {
-              destination: operator.stripe_account_id,
-              amount: netCents,
-            },
-            metadata: { booking_id: booking.id },
-          }
-        : {
-            metadata: { booking_id: booking.id },
-          },
+      // The operator is sent gross minus Lavo's 10%, and the 10% is recorded as
+      // an application fee rather than left as an unlabelled remainder on the
+      // platform balance — see lib/stripe/connect-split.ts for why that
+      // distinction is the whole point.
+      //
+      // The fee is a fixed amount, so anything Stripe adds to the total beyond
+      // the line items flows to the operator. That is correct for the wash and
+      // the add-ons; it would not be for sales tax, so turning
+      // STRIPE_TAX_ENABLED on needs the fee to absorb the tax first.
+      payment_intent_data: {
+        ...destinationChargeParams(split, operator.stripe_account_id),
+        metadata: { booking_id: booking.id },
+      },
       metadata: {
         booking_id: booking.id,
         ...(promoRow ? { promo_code_id: promoRow.id } : {}),
