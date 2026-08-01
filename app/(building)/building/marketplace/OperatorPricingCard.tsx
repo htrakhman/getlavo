@@ -3,8 +3,8 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import Link from 'next/link';
 import { money } from '@/lib/format';
-import { sizeLabel } from '@/lib/vehicle-sizes';
-import { dollars, menuSummary, rangeLabel, type OperatorPricing, type PricedItem } from '@/lib/operator-pricing';
+import { SizePriceList } from '@/components/SizePriceList';
+import { menuSummary, rangeLabel, type OperatorPricing, type PricedItem } from '@/lib/operator-pricing';
 
 type Props = {
   operatorId: string;
@@ -31,13 +31,7 @@ function PriceLine({ item }: { item: PricedItem }) {
         </span>
       </div>
       {item.sizePrices.length > 0 && (
-        <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-ink-400">
-          {item.sizePrices.map((sp) => (
-            <span key={sp.size}>
-              {sizeLabel(sp.size)} <span className="text-ink-200">{dollars(sp.price_cents)}</span>
-            </span>
-          ))}
-        </div>
+        <SizePriceList raw={item.sizePrices} className="mt-1.5 text-[11px] text-ink-400" />
       )}
     </li>
   );

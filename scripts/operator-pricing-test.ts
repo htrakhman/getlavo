@@ -5,7 +5,7 @@
  * The marketplace card now leads with a price range instead of the building-day
  * rate, so a wrong range misprices an operator on the one screen a manager uses
  * to choose one. The invariants below cover the shapes real rows arrive in:
- * size-tier pricing, legacy `xl` tiers, draft rows with no price, and operators
+ * size-tier pricing, legacy tier names, draft rows with no price, and operators
  * who haven't published a menu at all.
  */
 
@@ -30,7 +30,7 @@ const PACKAGES = [
     price_cents: 4500,
     size_prices: [
       { size: 'sedan', price_cents: 4500 },
-      { size: 'truck', price_cents: 6500 },
+      { size: 'xl', price_cents: 6500 },
     ],
   },
   { id: 'p2', operator_id: 'op1', name: 'Full Detail', description: null, price_cents: 18000, size_prices: [] },
@@ -61,19 +61,19 @@ function main() {
   const tierTop = operatorPricing(
     'op1',
     OP,
-    [{ id: 'p1', operator_id: 'op1', name: 'Wash', price_cents: 4500, size_prices: [{ size: 'truck', price_cents: 22000 }] }] as any,
+    [{ id: 'p1', operator_id: 'op1', name: 'Wash', price_cents: 4500, size_prices: [{ size: 'xl', price_cents: 22000 }] }] as any,
     [],
   );
   check('a tier price above every base price raises the ceiling', tierTop.range?.maxCents === 22000);
 
-  // ── legacy `xl` tier rows stay readable (migration 0049 stragglers) ──────
+  // ── legacy tier names (migration 0049's brief four-tier split) stay readable ──
   const legacy = operatorPricing(
     'op1',
     OP,
-    [{ id: 'p1', operator_id: 'op1', name: 'Wash', price_cents: 5000, size_prices: [{ size: 'xl', price_cents: 9000 }] }] as any,
+    [{ id: 'p1', operator_id: 'op1', name: 'Wash', price_cents: 5000, size_prices: [{ size: 'truck', price_cents: 9000 }] }] as any,
     [],
   );
-  check('legacy xl tier still counts toward the range', legacy.range?.maxCents === 9000);
+  check('legacy truck tier folds into xl and still counts toward the range', legacy.range?.maxCents === 9000);
 
   // ── draft and malformed rows ────────────────────────────────────────────
   const drafts = operatorPricing(
