@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getSessionUser } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { applyPromoToBooking } from '@/lib/promo';
+import { standardWashPricing, washCentsFor } from '@/lib/wash-pricing';
 import { z } from 'zod';
 
 const Body = z.object({
@@ -36,7 +37,7 @@ export async function POST(req: Request) {
 
   const { data: resident } = await admin
     .from('residents')
-    .select('id')
+    .select('id, building_id')
     .eq('profile_id', session.user.id)
     .single();
   if (!resident) return NextResponse.json({ error: 'Resident record not found' }, { status: 404 });
@@ -49,10 +50,12 @@ export async function POST(req: Request) {
     .single();
   if (!operator) return NextResponse.json({ error: 'Operator not available' }, { status: 404 });
 
-  const baseGrossCents =
-    bookingType === 'building_day'
-      ? operator.base_price_cents
-      : (operator.open_slot_price_cents ?? operator.base_price_cents);
+  const washPricing = await standardWashPricing(admin, {
+    buildingId: resident.building_id,
+    operatorId,
+    operator,
+  });
+  const baseGrossCents = washCentsFor(washPricing, bookingType);
 
   const result = await applyPromoToBooking(admin, {
     rawCode: code,
