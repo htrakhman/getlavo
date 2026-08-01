@@ -11,6 +11,7 @@ import {
 } from '@/lib/vehicle-sizes';
 import { VehicleTypeIcon } from '@/components/VehicleTypeIcon';
 import { SizePriceList } from '@/components/SizePriceList';
+import { PackageDescription } from '@/components/PackageDescription';
 
 type Pkg = {
   id: string;
@@ -99,9 +100,11 @@ export function PackagesEditor({ operatorId, initial }: { operatorId: string; in
                       </>
                     );
                   })()}
-                  {pkg.description && (
-                    <p className="mt-1.5 text-sm text-ink-400 leading-relaxed">{pkg.description}</p>
-                  )}
+                  <PackageDescription
+                    text={pkg.description}
+                    showPricing={parseSizePrices(pkg.size_prices).length === 0}
+                    className="mt-1.5 text-sm text-ink-400"
+                  />
                 </div>
                 <div className="flex gap-3 text-sm shrink-0">
                   <button onClick={() => { setAdding(false); setEditing(pkg.id); }} className="text-gleam hover:text-gleam/70">Edit</button>
@@ -257,10 +260,15 @@ function PackageForm({
         <label className="label">What's included</label>
         <textarea
           className="field min-h-[80px] text-sm"
-          placeholder="e.g. Hand wash exterior, interior vacuum, dashboard wipe, windows inside & out, air freshener"
+          placeholder={"A safe hand wash that keeps your car looking new.\nFoam bath pre-soak\nHand wash with pH-neutral soap\nPremium microfiber hand dry"}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
         />
+        {/* Residents see this as a headline plus a bulleted list, so the line
+            breaks an operator types here are the list they get. */}
+        <p className="mt-1 text-xs text-ink-500">
+          One line per step — the first line reads as the summary, the rest become bullets.
+        </p>
       </div>
       <div>
         <label className="label">Estimated time (minutes)</label>

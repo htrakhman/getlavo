@@ -2,6 +2,7 @@
 import { money, plateLabel } from '@/lib/format';
 import { parseSizePrices, normalizeSize, priceForVehicle, sizeLabel, type VehicleSizeId } from '@/lib/vehicle-sizes';
 import { SizePriceList } from '@/components/SizePriceList';
+import { PackageDescription } from '@/components/PackageDescription';
 import { VehicleSizePicker } from '@/components/VehicleSizePicker';
 import { BookingCalendar, longLabel } from '@/components/BookingCalendar';
 import { ReadonlyField, EditableField } from '@/components/ResidentField';
@@ -676,8 +677,12 @@ export function BookingForm({
                 >
                   <div className="min-w-0">
                     <div className="text-sm font-medium">{p.name}</div>
-                    {p.description && <div className="mt-0.5 text-xs text-ink-400">{p.description}</div>}
-                    <SizePriceList raw={p.size_prices} format={money} className="mt-1 text-xs text-ink-500" />
+                    <PackageDescription
+                      text={p.description}
+                      showPricing={tiers.length === 0}
+                      className="mt-1 text-xs text-ink-400"
+                    />
+                    <SizePriceList raw={p.size_prices} format={money} className="mt-2 text-xs text-ink-500" />
                   </div>
                   <span className="whitespace-nowrap font-display text-sm">
                     {tiers.length > 0 && !vehicleSize ? `from ${money(price)}` : money(price)}
