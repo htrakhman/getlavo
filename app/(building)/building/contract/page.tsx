@@ -169,15 +169,6 @@ export default async function ContractPage() {
         </div>
       )}
 
-      {!op && !contract && (
-        <div className="mb-6 rounded-xl border border-yellow-500/30 bg-yellow-500/10 px-5 py-3 text-sm text-amber-600">
-          Operator details will auto-fill once you're matched with a car wash crew.{' '}
-          <Link href="/building/marketplace" className="underline underline-offset-2">
-            Browse the marketplace →
-          </Link>
-        </div>
-      )}
-
       {/* If the operator ever fails to resolve again, the page explains itself
           instead of needing another round of log spelunking. */}
       {!op && (
@@ -205,6 +196,20 @@ export default async function ContractPage() {
         </details>
       )}
 
+      {!op ? (
+        <div className="mx-auto max-w-3xl">
+          <div className="card border-gleam/30 p-6">
+            <h3 className="font-display text-xl">No agreement yet</h3>
+            <p className="mt-2 text-sm text-ink-300">
+              Your service agreement will appear here once Lavo matches your building with a car wash
+              operator.{' '}
+              <Link href="/building/marketplace" className="underline underline-offset-2">
+                Check operator status →
+              </Link>
+            </p>
+          </div>
+        </div>
+      ) : (
       <div className="mx-auto max-w-3xl">
         <div className="legal-doc rounded-2xl border border-slate-300 shadow-sm">
           {/* Header */}
@@ -234,19 +239,9 @@ export default async function ContractPage() {
                 </div>
                 <div className="rounded-xl bg-white/5 p-4">
                   <div className="mb-2 text-xs uppercase tracking-widest text-ink-400">Service Provider</div>
-                  {op ? (
-                    <>
-                      <div className="font-medium text-white">{op.name}</div>
-                      {op.contact_email && <div className="mt-0.5 text-xs text-ink-400">{op.contact_email}</div>}
-                      {op.contact_phone && <div className="mt-0.5 text-xs text-ink-400">{op.contact_phone}</div>}
-                    </>
-                  ) : (
-                    <div className="space-y-1 text-ink-500 italic">
-                      <div>{BLANK('Operator name')}</div>
-                      <div>{BLANK('Address')}</div>
-                      <div>{BLANK('Contact')}</div>
-                    </div>
-                  )}
+                  <div className="font-medium text-white">{op.name}</div>
+                  {op.contact_email && <div className="mt-0.5 text-xs text-ink-400">{op.contact_email}</div>}
+                  {op.contact_phone && <div className="mt-0.5 text-xs text-ink-400">{op.contact_phone}</div>}
                 </div>
               </div>
             </section>
@@ -399,29 +394,22 @@ export default async function ContractPage() {
                   ) : (
                     <div className="h-10 border-b border-dashed border-ink-600" />
                   )}
-                  <div className="mt-1 text-xs text-ink-400">
-                    {op?.name ?? BLANK('Operator name')}
-                  </div>
+                  <div className="mt-1 text-xs text-ink-400">{op.name}</div>
                 </div>
               </div>
 
-              {contract && op && !isFullyExecuted && contract.status !== 'cancelled' && (
+              {contract && !isFullyExecuted && contract.status !== 'cancelled' && (
                 <ContractDraftSigner
                   contractId={contract.id}
                   buildingName={building.name}
                   alreadySigned={isSigned}
                 />
               )}
-
-              {!op && (
-                <p className="mt-6 text-xs text-ink-500">
-                  Signing will be enabled once a car wash operator is assigned to your building.
-                </p>
-              )}
             </section>
           </div>
         </div>
       </div>
+      )}
     </>
   );
 }
