@@ -163,6 +163,10 @@ async function createBooking(req: Request) {
     if (pkgError || !pkg) {
       return NextResponse.json({ error: 'That wash package is no longer available' }, { status: 400 });
     }
+    // An unpriced package isn't listed on the form, and isn't free work either.
+    if (!((pkg.price_cents ?? 0) > 0)) {
+      return NextResponse.json({ error: 'That wash package isn’t priced yet' }, { status: 400 });
+    }
     packageRow = pkg;
   }
 

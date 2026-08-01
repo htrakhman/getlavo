@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { isPriced } from '@/lib/service-packages';
 
 /**
  * Add-ons (wax, interior, tire shine…) an operator sells on top of a wash.
@@ -26,7 +27,10 @@ export type BookableAddon = {
   size_prices?: unknown;
 };
 
-/** Active add-ons an operator offers, for the booking form. */
+/**
+ * Active add-ons an operator offers, for the booking form. Unpriced rows are
+ * dropped rather than offered at $0.00 — same rule as service packages.
+ */
 export async function listBookableAddons(
   admin: SupabaseClient,
   operatorId: string,
@@ -41,7 +45,7 @@ export async function listBookableAddons(
     console.error('listBookableAddons: query failed:', error.message);
     return [];
   }
-  return (data ?? []) as BookableAddon[];
+  return ((data ?? []) as BookableAddon[]).filter(isPriced);
 }
 
 /**
