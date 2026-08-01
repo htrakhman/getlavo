@@ -63,12 +63,21 @@ export function BookingCalendar({
   selectedTime,
   onSelectDate,
   onSelectTime,
+  collapsed = false,
+  onExpand,
 }: {
   days: AvailabilityDay[];
   selectedDate: string | null;
   selectedTime: string | null;
   onSelectDate: (date: string) => void;
   onSelectTime: (time: string) => void;
+  /**
+   * Once a date is picked the month grid has done its job — collapse it to a
+   * single line so the times and the booking details move up into view instead
+   * of sitting a screenful below a calendar nobody needs to look at again.
+   */
+  collapsed?: boolean;
+  onExpand?: () => void;
 }) {
   const byDate = useMemo(() => new Map(days.map((d) => [d.date, d])), [days]);
 
@@ -113,6 +122,40 @@ export function BookingCalendar({
     label: g.label,
     slots: (selectedDay?.slots ?? []).filter((s) => g.match(slotHour(s))),
   })).filter((g) => g.slots.length > 0);
+
+  // Nothing to collapse into until there's a day to name.
+  const showGrid = !collapsed || !selectedDay;
+
+  if (!showGrid) {
+    return (
+      <div>
+        {/* Collapsed: the picked day, and a way back to the grid. */}
+        <button
+          type="button"
+          onClick={onExpand}
+          className="flex w-full items-center justify-between gap-3 rounded-xl border border-gleam/40 bg-gleam/5 px-4 py-3 text-left transition hover:border-gleam/70"
+        >
+          <span className="min-w-0">
+            <span className="block text-[11px] uppercase tracking-widest text-ink-500">Date</span>
+            <span className="mt-0.5 block truncate font-display text-base text-gleam">
+              {longLabel(selectedDay.date)}
+            </span>
+          </span>
+          <span className="shrink-0 text-xs text-ink-300 underline underline-offset-2">Change date</span>
+        </button>
+
+        <TimeSlots
+          selectedDay={selectedDay}
+          grouped={grouped}
+          selectedTime={selectedTime}
+          onSelectTime={onSelectTime}
+          // The bar above already names the day — no need to say it twice.
+          showDayLabel={false}
+          className="mt-5"
+        />
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -216,50 +259,79 @@ export function BookingCalendar({
       </div>
 
       {/* Times for the selected day */}
-      <div className="mt-6 border-t border-white/10 pt-5">
-        {selectedDay && grouped.length > 0 ? (
-          <>
-            <div className="flex flex-wrap items-baseline justify-between gap-2">
-              <div className="font-display text-base">{longLabel(selectedDay.date)}</div>
-              <div className="text-xs text-ink-500">
-                {selectedDay.slots.length} time{selectedDay.slots.length === 1 ? '' : 's'} available
-              </div>
+      <TimeSlots
+        selectedDay={selectedDay}
+        grouped={grouped}
+        selectedTime={selectedTime}
+        onSelectTime={onSelectTime}
+        className="mt-6 border-t border-white/10 pt-5"
+      />
+    </div>
+  );
+}
+
+/** The hour buttons for whichever day is picked, grouped morning/afternoon/evening. */
+function TimeSlots({
+  selectedDay,
+  grouped,
+  selectedTime,
+  onSelectTime,
+  showDayLabel = true,
+  className,
+}: {
+  selectedDay: AvailabilityDay | null;
+  grouped: { label: string; slots: string[] }[];
+  selectedTime: string | null;
+  onSelectTime: (time: string) => void;
+  showDayLabel?: boolean;
+  className?: string;
+}) {
+  return (
+    <div className={className}>
+      {selectedDay && grouped.length > 0 ? (
+        <>
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <div className={showDayLabel ? 'font-display text-base' : 'text-[11px] uppercase tracking-widest text-ink-500'}>
+              {showDayLabel ? longLabel(selectedDay.date) : 'Pick a time'}
             </div>
-            <div className="mt-4 space-y-4" role="radiogroup" aria-label="Choose a time">
-              {grouped.map((group) => (
-                <div key={group.label}>
-                  <div className="mb-2 text-[11px] uppercase tracking-widest text-ink-500">{group.label}</div>
-                  <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-5">
-                    {group.slots.map((time) => {
-                      const isSelected = time === selectedTime;
-                      return (
-                        <button
-                          key={time}
-                          type="button"
-                          role="radio"
-                          aria-checked={isSelected}
-                          onClick={() => onSelectTime(time)}
-                          className={`rounded-xl border px-2 py-2.5 text-center text-sm transition ${
-                            isSelected
-                              ? 'border-gleam/70 bg-gleam/15 font-semibold text-gleam shadow-glow'
-                              : 'border-white/10 bg-ink-900/60 text-ink-100 hover:border-gleam/40'
-                          }`}
-                        >
-                          {time}
-                        </button>
-                      );
-                    })}
-                  </div>
+            <div className="text-xs text-ink-500">
+              {selectedDay.slots.length} time{selectedDay.slots.length === 1 ? '' : 's'} available
+            </div>
+          </div>
+          <div className="mt-4 space-y-4" role="radiogroup" aria-label="Choose a time">
+            {grouped.map((group) => (
+              <div key={group.label}>
+                <div className="mb-2 text-[11px] uppercase tracking-widest text-ink-500">{group.label}</div>
+                <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-5">
+                  {group.slots.map((time) => {
+                    const isSelected = time === selectedTime;
+                    return (
+                      <button
+                        key={time}
+                        type="button"
+                        role="radio"
+                        aria-checked={isSelected}
+                        onClick={() => onSelectTime(time)}
+                        className={`rounded-xl border px-2 py-2.5 text-center text-sm transition ${
+                          isSelected
+                            ? 'border-gleam/70 bg-gleam/15 font-semibold text-gleam shadow-glow'
+                            : 'border-white/10 bg-ink-900/60 text-ink-100 hover:border-gleam/40'
+                        }`}
+                      >
+                        {time}
+                      </button>
+                    );
+                  })}
                 </div>
-              ))}
-            </div>
-          </>
-        ) : (
-          <p className="text-sm text-ink-400">
-            Pick a date above to see the times your operator has open.
-          </p>
-        )}
-      </div>
+              </div>
+            ))}
+          </div>
+        </>
+      ) : (
+        <p className="text-sm text-ink-400">
+          Pick a date above to see the times your operator has open.
+        </p>
+      )}
     </div>
   );
 }
