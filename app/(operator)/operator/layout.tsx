@@ -44,7 +44,7 @@ async function operatorSetupAlerts(ownerId: string): Promise<string[]> {
   const sb = supabaseServer();
   const { data: op } = await sb
     .from('operators')
-    .select('id, name, base_price_cents, hours_json, stripe_onboarding_complete, insurance_doc_url, insurance_review_status')
+    .select('id, name, hours_json, stripe_onboarding_complete, insurance_doc_url, insurance_review_status')
     .eq('owner_id', ownerId)
     .maybeSingle();
   if (!op) return [];
@@ -62,7 +62,6 @@ async function operatorSetupAlerts(ownerId: string): Promise<string[]> {
 
   const profileIncomplete =
     !op.name ||
-    !(op.base_price_cents && op.base_price_cents > 0) ||
     !hasWashDays ||
     !packageCount ||
     !op.stripe_onboarding_complete;

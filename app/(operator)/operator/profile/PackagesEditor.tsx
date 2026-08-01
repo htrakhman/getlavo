@@ -21,10 +21,22 @@ export function PackagesEditor({ operatorId, initial }: { operatorId: string; in
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
 
+  // The operator's base price is no longer typed in by hand — it tracks the
+  // cheapest active package so every "from $X" display and the booking charge
+  // stay in step with what's actually on offer.
+  async function syncBasePrice(next: Pkg[]) {
+    const prices = next.filter((p) => p.active).map((p) => p.price_cents).filter((c) => c > 0);
+    if (prices.length === 0) return;
+    const sb = supabaseBrowser();
+    await sb.from('operators').update({ base_price_cents: Math.min(...prices) }).eq('id', operatorId);
+  }
+
   async function remove(id: string) {
     const sb = supabaseBrowser();
     await sb.from('service_packages').update({ active: false }).eq('id', id);
-    setItems((p) => p.filter((x) => x.id !== id));
+    const next = items.filter((x) => x.id !== id);
+    setItems(next);
+    await syncBasePrice(next);
     router.refresh();
   }
 
@@ -55,9 +67,11 @@ export function PackagesEditor({ operatorId, initial }: { operatorId: string; in
               <PackageForm
                 operatorId={operatorId}
                 pkg={pkg}
-                onDone={(updated) => {
+                onDone={async (updated) => {
                   setEditing(null);
-                  setItems((prev) => prev.map((x) => (x.id === updated.id ? updated : x)));
+                  const next = items.map((x) => (x.id === updated.id ? updated : x));
+                  setItems(next);
+                  await syncBasePrice(next);
                   router.refresh();
                 }}
                 onCancel={() => setEditing(null)}
@@ -109,9 +123,11 @@ export function PackagesEditor({ operatorId, initial }: { operatorId: string; in
             <PackageForm
               operatorId={operatorId}
               pkg={null}
-              onDone={(created) => {
+              onDone={async (created) => {
                 setAdding(false);
-                setItems((p) => [...p, created]);
+                const next = [...items, created];
+                setItems(next);
+                await syncBasePrice(next);
                 router.refresh();
               }}
               onCancel={() => setAdding(false)}

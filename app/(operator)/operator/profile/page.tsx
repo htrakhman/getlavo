@@ -41,7 +41,7 @@ export default async function OperatorProfilePage() {
     !!op.hours_json &&
     typeof op.hours_json === 'object' &&
     Object.values(op.hours_json as Record<string, any>).some((d: any) => d && d.closed !== true);
-  const needsBasics = !op.name || !(op.base_price_cents && op.base_price_cents > 0);
+  const needsBasics = !op.name;
   const needsWashDays = !hasWashDays;
   const needsStripe = !op.stripe_onboarding_complete;
   const needsPackages = activePackages.length === 0;
