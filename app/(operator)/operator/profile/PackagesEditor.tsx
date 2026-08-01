@@ -6,10 +6,11 @@ import {
   VEHICLE_SIZES,
   parseSizePrices,
   seedSizePriceInputs,
-  sizeLabel,
   sizePriceRowsFromInputs,
   type VehicleSizeId,
 } from '@/lib/vehicle-sizes';
+import { VehicleTypeIcon } from '@/components/VehicleTypeIcon';
+import { SizePriceList } from '@/components/SizePriceList';
 
 type Pkg = {
   id: string;
@@ -99,16 +100,7 @@ export function PackagesEditor({ operatorId, initial }: { operatorId: string; in
                             <span className="text-xs text-ink-500">~{pkg.est_minutes} min</span>
                           )}
                         </div>
-                        {sizePrices.length > 0 && (
-                          <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-xs text-ink-400">
-                            {sizePrices.map((sp) => (
-                              <span key={sp.size}>
-                                {sizeLabel(sp.size)}{' '}
-                                <span className="text-gleam">${(sp.price_cents / 100).toFixed(0)}</span>
-                              </span>
-                            ))}
-                          </div>
-                        )}
+                        <SizePriceList raw={pkg.size_prices} className="mt-1.5 text-xs text-ink-400" />
                       </>
                     );
                   })()}
@@ -246,12 +238,16 @@ function PackageForm({
           <span>Price varies by vehicle type</span>
         </label>
         {sizeOn && (
-          <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
             {VEHICLE_SIZES.map((s) => (
-              <div key={s.id}>
-                <label className="label">{s.label}</label>
+              <div key={s.id} className="rounded-xl border border-white/10 p-3">
+                <VehicleTypeIcon
+                  type={s.id}
+                  className={`h-10 w-full transition-colors ${sizePrices[s.id] ? 'text-gleam' : 'text-ink-500'}`}
+                />
+                <div className="mt-1.5 text-center text-xs text-ink-300">{s.label}</div>
                 <input
-                  className="field"
+                  className="field mt-2"
                   type="number"
                   step="0.01"
                   min="5"

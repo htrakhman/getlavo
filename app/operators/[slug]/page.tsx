@@ -1,6 +1,7 @@
 import { supabaseServer } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
-import { parseSizePrices, sizeLabel } from '@/lib/vehicle-sizes';
+import { parseSizePrices } from '@/lib/vehicle-sizes';
+import { SizePriceList } from '@/components/SizePriceList';
 
 export default async function PublicOperatorPage({ params }: { params: { slug: string } }) {
   const sb = supabaseServer();
@@ -39,16 +40,7 @@ export default async function PublicOperatorPage({ params }: { params: { slug: s
               <div>
                 <div className="font-medium">{p.name}</div>
                 {p.description && <div className="text-xs text-ink-500 mt-1">{p.description}</div>}
-                {sizePrices.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-ink-500">
-                    {sizePrices.map((sp) => (
-                      <span key={sp.size}>
-                        {sizeLabel(sp.size)}{' '}
-                        <span className="text-gleam">${(sp.price_cents / 100).toFixed(0)}</span>
-                      </span>
-                    ))}
-                  </div>
-                )}
+                <SizePriceList raw={p.size_prices} className="mt-2 text-xs text-ink-500" />
               </div>
               <div className="text-gleam font-display whitespace-nowrap">
                 {sizePrices.length > 0 ? 'from ' : ''}${((p.price_cents ?? 0) / 100).toFixed(0)}

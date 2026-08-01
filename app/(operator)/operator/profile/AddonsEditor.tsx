@@ -6,10 +6,11 @@ import {
   VEHICLE_SIZES,
   parseSizePrices,
   seedSizePriceInputs,
-  sizeLabel,
   sizePriceRowsFromInputs,
   type VehicleSizeId,
 } from '@/lib/vehicle-sizes';
+import { VehicleTypeIcon } from '@/components/VehicleTypeIcon';
+import { SizePriceList } from '@/components/SizePriceList';
 
 const TYPES: { value: string; label: string }[] = [
   { value: 'interior_detail', label: 'Interior Detail' },
@@ -60,16 +61,7 @@ export function AddonsEditor({ operatorId, initial }: { operatorId: string; init
                     <div className="min-w-0">
                       <div className="text-sm">{a.label}</div>
                       <div className="text-xs text-ink-500">{TYPES.find((t) => t.value === a.type)?.label ?? a.type}</div>
-                      {sizePrices.length > 0 && (
-                        <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-xs text-ink-400">
-                          {sizePrices.map((sp) => (
-                            <span key={sp.size}>
-                              {sizeLabel(sp.size)}{' '}
-                              <span className="text-gleam">${(sp.price_cents / 100).toFixed(0)}</span>
-                            </span>
-                          ))}
-                        </div>
-                      )}
+                      <SizePriceList raw={a.size_prices} decimals={2} className="mt-1.5 text-xs text-ink-400" />
                     </div>
                     <div className="flex shrink-0 items-center gap-3">
                       <span className="text-gleam text-sm">
@@ -187,12 +179,16 @@ function AddonForm({ operatorId, addon, onDone, onCancel }: { operatorId: string
         </label>
         {sizeOn && (
           <>
-            <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
               {VEHICLE_SIZES.map((s) => (
-                <div key={s.id}>
-                  <label className="label">{s.label}</label>
+                <div key={s.id} className="rounded-xl border border-white/10 p-3">
+                  <VehicleTypeIcon
+                    type={s.id}
+                    className={`h-10 w-full transition-colors ${sizePrices[s.id] ? 'text-gleam' : 'text-ink-500'}`}
+                  />
+                  <div className="mt-1.5 text-center text-xs text-ink-300">{s.label}</div>
                   <input
-                    className="field"
+                    className="field mt-2"
                     type="number"
                     step="0.01"
                     min="1"
