@@ -235,6 +235,8 @@ export async function sendAdminNotification(args: {
   replyTo?: string;
   /** Optional call-to-action button. A relative url is prefixed with APP_URL. */
   action?: { url: string; label: string };
+  /** Files to attach, e.g. the certificate of insurance being reviewed. */
+  attachments?: { filename: string; content: Buffer }[];
 }) {
   const body = args.lines.map((l) => `<p>${escapeHtml(l)}</p>`).join('');
   let button = '';
@@ -248,6 +250,7 @@ export async function sendAdminNotification(args: {
     replyTo: args.replyTo,
     subject: args.subject,
     html: body + button,
+    ...(args.attachments?.length ? { attachments: args.attachments } : {}),
   });
 }
 

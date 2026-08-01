@@ -3,17 +3,25 @@ import { supabaseServer } from '@/lib/supabase/server';
 import { insuranceDocViewUrl } from '@/lib/insurance-doc';
 import { ReviewActions } from './ReviewActions';
 
+const NEEDS_REVIEW = ['pending_review', 'rejected', 'expired'];
+
+export const dynamic = 'force-dynamic';
+
 export default async function InsuranceReviewPage() {
   const sb = supabaseServer();
+  // Every operator that has ever uploaded a certificate, so approved policies
+  // stay reachable instead of disappearing from the queue once reviewed.
   const { data: rows } = await sb
     .from('operators')
     .select('id, name, insurance_carrier, insurance_policy_number, insurance_coverage_amount_cents, insurance_expires_at, insurance_doc_url, insurance_uploaded_at, insurance_review_status, insurance_review_note')
-    .in('insurance_review_status', ['pending_review', 'rejected', 'expired'])
+    .not('insurance_doc_url', 'is', null)
     .order('insurance_uploaded_at', { ascending: false });
 
-  const pending = await Promise.all(
+  const all = await Promise.all(
     (rows ?? []).map(async (o: any) => ({ ...o, docViewUrl: await insuranceDocViewUrl(o.insurance_doc_url) }))
   );
+  const pending = all.filter((o: any) => NEEDS_REVIEW.includes(o.insurance_review_status));
+  const reviewed = all.filter((o: any) => !NEEDS_REVIEW.includes(o.insurance_review_status));
 
   return (
     <>
@@ -51,6 +59,41 @@ export default async function InsuranceReviewPage() {
             </div>
           ))}
         </div>
+      )}
+
+      {reviewed.length > 0 && (
+        <section className="mt-10">
+          <h2 className="mb-3 font-display text-lg">All certificates on file</h2>
+          <div className="space-y-3">
+            {reviewed.map((o: any) => (
+              <div key={o.id} className="card p-5">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <div className="font-display text-lg">{o.name}</div>
+                    <div className="mt-1 text-xs text-ink-400">
+                      Carrier: {o.insurance_carrier ?? '—'}
+                      {o.insurance_policy_number && <>{' · '}Policy: {o.insurance_policy_number}</>}
+                      {o.insurance_coverage_amount_cents && (
+                        <>{' · '}Coverage: ${Math.round(o.insurance_coverage_amount_cents / 100).toLocaleString()}</>
+                      )}
+                      {' · '}Expires: {o.insurance_expires_at ?? '—'}
+                      {' · '}Uploaded: {o.insurance_uploaded_at?.slice(0, 10) ?? '—'}
+                    </div>
+                    <span className="chip mt-2 inline-block text-gleam">
+                      {String(o.insurance_review_status ?? 'unknown').replace('_', ' ')}
+                    </span>
+                  </div>
+                  <div className="flex flex-col items-end gap-2">
+                    {o.docViewUrl && (
+                      <a href={o.docViewUrl} target="_blank" rel="noreferrer" className="btn-quiet text-sm">View certificate</a>
+                    )}
+                    <ReviewActions operatorId={o.id} />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
       )}
     </>
   );
