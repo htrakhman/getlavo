@@ -1,6 +1,5 @@
 import { PageHeader } from '@/components/PortalShell';
 import { getSessionUser, supabaseServer, supabaseAdmin } from '@/lib/supabase/server';
-import { money } from '@/lib/format';
 import { WAIVER_VERSION } from '@/lib/waiver';
 import { listBookableAddons, listRecurringAddonIds } from '@/lib/addons';
 import { getPackagesForOperator } from '@/lib/service-packages';
@@ -63,25 +62,13 @@ export default async function BookOperator({
         <div className="lg:col-span-2 space-y-4">
           <div className="card p-6">
             <p className="text-ink-200 leading-relaxed">{operator.description}</p>
-            <div className="mt-5 grid grid-cols-3 gap-4">
-              {operator.rating_count > 0 && (
-                <div>
-                  <div className="text-xs text-ink-400">Rating</div>
-                  <div className="font-display text-2xl">★ {Number(operator.rating_avg).toFixed(1)}</div>
-                  <div className="text-xs text-ink-400">{operator.rating_count} reviews</div>
-                </div>
-              )}
-              <div>
-                <div className="text-xs text-ink-400">Building day</div>
-                <div className="font-display text-2xl text-gleam">{money(operator.base_price_cents)}</div>
+            {operator.rating_count > 0 && (
+              <div className="mt-5">
+                <div className="text-xs text-ink-400">Rating</div>
+                <div className="font-display text-2xl">★ {Number(operator.rating_avg).toFixed(1)}</div>
+                <div className="text-xs text-ink-400">{operator.rating_count} reviews</div>
               </div>
-              {operator.open_slot_price_cents && (
-                <div>
-                  <div className="text-xs text-ink-400">On-demand</div>
-                  <div className="font-display text-2xl">{money(operator.open_slot_price_cents)}</div>
-                </div>
-              )}
-            </div>
+            )}
           </div>
         </div>
 
