@@ -30,9 +30,9 @@ function PriceLine({ item }: { item: PricedItem }) {
           {money(item.fromCents)}
         </span>
       </div>
-      {item.sizePrices.length > 0 && (
-        <SizePriceList raw={item.sizePrices} className="mt-1.5 text-[11px] text-ink-400" />
-      )}
+      {/* Drawn whether or not the tiers are priced — a manager comparing
+          operators should see who prices by vehicle type and who hasn't. */}
+      <SizePriceList raw={item.sizePrices} className="mt-1.5 text-[11px] text-ink-400" />
     </li>
   );
 }
