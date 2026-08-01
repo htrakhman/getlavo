@@ -25,7 +25,7 @@ export default async function AdminBuildingDetail({ params }: { params: { id: st
             <Row k="City" v={`${building.city}, ${building.region}`} />
             <Row k="Manager" v={building.manager?.email ?? '—'} />
             <Row k="Slug" v={building.slug ?? '—'} />
-            <Row k="Wash day" v={building.wash_day ?? 'TBD'} />
+            <Row k="Wash day" v={building.wash_day ?? building.preferred_wash_day ?? 'TBD'} />
             <Row k="Residents" v={String(residentCount ?? 0)} />
           </dl>
         </div>
