@@ -43,7 +43,13 @@ function sameWeekday(a: string | null | undefined, b: string): boolean {
 
 export async function getBuildingAvailability(
   buildingId: string,
-  operatorId?: string
+  operatorId?: string,
+  /**
+   * A booking that is being moved: it already holds a seat on its current day,
+   * and counting that seat against the resident would leave a full day looking
+   * closed to the very booking sitting on it.
+   */
+  opts: { excludeBookingId?: string } = {},
 ): Promise<AvailabilityDay[]> {
   const admin = supabaseAdmin();
 
@@ -84,13 +90,16 @@ export async function getBuildingAvailability(
   const to = dates[dates.length - 1];
 
   const [{ data: booked }, { data: agreedRows }] = await Promise.all([
-    admin
-      .from('bookings')
-      .select('scheduled_for')
-      .eq('operator_id', operator.id)
-      .in('status', ['confirmed', 'in_progress'])
-      .gte('scheduled_for', from)
-      .lte('scheduled_for', to),
+    (() => {
+      const q = admin
+        .from('bookings')
+        .select('scheduled_for')
+        .eq('operator_id', operator.id)
+        .in('status', ['confirmed', 'in_progress'])
+        .gte('scheduled_for', from)
+        .lte('scheduled_for', to);
+      return opts.excludeBookingId ? q.neq('id', opts.excludeBookingId) : q;
+    })(),
     isPartnerOperator
       ? admin
           .from('wash_days')

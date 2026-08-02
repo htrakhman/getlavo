@@ -31,6 +31,12 @@ export type BookingCalendarDetails = {
   spotLabel?: string | null;
   accessNotes?: string | null;
   addonLabels?: string[];
+  /**
+   * How many times this booking has moved. Rescheduling re-sends the same UID,
+   * so the invite needs a higher SEQUENCE to replace the copy already sitting
+   * on the recipient's calendar (see lib/ics.ts).
+   */
+  sequence?: number;
 };
 
 function washWindow(d: BookingCalendarDetails) {
@@ -71,6 +77,7 @@ export function residentWashEvent(
     time: d.timeSlot,
     organizer: organizer(),
     attendee,
+    sequence: d.sequence,
   };
 }
 
@@ -104,6 +111,7 @@ export function operatorWashEvent(
     time: d.timeSlot,
     organizer: organizer(),
     attendee,
+    sequence: d.sequence,
   };
 }
 
