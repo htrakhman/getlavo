@@ -310,22 +310,26 @@ export function BookingForm({
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:items-start">
-      {/* ── Left: everything about when, where and who ─────────────────── */}
-      {/* Stacked on mobile the package menu comes first — pick the wash, then
-          confirm the details and pay — so the CTA is never above the choices. */}
-      <div className="order-2 space-y-6 lg:order-1 lg:col-span-2">
-        {operatorDescription && (
-          <div className="card p-6">
-            <p className="text-sm leading-relaxed text-ink-200">{operatorDescription}</p>
-            {ratingCount > 0 && (
-              <div className="mt-4 flex items-center gap-2 text-sm">
-                <span className="font-display text-gleam">★ {Number(ratingAvg ?? 0).toFixed(1)}</span>
-                <span className="text-ink-500">{ratingCount} review{ratingCount === 1 ? '' : 's'}</span>
-              </div>
-            )}
-          </div>
-        )}
+      {/* Who you're booking, across the top at every width. It opens the page
+          on desktop, so it opens the page on mobile too rather than landing
+          under the menu. */}
+      {operatorDescription && (
+        <div className="order-first card p-6 lg:col-span-3">
+          <p className="text-sm leading-relaxed text-ink-200">{operatorDescription}</p>
+          {ratingCount > 0 && (
+            <div className="mt-4 flex items-center gap-2 text-sm">
+              <span className="font-display text-gleam">★ {Number(ratingAvg ?? 0).toFixed(1)}</span>
+              <span className="text-ink-500">{ratingCount} review{ratingCount === 1 ? '' : 's'}</span>
+            </div>
+          )}
+        </div>
+      )}
 
+      {/* ── Left: everything about when, where and who ─────────────────── */}
+      {/* Stacked on mobile the package menu comes first — same as desktop,
+          where it sits at the top of the right column — so the sections read
+          in one order at every width and the CTA is never above the choices. */}
+      <div className="order-2 space-y-6 lg:order-1 lg:col-span-2">
         {/* The calendar — the centerpiece of the page, and the first thing
             the resident acts on. */}
         <div ref={calendarRef} className="card relative scroll-mt-4 overflow-hidden p-6">
