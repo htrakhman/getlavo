@@ -25,6 +25,12 @@ export type WashEvent = {
   organizer?: CalendarPerson;
   /** Who the invite is addressed to. Required for METHOD:REQUEST to render as an invite. */
   attendee?: CalendarPerson;
+  /**
+   * Revision number for this UID. A calendar only replaces an event it already
+   * holds when the incoming copy has a higher SEQUENCE, so a rescheduled wash
+   * has to ship a bumped one or the invite lands as a duplicate at the old time.
+   */
+  sequence?: number;
 };
 
 function icsEscape(s: string) {
@@ -102,7 +108,7 @@ export function buildIcs(event: WashEvent, opts: { method?: 'PUBLISH' | 'REQUEST
     'BEGIN:VEVENT',
     `UID:${event.uid}`,
     `DTSTAMP:${stamp}`,
-    'SEQUENCE:0',
+    `SEQUENCE:${Math.max(0, Math.trunc(event.sequence ?? 0))}`,
     'STATUS:CONFIRMED',
     ...dtLines,
     `SUMMARY:${icsEscape(event.title)}`,

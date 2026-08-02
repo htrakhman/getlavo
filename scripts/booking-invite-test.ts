@@ -91,6 +91,16 @@ function main() {
   });
   check('a booking with no time slot stays all-day', allDay.includes('DTSTART;VALUE=DATE:20260814'));
 
+  // ── a rescheduled booking replaces the invite already sent ──────────────
+  const moved = buildIcs(
+    residentWashEvent({ ...DETAILS, scheduledFor: '2026-08-21', sequence: 1 }, resident),
+    { method: 'REQUEST' },
+  );
+  check('a fresh invite starts at sequence 0', /^SEQUENCE:0$/m.test(rIcs));
+  check('a rescheduled invite bumps the sequence', /^SEQUENCE:1$/m.test(moved));
+  check('a rescheduled invite keeps the original UID', uid(moved) === uid(rIcs));
+  check('a rescheduled invite carries the new date', moved.includes('20260821T090000'));
+
   // ── escaping ────────────────────────────────────────────────────────────
   const commas = buildIcs(
     residentWashEvent({ ...DETAILS, buildingName: 'Smith, Jones & Co; Tower' }, resident),

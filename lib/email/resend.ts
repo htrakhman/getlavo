@@ -103,6 +103,68 @@ export async function sendBookingNotification(args: {
   });
 }
 
+/**
+ * A booking that moved. Goes to both sides of the wash: the resident who
+ * changed it and the operator who has to show up, with the old slot spelled
+ * out so nobody has to diff two emails to see what changed. The attached
+ * invite carries a bumped SEQUENCE, so it updates the event already on the
+ * recipient's calendar instead of adding a second one (see lib/ics.ts).
+ */
+export async function sendBookingRescheduled(args: {
+  to: string;
+  recipientName: string;
+  audience: 'resident' | 'operator';
+  buildingName: string;
+  /** The other party: the operator for the resident's email, the resident for the operator's. */
+  counterpartyName?: string | null;
+  vehicleDescription?: string | null;
+  previousScheduledFor: string;
+  previousTimeSlot: string | null;
+  scheduledFor: string;
+  timeSlot: string | null;
+  nextSteps?: string[];
+  ics?: string;
+}) {
+  const isResident = args.audience === 'resident';
+  const row = (label: string, value: string) =>
+    `<tr><td style="padding:8px 0;color:#666">${label}</td><td style="padding:8px 0;font-weight:600">${escapeHtml(value)}</td></tr>`;
+  const slot = (date: string, time: string | null) => (time ? `${date} at ${time}` : date);
+  const steps = args.nextSteps?.length
+    ? `
+      <h3 style="margin:24px 0 8px;font-size:16px">Before your appointment</h3>
+      <ol style="margin:0;padding-left:20px;color:#333;line-height:1.6">
+        ${args.nextSteps.map((s) => `<li style="margin:6px 0">${escapeHtml(s)}</li>`).join('')}
+      </ol>`
+    : '';
+  return client().emails.send({
+    from: FROM,
+    to: args.to,
+    subject: `Wash rescheduled — now ${args.scheduledFor}`,
+    ...(args.ics
+      ? { attachments: [{ filename: 'lavo-wash.ics', content: Buffer.from(args.ics).toString('base64') }] }
+      : {}),
+    html: `
+      <p>Hi ${escapeHtml(args.recipientName)},</p>
+      <p>${
+        isResident
+          ? `Your car wash at <strong>${escapeHtml(args.buildingName)}</strong> has been moved. It's the same booking at a new time — the price and any extras carry over.`
+          : `A resident at <strong>${escapeHtml(args.buildingName)}</strong> moved their wash to a new time.`
+      }</p>
+      <table style="border-collapse:collapse;width:100%;max-width:400px;margin:16px 0">
+        ${args.counterpartyName ? row(isResident ? 'Operator' : 'Resident', args.counterpartyName) : ''}
+        ${args.vehicleDescription ? row('Vehicle', args.vehicleDescription) : ''}
+        <tr><td style="padding:8px 0;color:#666">Was</td><td style="padding:8px 0;color:#666;text-decoration:line-through">${escapeHtml(slot(args.previousScheduledFor, args.previousTimeSlot))}</td></tr>
+        ${row('Now', slot(args.scheduledFor, args.timeSlot))}
+      </table>
+      ${steps}
+      <p style="margin-top:24px"><a href="${APP_URL}${
+        isResident ? '/resident/bookings' : '/operator/bookings'
+      }" style="display:inline-block;padding:12px 18px;border-radius:8px;background:#00ff88;color:#000;font-weight:600;text-decoration:none">View booking</a></p>
+      <p style="color:#666;font-size:13px">The calendar invite attached to this email replaces the old event.</p>
+    `,
+  });
+}
+
 export async function sendWashComplete(args: {
   to: string;
   residentName: string;
