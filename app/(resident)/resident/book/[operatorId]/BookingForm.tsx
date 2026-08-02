@@ -656,7 +656,7 @@ export function BookingForm({
                   onChange={(e) => setAgreeWaiver(e.target.checked)}
                 />
                 <span className="text-xs text-ink-300">
-                  I get that an independent operator performs this service, that my building and Lavo
+                  I understand that an independent operator performs this service, that my building and Lavo
                   are not liable for vehicle damage, and that the operator may enter the garage or lot
                   to reach my car.
                 </span>
