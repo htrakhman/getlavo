@@ -7,6 +7,7 @@ import {
   type BookingCalendarDetails,
 } from '@/lib/booking-calendar';
 import { notify } from '@/lib/notify';
+import { normalizeNotificationEmails } from '@/lib/notification-emails';
 import { settleBookingAddonOrders } from '@/lib/addons';
 
 /**
@@ -41,7 +42,7 @@ export async function confirmPaidBookingAndNotify(
     .from('bookings')
     .select(`
         id, scheduled_for, time_slot, gross_cents, wash_day_id, resident_id, vehicle_id,
-        resident:residents(spot_label, profile_id, vehicle_access_notes, profile:profiles(email, full_name)),
+        resident:residents(spot_label, profile_id, vehicle_access_notes, profile:profiles(email, full_name, notification_emails)),
         operator:operators(name, owner_id, profiles:profiles!operators_owner_id_fkey(email, full_name)),
         building:buildings(name, address_line1, city, region),
         vehicle:vehicles(make, model, color)
@@ -134,6 +135,9 @@ export async function confirmPaidBookingAndNotify(
     });
     await sendBookingConfirmation({
       to: resident.email,
+      // Extras are copied rather than addressed: the ICS invite belongs to the
+      // resident, and a second ATTENDEE would make it a different invite.
+      cc: normalizeNotificationEmails(resident.notification_emails, resident.email),
       residentName: resident.full_name,
       operatorName: operator?.name ?? '',
       buildingName: building?.name ?? '',

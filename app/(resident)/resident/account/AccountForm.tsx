@@ -1,12 +1,11 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { MAX_NOTIFICATION_EMAILS, isValidEmail } from '@/lib/notification-emails';
 
 type Prefs = {
   email_reminder: boolean;
-  sms_reminder: boolean;
   email_complete: boolean;
-  sms_complete: boolean;
 };
 
 export function AccountForm({ profile, residentId, prefs }: {
@@ -17,6 +16,7 @@ export function AccountForm({ profile, residentId, prefs }: {
   const router = useRouter();
   const [name, setName] = useState(profile?.full_name ?? '');
   const [phone, setPhone] = useState(profile?.phone ?? '');
+  const [extraEmails, setExtraEmails] = useState<string[]>(profile?.notification_emails ?? []);
   const [p, setP] = useState<Prefs>(prefs);
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -24,6 +24,12 @@ export function AccountForm({ profile, residentId, prefs }: {
   const [resetStatus, setResetStatus] = useState<'idle' | 'sending' | 'sent' | string>('idle');
 
   async function save() {
+    const cleaned = extraEmails.map((e) => e.trim()).filter(Boolean);
+    const bad = cleaned.find((e) => !isValidEmail(e));
+    if (bad) {
+      setErr(`"${bad}" is not a valid email address`);
+      return;
+    }
     setBusy(true);
     setErr(null);
     // Saved through a server route: direct browser writes are RLS-scoped and
@@ -34,6 +40,7 @@ export function AccountForm({ profile, residentId, prefs }: {
       body: JSON.stringify({
         fullName: name,
         phone: phone || null,
+        notificationEmails: cleaned,
         notificationPreferences: residentId ? p : undefined,
       }),
     }).catch(() => null);
@@ -81,8 +88,9 @@ export function AccountForm({ profile, residentId, prefs }: {
             <p className="mt-1 text-xs text-ink-500">Contact support to change your email.</p>
           </div>
           <div>
-            <label className="label">Phone (for SMS reminders)</label>
+            <label className="label">Phone</label>
             <input className="field" placeholder="+1 555 123 4567" value={phone} onChange={(e) => setPhone(e.target.value)} />
+            <p className="mt-1 text-xs text-ink-500">So your operator can reach you about your car on wash day.</p>
           </div>
           <button onClick={changePassword} disabled={resetStatus === 'sending'} className="btn-quiet text-sm">
             {resetStatus === 'sending' ? 'Sending…' : 'Send password reset email'}
@@ -99,11 +107,51 @@ export function AccountForm({ profile, residentId, prefs }: {
       <div className="card p-6">
         <h3 className="font-display text-lg mb-4">Notifications</h3>
         <div className="space-y-3">
-          <Toggle label="Email me wash reminders" checked={p.email_reminder} onChange={() => toggle('email_reminder')} />
-          <Toggle label="Text me wash reminders" checked={p.sms_reminder} onChange={() => toggle('sms_reminder')} disabled={!phone} />
-          <Toggle label="Email me when my car is done" checked={p.email_complete} onChange={() => toggle('email_complete')} />
-          <Toggle label="Text me when my car is done" checked={p.sms_complete} onChange={() => toggle('sms_complete')} disabled={!phone} />
-          {!phone && <p className="text-xs text-ink-500">Add a phone number to enable SMS.</p>}
+          <Toggle label="Email me the day before my building's wash day" checked={p.email_reminder} onChange={() => toggle('email_reminder')} />
+          <Toggle label="Email me when the operator finishes my car" checked={p.email_complete} onChange={() => toggle('email_complete')} />
+          <p className="text-xs text-ink-500">
+            Booking confirmations, schedule changes and payment problems always send — those aren't optional.
+          </p>
+        </div>
+
+        <div className="mt-6 border-t border-white/5 pt-5">
+          <h4 className="text-sm font-medium">Also email</h4>
+          <p className="mt-1 text-xs text-ink-500">
+            Copy up to {MAX_NOTIFICATION_EMAILS} more addresses on everything above — a partner who shares the car, or a
+            second manager. They receive copies only; they can't sign in to this account.
+          </p>
+          <div className="mt-3 space-y-2">
+            {extraEmails.map((email, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <input
+                  className="field"
+                  type="email"
+                  placeholder="name@example.com"
+                  value={email}
+                  onChange={(e) =>
+                    setExtraEmails((prev) => prev.map((v, idx) => (idx === i ? e.target.value : v)))
+                  }
+                />
+                <button
+                  type="button"
+                  onClick={() => setExtraEmails((prev) => prev.filter((_, idx) => idx !== i))}
+                  aria-label={`Remove ${email || 'email'}`}
+                  className="btn-quiet px-3 text-sm text-red-500"
+                >
+                  Remove
+                </button>
+              </div>
+            ))}
+          </div>
+          {extraEmails.length < MAX_NOTIFICATION_EMAILS && (
+            <button
+              type="button"
+              onClick={() => setExtraEmails((prev) => [...prev, ''])}
+              className="btn-quiet mt-3 text-sm"
+            >
+              + Add another email
+            </button>
+          )}
         </div>
       </div>
 
@@ -167,11 +215,11 @@ function DataPanel() {
   );
 }
 
-function Toggle({ label, checked, onChange, disabled }: { label: string; checked: boolean; onChange: () => void; disabled?: boolean }) {
+function Toggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: () => void }) {
   return (
-    <label className={`flex cursor-pointer items-center justify-between rounded-lg border border-white/5 px-3 py-3 ${disabled ? 'opacity-50' : 'hover:bg-white/5'}`}>
+    <label className="flex cursor-pointer items-center justify-between rounded-lg border border-white/5 px-3 py-3 hover:bg-white/5">
       <span className="text-sm">{label}</span>
-      <input type="checkbox" disabled={disabled} checked={checked} onChange={onChange} className="h-4 w-4 accent-gleam" />
+      <input type="checkbox" checked={checked} onChange={onChange} className="h-4 w-4 accent-gleam" />
     </label>
   );
 }

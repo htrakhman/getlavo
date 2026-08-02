@@ -13,7 +13,7 @@ export default async function AccountPage() {
 
   const { data: profile } = await admin
     .from('profiles')
-    .select('id, full_name, email, phone')
+    .select('id, full_name, email, phone, notification_emails')
     .eq('id', session.user.id)
     .maybeSingle();
 
@@ -29,9 +29,9 @@ export default async function AccountPage() {
       <AccountForm
         profile={profile}
         residentId={resident?.id ?? null}
-        prefs={resident?.notification_preferences ?? {
-          email_reminder: true, sms_reminder: true,
-          email_complete: true, sms_complete: true,
+        prefs={{
+          email_reminder: resident?.notification_preferences?.email_reminder ?? true,
+          email_complete: resident?.notification_preferences?.email_complete ?? true,
         }}
       />
     </>

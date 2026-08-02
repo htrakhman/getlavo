@@ -14,6 +14,8 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
 export async function sendBookingConfirmation(args: {
   to: string;
+  /** Extra notification addresses on the account (lib/notification-emails). */
+  cc?: string[];
   residentName: string;
   operatorName: string;
   buildingName: string;
@@ -40,6 +42,7 @@ export async function sendBookingConfirmation(args: {
   return client().emails.send({
     from: FROM,
     to: args.to,
+    ...(args.cc?.length ? { cc: args.cc } : {}),
     subject: `Your wash is booked — ${args.scheduledFor}`,
     ...(args.ics
       ? { attachments: [{ filename: 'lavo-wash.ics', content: Buffer.from(args.ics).toString('base64') }] }

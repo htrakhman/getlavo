@@ -25,21 +25,51 @@ export async function POST(req: Request) {
 
   let sent = 0;
   for (const d of days ?? []) {
-    const { data: residents } = await sb
+    // Two audiences, because either one alone misses real people:
+    //   - the roster for tomorrow (washes rows), which is what the crew will
+    //     actually work through. A one-off booking creates a roster row and no
+    //     subscription, so filtering on is_subscribed skipped every one of them
+    //     — this job reported "sent: 0" on every run for months.
+    //   - subscribed residents, who are on the recurring plan and may not have
+    //     an explicit booking for the day.
+    const { data: roster } = await sb
+      .from('washes')
+      .select('resident_id')
+      .eq('wash_day_id', d.id)
+      .in('status', ['scheduled', 'in_progress']);
+
+    const { data: subscribed } = await sb
       .from('residents')
-      .select('id, profile_id')
+      .select('id')
       .eq('building_id', d.building_id)
-      .eq('is_subscribed', true);
+      .eq('is_subscribed', true)
+      .eq('active', true);
+
+    const residentIds = new Set<string>();
+    for (const w of roster ?? []) if (w.resident_id) residentIds.add(w.resident_id);
+    for (const r of subscribed ?? []) residentIds.add(r.id);
+    if (!residentIds.size) continue;
 
     const { data: skips } = await sb
       .from('wash_skips')
       .select('resident_id')
       .eq('wash_day_id', d.id);
-    const skippedIds = new Set((skips ?? []).map((s) => s.resident_id));
+    for (const s of skips ?? []) residentIds.delete(s.resident_id);
+    if (!residentIds.size) continue;
+
+    // One email per resident even when they booked twice for the same day.
+    const { data: residents } = await sb
+      .from('residents')
+      .select('id, profile_id')
+      .in('id', [...residentIds]);
 
     for (const r of residents ?? []) {
-      if (skippedIds.has(r.id)) continue;
-      await notify(r.profile_id, 'wash_reminder', { buildingName: (d.building as any)?.name });
+      if (!r.profile_id) continue;
+      await notify(r.profile_id, 'wash_reminder', {
+        buildingName: (d.building as any)?.name,
+        link: '/resident/bookings',
+        cta: 'View your wash',
+      });
       sent++;
     }
   }
