@@ -53,6 +53,6 @@ app/
 ## Next milestones (not in this scaffold)
 - Stripe Connect operator onboarding flow + webhook to mark `addon_orders.paid_at`
 - Cron job to auto-generate `wash_days` from contract `wash_frequency_days`
-- Email/SMS notifications on `wash complete` (Supabase function + Resend/Twilio)
+- SMS notifications. The Twilio code paths exist (`lib/notify.ts`, `/api/sms/inbound`, `sms_optouts`) but no credentials are configured, so nothing sends and the account page offers email only. To turn SMS on: set `TWILIO_*`, point the Twilio number's inbound webhook at `/api/sms/inbound`, verify its signature, and restore the SMS toggles in `AccountForm`. Email notifications on `wash complete` are live via Resend.
 - Photo upload to Supabase Storage from crew tool
 - Admin portal for operator approval queue

@@ -1,5 +1,6 @@
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { wrapEmail, paragraph, button, escape as esc } from '@/lib/email/template';
+import { notificationRecipients } from '@/lib/notification-emails';
 
 type NotificationType =
   | 'booking_confirmed'
@@ -32,7 +33,11 @@ export async function notify(
   opts: { skipEmail?: boolean } = {},
 ) {
   const sb = supabaseAdmin();
-  const { data: profile } = await sb.from('profiles').select('email, phone, full_name').eq('id', profileId).maybeSingle();
+  const { data: profile } = await sb
+    .from('profiles')
+    .select('email, phone, full_name, notification_emails')
+    .eq('id', profileId)
+    .maybeSingle();
   if (!profile) return;
 
   const { data: resident } = await sb
@@ -86,7 +91,9 @@ export async function notify(
       ].join('');
       await resend.emails.send({
         from: process.env.RESEND_FROM_EMAIL || 'Lavo <hello@getlavo.io>',
-        to: profile.email,
+        // Primary address plus any extras the account added, so a partner or a
+        // second manager sees the same notification.
+        to: notificationRecipients(profile),
         subject: titles[type],
         html: wrapEmail({ preheader: body, content: inner }),
       });
