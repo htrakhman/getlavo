@@ -186,21 +186,6 @@ export default async function Home({
         </div>
       </section>
 
-      <section className="relative mx-auto max-w-6xl px-6 py-12">
-        <div className="rounded-2xl border border-sky-200 bg-sky-50 p-7 text-left shadow-card md:flex md:items-center md:gap-12 md:p-9">
-          <div className="md:w-2/5">
-            <div className="text-xs font-semibold uppercase tracking-widest text-sky-600">Coverage</div>
-            <p className="mt-3 font-display text-2xl font-bold leading-tight text-ink-100 md:text-3xl">
-              Live in New Jersey, expanding to new cities
-            </p>
-          </div>
-          <p className="mt-4 text-sm leading-relaxed text-ink-300 md:mt-0 md:flex-1 md:text-base">
-            We serve buildings across New Jersey today and are onboarding new markets. If your building is not
-            live yet, signing up helps us bring an operator to your area.
-          </p>
-        </div>
-      </section>
-
       <FourStepGrid
         variant="accent"
         title="How it works"
