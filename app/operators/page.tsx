@@ -115,18 +115,18 @@ export default function OperatorsPage() {
       <section className="mx-auto max-w-5xl px-6 py-20">
         <div className="text-center mb-12">
           <h2 className="font-display text-4xl">The math works</h2>
-          <p className="mt-3 text-ink-300">Lavo takes 10% of each booking plus card processing. You keep the rest — transferred automatically.</p>
+          <p className="mt-3 text-ink-300">You set your own rates. Residents pay in the app, and your earnings transfer automatically.</p>
         </div>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           <div className="card p-6 text-center">
             <div className="font-display text-4xl text-gleam">$35</div>
-            <div className="mt-2 text-sm text-ink-400">resident pays (building day)</div>
-            <div className="mt-3 text-xs text-ink-500">Your payout: ~$30.18</div>
+            <div className="mt-2 text-sm text-ink-400">per wash (building day)</div>
+            <div className="mt-3 text-xs text-ink-500">Batch work at one address</div>
           </div>
           <div className="card p-6 text-center">
             <div className="font-display text-4xl">$45</div>
-            <div className="mt-2 text-sm text-ink-400">resident pays (on-demand)</div>
-            <div className="mt-3 text-xs text-ink-500">Your payout: ~$38.89</div>
+            <div className="mt-2 text-sm text-ink-400">per wash (on-demand)</div>
+            <div className="mt-3 text-xs text-ink-500">Fills your calendar between visits</div>
           </div>
           <div className="card p-6 text-center">
             <div className="font-display text-4xl">$12k+</div>
@@ -135,7 +135,7 @@ export default function OperatorsPage() {
           </div>
         </div>
         <p className="mt-6 text-center text-xs text-ink-500">
-          Example pricing. You set your own rates. Lavo take rate is 10% per booking, plus card processing of 2.9% + 30¢.
+          Example pricing. You set your own rates. No subscription, no lead fees, nothing up front.
         </p>
       </section>
 
@@ -151,7 +151,7 @@ export default function OperatorsPage() {
             ['Get discovered', 'Approved operators appear in building marketplaces within your service radius. Buildings send you partnership requests.'],
             ['Accept partnerships', 'Review requests from nearby buildings and accept the ones you want. Each active partnership brings you a steady pipeline of local demand.'],
             ['Run wash days and take bookings', 'Scheduled building wash days (cheaper for residents) give you predictable batch work. On-demand slots fill your calendar between visits.'],
-            ['Get paid', 'Every confirmed booking triggers an automatic payout to your bank account. See your gross, fee, and net in your earnings dashboard.'],
+            ['Get paid', 'Every confirmed booking triggers an automatic payout to your bank account. Track every wash and payout in your earnings dashboard.'],
           ].map(([title, body], i) => (
             <li key={String(title)} className="flex gap-6 items-start">
               <span className="shrink-0 flex items-center justify-center w-10 h-10 rounded-full bg-gleam/10 border border-gleam/30 font-display text-lg text-gleam">
@@ -171,9 +171,9 @@ export default function OperatorsPage() {
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           {[
             ['Crew tool', 'Run wash days from your phone. Each vehicle row shows the resident, spot label, make/model/color, and plate. Mark done or flag in one tap.'],
-            ['Earnings dashboard', 'See gross revenue, Lavo fee, and your net payout per period. Full transaction history at a glance.'],
+            ['Earnings dashboard', 'See your revenue and payouts per period. Full transaction history at a glance.'],
             ['Radius matching', 'Set your service area in miles. Lavo only shows you to buildings inside your radius — no wasted lead chasing.'],
-            ['Add-on revenue', 'Offer residents extras like interior detail, wax, or tire shine. Billed separately via Stripe. You keep the proceeds minus the platform fee.'],
+            ['Add-on revenue', 'Offer residents extras like interior detail, wax, or tire shine. Billed automatically through Stripe alongside the wash.'],
           ].map(([title, body]) => (
             <div key={String(title)} className="card p-6">
               <h3 className="font-display text-xl mb-2">{title}</h3>
