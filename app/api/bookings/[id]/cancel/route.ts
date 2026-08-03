@@ -4,11 +4,8 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
 import { notifyCancelled } from '@/lib/booking-cancel';
 import { notifyRefunded } from '@/lib/refund';
 import { refundBookingPayment } from '@/lib/stripe/refund-booking';
-import {
-  CANCELLATION_CUTOFF_HOURS,
-  formatInZone,
-  refundEligibility,
-} from '@/lib/cancellation-policy';
+import { CANCELLATION_CUTOFF_HOURS, refundEligibility } from '@/lib/cancellation-policy';
+import { formatInZone } from '@/lib/wash-time';
 import { audit } from '@/lib/audit';
 
 /**
