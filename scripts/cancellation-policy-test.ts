@@ -13,13 +13,15 @@
  * wall clock, not a fixed UTC offset, so a naive `date + "T13:00Z"` puts the
  * deadline an hour off for half the year — which is an hour of refunds given
  * away, or refused, on exactly the bookings nobody is watching.
+ *
+ * Slot parsing itself is shared with the calendar invites and guarded in
+ * scripts/wash-time-test.ts.
  */
 
 import {
   CANCELLATION_CUTOFF_HOURS,
   bookingStartsAt,
   cancellationNotice,
-  parseSlotHour,
   refundEligibility,
 } from '../lib/cancellation-policy';
 
@@ -33,18 +35,6 @@ function check(name: string, cond: boolean) {
 function eq(name: string, actual: unknown, expected: unknown) {
   check(`${name} (got ${String(actual)}, want ${String(expected)})`, actual === expected);
 }
-
-// ── Slot parsing ────────────────────────────────────────────────────────────
-eq('1:00 PM → 13h', String(parseSlotHour('1:00 PM')), '13,0');
-eq('12:00 PM is noon', String(parseSlotHour('12:00 PM')), '12,0');
-eq('12:00 AM is midnight', String(parseSlotHour('12:00 AM')), '0,0');
-eq('8:00 AM → 8h', String(parseSlotHour('8:00 AM')), '8,0');
-eq('lowercase am parses', String(parseSlotHour('9:30 am')), '9,30');
-eq('24-hour rows still parse', String(parseSlotHour('13:00')), '13,0');
-eq('empty slot is null', parseSlotHour(''), null);
-eq('null slot is null', parseSlotHour(null), null);
-eq('garbage is null', parseSlotHour('sometime'), null);
-eq('13:00 PM is not a time', parseSlotHour('13:00 PM'), null);
 
 // ── Wall clock → instant, across DST ────────────────────────────────────────
 // Aug 7 2026 is EDT (UTC-4): 1:00 PM local is 17:00Z.

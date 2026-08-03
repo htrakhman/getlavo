@@ -1,11 +1,8 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-  CANCELLATION_CUTOFF_HOURS,
-  formatInZone,
-  refundEligibility,
-} from '@/lib/cancellation-policy';
+import { CANCELLATION_CUTOFF_HOURS, refundEligibility } from '@/lib/cancellation-policy';
+import { formatInZone } from '@/lib/wash-time';
 
 /**
  * Cancelling a wash, with the refund stated before the money moves.

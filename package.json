@@ -24,6 +24,7 @@
     "validate:notification-emails": "tsx --tsconfig tsconfig.scripts.json scripts/notification-emails-test.ts",
     "validate:notification-copy-delivery": "tsx --tsconfig tsconfig.scripts.json scripts/notification-copy-delivery-test.ts",
     "validate:wash-history": "tsx --tsconfig tsconfig.scripts.json scripts/wash-history-test.ts",
+    "validate:wash-time": "tsx --tsconfig tsconfig.scripts.json scripts/wash-time-test.ts",
     "validate:cancellation-policy": "tsx --tsconfig tsconfig.scripts.json scripts/cancellation-policy-test.ts",
     "validate:refund-notice": "tsx --tsconfig tsconfig.scripts.json scripts/refund-notice-test.ts",
     "db:push": "supabase db push"

@@ -1,9 +1,15 @@
 /**
  * Calendar-invite helpers for wash bookings. All wash events are in the
  * building's local timezone (the platform operates in New Jersey).
+ *
+ * The timezone and the slot parsing come from lib/wash-time.ts, shared with the
+ * refund window: an invite that reads a booking's hour differently from the
+ * cancellation deadline is two answers to one question.
  */
 
-const TZ = 'America/New_York';
+import { WASH_TZ, parseSlotHour } from '@/lib/wash-time';
+
+const TZ = WASH_TZ;
 const DEFAULT_DURATION_MINS = 60;
 
 export type CalendarPerson = {
@@ -35,15 +41,6 @@ export type WashEvent = {
 
 function icsEscape(s: string) {
   return s.replace(/\\/g, '\\\\').replace(/\n/g, '\\n').replace(/,/g, '\\,').replace(/;/g, '\\;');
-}
-
-/** "9:00 AM" → [9, 0]; null when unparseable. */
-export function parseTimeSlot(time: string | null | undefined): [number, number] | null {
-  const m = /^(\d{1,2}):(\d{2})\s*(AM|PM)$/i.exec((time ?? '').trim());
-  if (!m) return null;
-  let h = parseInt(m[1], 10) % 12;
-  if (m[3].toUpperCase() === 'PM') h += 12;
-  return [h, parseInt(m[2], 10)];
 }
 
 function pad(n: number) {
@@ -99,7 +96,7 @@ export type IcsMethod = 'PUBLISH' | 'REQUEST' | 'CANCEL';
 /** Builds a VCALENDAR string. */
 export function buildIcs(event: WashEvent, opts: { method?: IcsMethod } = {}): string {
   const method = opts.method ?? 'PUBLISH';
-  const parsed = parseTimeSlot(event.time);
+  const parsed = parseSlotHour(event.time);
   const duration = event.durationMins ?? DEFAULT_DURATION_MINS;
   const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
 
@@ -140,7 +137,7 @@ export function buildIcs(event: WashEvent, opts: { method?: IcsMethod } = {}): s
 
 /** "Add to Google Calendar" deep link for the same event. */
 export function googleCalendarUrl(event: WashEvent): string {
-  const parsed = parseTimeSlot(event.time);
+  const parsed = parseSlotHour(event.time);
   const duration = event.durationMins ?? DEFAULT_DURATION_MINS;
   let dates: string;
   if (parsed) {
