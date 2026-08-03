@@ -6,6 +6,7 @@ const NAV = [
   { href: '/admin', label: 'Overview' },
   { href: '/admin/search', label: 'Search' },
   { href: '/admin/building-requests', label: 'Building funnel' },
+  { href: '/admin/waitlist-demand', label: 'Building demand' },
   { href: '/admin/operators', label: 'Operators' },
   { href: '/admin/insurance', label: 'Insurance' },
   { href: '/admin/wash-days', label: 'Wash days' },

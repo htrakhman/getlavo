@@ -9,6 +9,8 @@
     "lint": "next lint",
     "validate:nj-cities": "tsx scripts/nj-cities-slug-test.ts && tsx scripts/nj-cities-validate.ts",
     "validate:seo-foundation": "tsx --tsconfig tsconfig.scripts.json scripts/seo-foundation-test.ts",
+    "validate:address-normalize": "tsx --tsconfig tsconfig.scripts.json scripts/address-normalize-test.ts",
+    "validate:waitlist-demand": "tsx --tsconfig tsconfig.scripts.json scripts/waitlist-demand-test.ts",
     "validate:reset-url": "tsx scripts/reset-url-test.ts",
     "validate:governing-law": "tsx scripts/governing-law-test.ts",
     "validate:public-data": "tsx --tsconfig tsconfig.scripts.json scripts/public-data-filter-test.ts",
