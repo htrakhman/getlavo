@@ -36,15 +36,23 @@ export function normalizeNotificationEmails(
 }
 
 /**
- * Every address that should receive a notification for this profile:
- * the primary first, then the extras. Empty when there is no primary —
- * extras are copies of a resident's mail, not a standalone destination.
+ * The addresses that get a *copy* of this profile's notifications — the extras
+ * only, never the primary.
+ *
+ * Empty when there is no primary address: extras are copies of a resident's
+ * mail, not a standalone destination, and mailing them alone would leak a
+ * resident's wash schedule to a third party the account no longer belongs to.
+ *
+ * Deliberately not "primary plus extras in one list". Addressing them together
+ * makes one message with one delivery outcome, so a primary address the mail
+ * provider refuses takes the copies down with it. The two go out as two
+ * messages — see `sendWithCopies` in lib/email/resend.ts.
  */
-export function notificationRecipients(profile: {
+export function notificationCopies(profile: {
   email?: string | null;
   notification_emails?: string[] | null;
 }): string[] {
   const primary = profile.email?.trim();
   if (!primary) return [];
-  return [primary, ...normalizeNotificationEmails(profile.notification_emails, primary)];
+  return normalizeNotificationEmails(profile.notification_emails, primary);
 }

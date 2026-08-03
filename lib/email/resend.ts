@@ -1,4 +1,5 @@
 import { Resend } from 'resend';
+import { logError } from '@/lib/error-log';
 
 let cached: Resend | null = null;
 function client() {
@@ -12,10 +13,68 @@ function client() {
 const FROM = process.env.RESEND_FROM_EMAIL || 'Lavo <hello@getlavo.io>';
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
+type EmailPayload = Parameters<Resend['emails']['send']>[0];
+
+/**
+ * One message.
+ *
+ * `emails.send` resolves with `{ data, error }` instead of rejecting, so a
+ * refused send used to slip past every `.catch()` wrapped around these
+ * functions: no thrown error, no log line, no email, nothing to find
+ * afterwards. Turn the error field back into a thrown error so those handlers
+ * actually run.
+ */
+async function sendOne(payload: EmailPayload) {
+  const { data, error } = await client().emails.send(payload);
+  if (error) throw new Error(`${error.name ?? 'resend_error'}: ${error.message}`);
+  return data;
+}
+
+/**
+ * Send to the account's primary address, and send the extra notification
+ * addresses (lib/notification-emails) their own copy.
+ *
+ * The copies used to ride along as `cc` on the primary's message, which made
+ * them hostage to it: one message is one delivery outcome, so a primary address
+ * the provider refuses — bounced, suppressed, undeliverable — silently takes
+ * the copies with it, and the partner added precisely so they'd hear about the
+ * wash hears nothing. Two messages fail independently.
+ *
+ * A failed copy is logged, not rethrown: the resident got their email, and
+ * reporting that send as failed because a secondary address is bad is the worse
+ * trade.
+ */
+export async function sendWithCopies(payload: EmailPayload, copies?: readonly string[]) {
+  const jobs: Promise<unknown>[] = [sendOne(payload)];
+  if (copies?.length) jobs.push(sendOne({ ...payload, to: [...copies] }));
+  const [primary, copy] = await Promise.allSettled(jobs);
+
+  if (copy?.status === 'rejected') {
+    void logError({
+      source: 'email.copies',
+      message: reasonText(copy.reason),
+      context: { subject: payload.subject, copies },
+    });
+  }
+  if (primary.status === 'rejected') {
+    void logError({
+      source: 'email',
+      message: reasonText(primary.reason),
+      context: { subject: payload.subject },
+    });
+    throw primary.reason;
+  }
+  return primary.value;
+}
+
+function reasonText(reason: unknown) {
+  return reason instanceof Error ? reason.message : String(reason);
+}
+
 export async function sendBookingConfirmation(args: {
   to: string;
   /** Extra notification addresses on the account (lib/notification-emails). */
-  cc?: string[];
+  copies?: string[];
   residentName: string;
   operatorName: string;
   buildingName: string;
@@ -39,10 +98,9 @@ export async function sendBookingConfirmation(args: {
         ${args.nextSteps.map((s) => `<li style="margin:6px 0">${escapeHtml(s)}</li>`).join('')}
       </ol>`
     : '';
-  return client().emails.send({
+  return sendWithCopies({
     from: FROM,
     to: args.to,
-    ...(args.cc?.length ? { cc: args.cc } : {}),
     subject: `Your wash is booked — ${args.scheduledFor}`,
     ...(args.ics
       ? { attachments: [{ filename: 'lavo-wash.ics', content: Buffer.from(args.ics).toString('base64') }] }
@@ -60,7 +118,7 @@ export async function sendBookingConfirmation(args: {
       <p style="margin-top:24px"><a href="${APP_URL}/resident/bookings" style="display:inline-block;padding:12px 18px;border-radius:8px;background:#00ff88;color:#000;font-weight:600;text-decoration:none">View booking</a></p>
       <p style="color:#666;font-size:13px">The calendar invite attached to this email adds the wash to your calendar.</p>
     `,
-  });
+  }, args.copies);
 }
 
 export async function sendBookingNotification(args: {
@@ -81,7 +139,7 @@ export async function sendBookingNotification(args: {
   const net = (args.netCents / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
   const row = (label: string, value: string) =>
     `<tr><td style="padding:8px 0;color:#666">${label}</td><td style="padding:8px 0;font-weight:600">${escapeHtml(value)}</td></tr>`;
-  return client().emails.send({
+  return sendWithCopies({
     from: FROM,
     to: args.to,
     subject: `New booking — ${escapeHtml(args.buildingName)} on ${escapeHtml(args.scheduledFor)}`,
@@ -115,6 +173,8 @@ export async function sendBookingNotification(args: {
  */
 export async function sendBookingRescheduled(args: {
   to: string;
+  /** Extra notification addresses on the account (lib/notification-emails). */
+  copies?: string[];
   recipientName: string;
   audience: 'resident' | 'operator';
   buildingName: string;
@@ -139,7 +199,7 @@ export async function sendBookingRescheduled(args: {
         ${args.nextSteps.map((s) => `<li style="margin:6px 0">${escapeHtml(s)}</li>`).join('')}
       </ol>`
     : '';
-  return client().emails.send({
+  return sendWithCopies({
     from: FROM,
     to: args.to,
     subject: `Wash rescheduled — now ${args.scheduledFor}`,
@@ -165,16 +225,18 @@ export async function sendBookingRescheduled(args: {
       }" style="display:inline-block;padding:12px 18px;border-radius:8px;background:#00ff88;color:#000;font-weight:600;text-decoration:none">View booking</a></p>
       <p style="color:#666;font-size:13px">The calendar invite attached to this email replaces the old event.</p>
     `,
-  });
+  }, args.copies);
 }
 
 export async function sendWashComplete(args: {
   to: string;
+  /** Extra notification addresses on the account (lib/notification-emails). */
+  copies?: string[];
   residentName: string;
   operatorName: string;
   bookingId: string;
 }) {
-  return client().emails.send({
+  return sendWithCopies({
     from: FROM,
     to: args.to,
     subject: 'Your wash is done',
@@ -183,7 +245,7 @@ export async function sendWashComplete(args: {
       <p><strong>${escapeHtml(args.operatorName)}</strong> has completed your wash. Take a look and leave a quick review.</p>
       <p><a href="${APP_URL}/resident/history" style="display:inline-block;padding:12px 18px;border-radius:8px;background:#00ff88;color:#000;font-weight:600;text-decoration:none">View &amp; review</a></p>
     `,
-  });
+  }, args.copies);
 }
 
 /**
@@ -232,7 +294,7 @@ export async function sendPartnershipRequest(args: {
     ['Property manager', args.managerEmail ? `${args.managerName} (${args.managerEmail})` : args.managerName],
   ]);
 
-  return client().emails.send({
+  return sendWithCopies({
     from: FROM,
     to: args.to,
     ...(args.managerEmail ? { replyTo: args.managerEmail } : {}),
@@ -254,7 +316,7 @@ export async function sendPartnershipAccepted(args: {
   buildingName: string;
   operatorName: string;
 }) {
-  return client().emails.send({
+  return sendWithCopies({
     from: FROM,
     to: args.to,
     subject: `${escapeHtml(args.operatorName)} accepted your partnership request`,
@@ -274,7 +336,7 @@ export async function sendOperatorPartnershipInterest(args: {
   operatorName: string;
   partnershipId: string;
 }) {
-  return client().emails.send({
+  return sendWithCopies({
     from: FROM,
     to: args.to,
     subject: `${escapeHtml(args.operatorName)} wants to partner with ${escapeHtml(args.buildingName)}`,
@@ -293,7 +355,7 @@ export async function sendPartnershipAcceptedByManager(args: {
   buildingName: string;
   managerName: string;
 }) {
-  return client().emails.send({
+  return sendWithCopies({
     from: FROM,
     to: args.to,
     subject: `${escapeHtml(args.buildingName)} accepted your partnership request`,
@@ -321,7 +383,7 @@ export async function sendContractOffer(args: {
         content: Buffer.from(args.pdfBytes),
       }]
     : undefined;
-  return client().emails.send({
+  return sendWithCopies({
     from: FROM,
     to: args.to,
     subject: `${escapeHtml(args.operatorName)} sent you a service agreement for ${escapeHtml(args.buildingName)}`,
@@ -342,7 +404,7 @@ export async function sendBuildingDatesScheduled(args: {
   buildingName: string;
   dates: string[];
 }) {
-  return client().emails.send({
+  return sendWithCopies({
     from: FROM,
     to: args.to,
     subject: `${escapeHtml(args.buildingName)} scheduled wash days`,
@@ -373,7 +435,7 @@ export async function sendAdminNotification(args: {
     const href = args.action.url.startsWith('http') ? args.action.url : `${APP_URL}${args.action.url}`;
     button = `<p><a href="${escapeHtml(href)}" style="display:inline-block;padding:12px 18px;border-radius:8px;background:#00ff88;color:#000;font-weight:600;text-decoration:none">${escapeHtml(args.action.label)}</a></p>`;
   }
-  return client().emails.send({
+  return sendWithCopies({
     from: FROM,
     to: ADMIN_TO,
     replyTo: args.replyTo,

@@ -1,6 +1,6 @@
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { wrapEmail, paragraph, button, escape as esc } from '@/lib/email/template';
-import { notificationRecipients } from '@/lib/notification-emails';
+import { notificationCopies } from '@/lib/notification-emails';
 
 type NotificationType =
   | 'booking_confirmed'
@@ -80,8 +80,7 @@ export async function notify(
 
   if (process.env.RESEND_API_KEY && profile.email && allowEmail && !opts.skipEmail) {
     try {
-      const { Resend } = await import('resend');
-      const resend = new Resend(process.env.RESEND_API_KEY);
+      const { sendWithCopies } = await import('@/lib/email/resend');
       const greetName = profile.full_name?.split(' ')[0] ?? '';
       const link = data.link ?? null;
       const inner = [
@@ -89,14 +88,18 @@ export async function notify(
         paragraph(body),
         link ? button(linkAbsolute(link), data.cta ?? 'View in app') : '',
       ].join('');
-      await resend.emails.send({
-        from: process.env.RESEND_FROM_EMAIL || 'Lavo <hello@getlavo.io>',
-        // Primary address plus any extras the account added, so a partner or a
-        // second manager sees the same notification.
-        to: notificationRecipients(profile),
-        subject: titles[type],
-        html: wrapEmail({ preheader: body, content: inner }),
-      });
+      // The extras the account added get their own copy of this notification,
+      // sent separately so a primary address the provider refuses can't take
+      // the copies with it.
+      await sendWithCopies(
+        {
+          from: process.env.RESEND_FROM_EMAIL || 'Lavo <hello@getlavo.io>',
+          to: profile.email,
+          subject: titles[type],
+          html: wrapEmail({ preheader: body, content: inner }),
+        },
+        notificationCopies(profile),
+      );
     } catch (e) {
       console.error('email send failed:', e);
     }

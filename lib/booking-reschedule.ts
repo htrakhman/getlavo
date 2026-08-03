@@ -7,6 +7,7 @@ import {
   type BookingCalendarDetails,
 } from '@/lib/booking-calendar';
 import { notify } from '@/lib/notify';
+import { notificationCopies } from '@/lib/notification-emails';
 import { washDayForBooking } from '@/lib/wash-day-for-booking';
 
 export type RescheduleTarget = {
@@ -167,7 +168,7 @@ async function notifyRescheduled(
     .from('bookings')
     .select(`
         id, scheduled_for, time_slot, wash_day_id, resident_id, vehicle_id,
-        resident:residents(spot_label, profile_id, vehicle_access_notes, profile:profiles(email, full_name)),
+        resident:residents(spot_label, profile_id, vehicle_access_notes, profile:profiles(email, full_name, notification_emails)),
         operator:operators(name, owner_id, profiles:profiles!operators_owner_id_fkey(email, full_name)),
         building:buildings(name, address_line1, city, region),
         vehicle:vehicles(make, model, color)
@@ -220,6 +221,9 @@ async function notifyRescheduled(
     await sendBookingRescheduled({
       ...common,
       to: resident.email,
+      // "Schedule changes always send" on the account page covers the extras
+      // too — a partner who shares the car has to know the wash moved.
+      copies: notificationCopies(resident),
       recipientName: resident.full_name ?? 'there',
       audience: 'resident',
       counterpartyName: operator?.name ?? null,

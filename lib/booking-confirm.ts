@@ -7,7 +7,7 @@ import {
   type BookingCalendarDetails,
 } from '@/lib/booking-calendar';
 import { notify } from '@/lib/notify';
-import { normalizeNotificationEmails } from '@/lib/notification-emails';
+import { notificationCopies } from '@/lib/notification-emails';
 import { settleBookingAddonOrders } from '@/lib/addons';
 
 /**
@@ -135,9 +135,9 @@ export async function confirmPaidBookingAndNotify(
     });
     await sendBookingConfirmation({
       to: resident.email,
-      // Extras are copied rather than addressed: the ICS invite belongs to the
-      // resident, and a second ATTENDEE would make it a different invite.
-      cc: normalizeNotificationEmails(resident.notification_emails, resident.email),
+      // Extras get their own copy of this message. Same ICS: the invite belongs
+      // to the resident, and a second ATTENDEE would make it a different invite.
+      copies: notificationCopies(resident),
       residentName: resident.full_name,
       operatorName: operator?.name ?? '',
       buildingName: building?.name ?? '',
