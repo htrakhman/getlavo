@@ -135,15 +135,31 @@ type ArticleSchemaInput = {
   path: string;
   headline: string;
   description: string;
+  /**
+   * ISO dates. Optional on the builder so existing callers keep compiling;
+   * `AnswerFirstPage` always supplies `dateModified` from the same value it
+   * renders in the visible "Last updated" line.
+   */
+  datePublished?: string;
+  dateModified?: string;
 };
 
-export function articleSchema({ path, headline, description }: ArticleSchemaInput) {
-  return {
+export function articleSchema({
+  path,
+  headline,
+  description,
+  datePublished,
+  dateModified,
+}: ArticleSchemaInput) {
+  const url = `${SITE_ORIGIN}${path}`;
+  const schema: Record<string, unknown> = {
     '@context': 'https://schema.org',
     '@type': 'Article',
+    '@id': `${url}#article`,
     headline,
     description,
-    url: `${SITE_ORIGIN}${path}`,
+    url,
+    mainEntityOfPage: { '@id': `${url}#webpage` },
     author: {
       '@id': `${SITE_ORIGIN}/#organization`,
     },
@@ -151,12 +167,87 @@ export function articleSchema({ path, headline, description }: ArticleSchemaInpu
       '@id': `${SITE_ORIGIN}/#organization`,
     },
   };
+
+  if (datePublished) schema.datePublished = datePublished;
+  if (dateModified) schema.dateModified = dateModified;
+
+  return schema;
 }
 
-export function breadcrumbSchema(items: BreadcrumbItem[]) {
+type HowToStepInput = {
+  name: string;
+  text: string;
+  /** Anchor or absolute URL for the step, when it maps to a section on the page. */
+  path?: string;
+};
+
+type HowToSchemaInput = {
+  path: string;
+  name: string;
+  description: string;
+  steps: HowToStepInput[];
+  /** ISO 8601 duration, e.g. `PT5M`. */
+  totalTime?: string;
+  supply?: string[];
+  tool?: string[];
+};
+
+/**
+ * HowTo for procedural pages ("how to add a car wash amenity", "how to book").
+ *
+ * Steps are positional, so the order of the array is the order engines read.
+ */
+export function howToSchema({
+  path,
+  name,
+  description,
+  steps,
+  totalTime,
+  supply,
+  tool,
+}: HowToSchemaInput) {
+  const url = `${SITE_ORIGIN}${path}`;
+  const schema: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'HowTo',
+    '@id': `${url}#howto`,
+    name,
+    description,
+    step: steps.map((step, index) => {
+      const item: Record<string, unknown> = {
+        '@type': 'HowToStep',
+        position: index + 1,
+        name: step.name,
+        text: step.text,
+      };
+      if (step.path) {
+        item.url = step.path.startsWith('http') ? step.path : `${SITE_ORIGIN}${step.path}`;
+      }
+      return item;
+    }),
+  };
+
+  if (totalTime) schema.totalTime = totalTime;
+  if (supply?.length) {
+    schema.supply = supply.map((name) => ({ '@type': 'HowToSupply', name }));
+  }
+  if (tool?.length) {
+    schema.tool = tool.map((name) => ({ '@type': 'HowToTool', name }));
+  }
+
+  return schema;
+}
+
+/**
+ * @param path Canonical path of the host page. Supplying it sets the `@id`
+ *   that `webPageSchema` already points `breadcrumb` at — without it that
+ *   reference dangles.
+ */
+export function breadcrumbSchema(items: BreadcrumbItem[], path?: string) {
   return {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
+    ...(path ? { '@id': `${SITE_ORIGIN}${path}#breadcrumb` } : {}),
     itemListElement: items.map((item, index) => ({
       '@type': 'ListItem',
       position: index + 1,
@@ -170,11 +261,22 @@ type WebPageSchemaInput = {
   path: string;
   name: string;
   description: string;
+  datePublished?: string;
+  dateModified?: string;
+  /** Answer-first copy, mirrored into `description` when none is supplied. */
+  primaryAnswer?: string;
 };
 
-export function webPageSchema({ path, name, description }: WebPageSchemaInput) {
+export function webPageSchema({
+  path,
+  name,
+  description,
+  datePublished,
+  dateModified,
+  primaryAnswer,
+}: WebPageSchemaInput) {
   const url = `${SITE_ORIGIN}${path}`;
-  return {
+  const schema: Record<string, unknown> = {
     '@context': 'https://schema.org',
     '@type': 'WebPage',
     '@id': `${url}#webpage`,
@@ -185,6 +287,13 @@ export function webPageSchema({ path, name, description }: WebPageSchemaInput) {
     about: { '@id': `${SITE_ORIGIN}/#organization` },
     breadcrumb: { '@id': `${url}#breadcrumb` },
   };
+
+  if (datePublished) schema.datePublished = datePublished;
+  if (dateModified) schema.dateModified = dateModified;
+  // Marks the answer-first paragraph as the extractable summary of the page.
+  if (primaryAnswer) schema.abstract = primaryAnswer;
+
+  return schema;
 }
 
 type FaqItem = { question: string; answer: string };
@@ -225,6 +334,61 @@ export function localBusinessSchema({
       name: `${county} County`,
     };
   }
+  return schema;
+}
+
+type SiteLocalBusinessInput = {
+  /**
+   * Cities Lavo serves. Supplied by `getServedAreas()`, which reads Supabase —
+   * never a literal in page code, or the schema goes stale the moment a new
+   * city launches.
+   */
+  areaServed: { city: string; state: string; county?: string }[] | null;
+};
+
+/**
+ * The one sitewide LocalBusiness node.
+ *
+ * Shares the `#organization` `@id` used by `organizationSchema` so the two are
+ * a single entity in the graph rather than two businesses with the same name.
+ * `areaServed` is omitted entirely when the served-city query fails — see
+ * `lib/seo/served-areas.ts` for why an empty claim beats a stale one.
+ */
+export function siteLocalBusinessSchema({ areaServed }: SiteLocalBusinessInput) {
+  const schema: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'LocalBusiness',
+    '@id': `${SITE_ORIGIN}/#organization`,
+    name: 'Lavo',
+    url: `${SITE_ORIGIN}/`,
+    logo: `${SITE_ORIGIN}/lavo-mark.png`,
+    image: `${SITE_ORIGIN}/lavo-mark.png`,
+    description:
+      'Lavo connects apartment residents, property managers, and vetted mobile car wash operators so residents can book car washes without leaving home.',
+    email: 'hello@getlavo.io',
+    priceRange: '$$',
+  };
+
+  if (areaServed?.length) {
+    schema.areaServed = areaServed.map((area) => {
+      const place: Record<string, unknown> = {
+        '@type': 'City',
+        name: area.city,
+        containedInPlace: {
+          '@type': 'State',
+          name: area.state,
+        },
+      };
+      if (area.county) {
+        (place.containedInPlace as Record<string, unknown>).containedInPlace = {
+          '@type': 'AdministrativeArea',
+          name: `${area.county} County`,
+        };
+      }
+      return place;
+    });
+  }
+
   return schema;
 }
 
