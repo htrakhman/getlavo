@@ -4,12 +4,35 @@ import { RelatedLinks } from '@/components/marketing/RelatedLinks';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { breadcrumbSchema, faqPageSchema, serviceSchema } from '@/lib/seo/schema';
 import { createPageMetadata } from '@/lib/seo/site';
+import { resolveSplit } from '@/lib/stripe/connect-split';
 
 export const metadata = createPageMetadata({
   path: '/operators',
   title: 'Recurring Mobile Car Wash Demand for Operators | Lavo',
   description:
     'Lavo helps mobile car wash operators get recurring apartment building demand with scheduled wash days, resident bookings, and automatic payouts.',
+});
+
+/**
+ * The two worked examples under "The math works", priced at detail tickets
+ * rather than single washes. An operator sizing up Lavo is weighing their whole
+ * book of business, and the fee on a $35 wash tells them nothing about what a
+ * $500 ceramic package costs them to run through the platform.
+ *
+ * Computed from the split checkout actually charges rather than typed in — the
+ * payouts here used to be hardcoded strings, which is a promise that silently
+ * goes stale the first time the take rate or the processing estimate moves.
+ */
+const PAYOUT_EXAMPLES = [
+  { grossCents: 15000, label: 'resident pays (full detail)' },
+  { grossCents: 50000, label: 'resident pays (ceramic package)' },
+].map(({ grossCents, label }) => {
+  const split = resolveSplit(grossCents);
+  return {
+    label,
+    price: `$${Math.round(split.grossCents / 100)}`,
+    payout: `$${(split.netCents / 100).toFixed(2)}`,
+  };
 });
 
 const OPERATORS_RELATED = [
@@ -118,16 +141,13 @@ export default function OperatorsPage() {
           <p className="mt-3 text-ink-300">Lavo takes 10% of each booking plus card processing. You keep the rest — transferred automatically.</p>
         </div>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-          <div className="card p-6 text-center">
-            <div className="font-display text-4xl text-gleam">$35</div>
-            <div className="mt-2 text-sm text-ink-400">resident pays (building day)</div>
-            <div className="mt-3 text-xs text-ink-500">Your payout: ~$30.18</div>
-          </div>
-          <div className="card p-6 text-center">
-            <div className="font-display text-4xl">$45</div>
-            <div className="mt-2 text-sm text-ink-400">resident pays (on-demand)</div>
-            <div className="mt-3 text-xs text-ink-500">Your payout: ~$38.89</div>
-          </div>
+          {PAYOUT_EXAMPLES.map((example, i) => (
+            <div key={example.label} className="card p-6 text-center">
+              <div className={`font-display text-4xl${i === 0 ? ' text-gleam' : ''}`}>{example.price}</div>
+              <div className="mt-2 text-sm text-ink-400">{example.label}</div>
+              <div className="mt-3 text-xs text-ink-500">Your payout: ~{example.payout}</div>
+            </div>
+          ))}
           <div className="card p-6 text-center">
             <div className="font-display text-4xl">$12k+</div>
             <div className="mt-2 text-sm text-ink-400">annual from 1 building</div>
