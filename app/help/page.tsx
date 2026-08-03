@@ -153,7 +153,7 @@ const HELP_CATEGORIES: HelpCategory[] = [
       {
         question: 'Can I offer add-on services?',
         answer:
-          'Yes. Offer extras such as interior detail, wax, or tire shine. They are billed through Stripe alongside the wash, and you keep the proceeds minus the platform fee.',
+          'Yes. Offer extras such as interior detail, wax, or tire shine. They are billed through Stripe alongside the wash and split exactly the same way — 10% to Lavo, card processing out of your share, the rest to you.',
       },
       {
         question: 'What does Lavo charge?',
