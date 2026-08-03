@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { notifyCancelled } from '@/lib/booking-cancel';
+import { notifyRefunded } from '@/lib/refund';
 
 export async function POST(req: Request, { params }: { params: { id: string } }) {
   const session = await getSessionUser();
@@ -34,15 +35,20 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
   // Issue Stripe refund if there was a payment
   let refunded = false;
+  // What Stripe actually sent back, which is what the resident's refund email
+  // quotes. Read off the refund rather than the booking so the email can never
+  // promise more than the money that moved.
+  let refundedCents = 0;
   if (booking.stripe_payment_intent_id && process.env.STRIPE_SECRET_KEY) {
     try {
       const Stripe = (await import('stripe')).default;
       const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2024-06-20' });
-      await stripe.refunds.create({
+      const refund = await stripe.refunds.create({
         payment_intent: booking.stripe_payment_intent_id,
         reason: 'requested_by_customer',
       });
       refunded = true;
+      refundedCents = refund.amount ?? booking.gross_cents ?? 0;
     } catch (e: any) {
       return NextResponse.json({ error: `Refund failed: ${e.message}` }, { status: 500 });
     }
@@ -79,6 +85,15 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   await notifyCancelled(admin, booking.id, { refunded }).catch((e) =>
     console.error('[bookings/cancel] notification failed', { bookingId: booking.id, message: e?.message }),
   );
+
+  // Separate from the cancellation notice on purpose: that one settles the
+  // appointment, this one settles the money and carries the 5–10 business day
+  // wait, which is the thing a resident watching their statement needs.
+  if (refunded) {
+    await notifyRefunded(admin, booking.id, refundedCents).catch((e) =>
+      console.error('[bookings/cancel] refund notification failed', { bookingId: booking.id, message: e?.message }),
+    );
+  }
 
   return NextResponse.json({ ok: true, refunded });
 }

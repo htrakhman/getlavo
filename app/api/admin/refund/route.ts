@@ -3,6 +3,7 @@ import Stripe from 'stripe';
 import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { audit } from '@/lib/audit';
+import { notifyRefunded } from '@/lib/refund';
 
 export async function POST(req: Request) {
   const session = await getSessionUser();
@@ -50,6 +51,11 @@ export async function POST(req: Request) {
     // Keep the ledger honest: a refunded booking's mirrored charge is no
     // longer money the operator earned.
     await admin.from('charges').update({ status: 'refunded' }).eq('booking_id', bookingId);
+    // An admin refund used to move the money in silence — the resident's first
+    // and only signal was a credit on their statement days later. Tell them.
+    await notifyRefunded(admin, bookingId, refund.amount ?? booking.gross_cents ?? 0).catch((e) =>
+      console.error('[admin/refund] notification failed', { bookingId, message: e?.message }),
+    );
     await audit({
       actorId: session.user.id,
       actorRole: 'admin',
