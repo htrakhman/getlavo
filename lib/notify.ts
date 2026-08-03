@@ -6,6 +6,7 @@ type NotificationType =
   | 'booking_confirmed'
   | 'booking_received'
   | 'booking_rescheduled'
+  | 'booking_cancelled'
   | 'wash_complete'
   | 'wash_flagged'
   | 'wash_reminder'
@@ -53,6 +54,7 @@ export async function notify(
     booking_confirmed: 'Your wash is booked',
     booking_received: 'New booking',
     booking_rescheduled: 'Wash moved to a new time',
+    booking_cancelled: 'Wash cancelled',
     wash_complete: 'Your car is done.',
     wash_flagged: "We couldn't complete your wash",
     wash_reminder: 'Your wash is tomorrow',
@@ -147,7 +149,7 @@ function smsEligible(type: NotificationType) {
 
 function prefRespects(type: NotificationType, prefs: Record<string, boolean>, channel: 'email' | 'sms') {
   // Operational/account messages always go through.
-  const operational: NotificationType[] = ['booking_confirmed', 'booking_received', 'booking_rescheduled', 'payment_failed', 'pilot_signed', 'operator_assigned', 'wash_day_proposed', 'wash_day_confirmed', 'wash_day_declined', 'waitlist_building_live', 'coi_expiring', 'coi_expired', 'coi_approved'];
+  const operational: NotificationType[] = ['booking_confirmed', 'booking_received', 'booking_rescheduled', 'booking_cancelled', 'payment_failed', 'pilot_signed', 'operator_assigned', 'wash_day_proposed', 'wash_day_confirmed', 'wash_day_declined', 'waitlist_building_live', 'coi_expiring', 'coi_expired', 'coi_approved'];
   if (operational.includes(type)) return true;
   const map: Record<string, string> = {
     'wash_reminder:email': 'email_reminder',
@@ -170,6 +172,10 @@ function renderBody(type: NotificationType, data: any) {
       return `${data.residentName || 'A resident'} at ${data.buildingName || 'your building'} booked a wash for ${when(data)}.`;
     case 'booking_rescheduled':
       return `${data.residentName ? `${data.residentName}'s` : 'Your'} wash at ${data.buildingName || 'your building'} moved from ${data.previousScheduledFor ?? 'its earlier slot'}${data.previousTimeSlot ? ` at ${data.previousTimeSlot}` : ''} to ${when(data)}.`;
+    case 'booking_cancelled':
+      return `${data.residentName ? `${data.residentName}'s` : 'Your'} wash at ${data.buildingName || 'your building'} on ${when(data)} was cancelled.${
+        data.refunded ? ' A refund is on its way to the original payment method.' : ''
+      }`;
     case 'wash_complete':
       return `Your ${data.vehicleDesc ?? 'car'} is clean. Photo in your Lavo app.`;
     case 'wash_flagged':

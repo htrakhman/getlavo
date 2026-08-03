@@ -228,6 +228,61 @@ export async function sendBookingRescheduled(args: {
   }, args.copies);
 }
 
+/**
+ * A booking that was called off. Goes to both sides, same as a reschedule: the
+ * resident who cancelled and the operator who would otherwise show up for a car
+ * that isn't coming. The attached invite is a METHOD:CANCEL, so it takes the
+ * wash off the recipient's calendar instead of leaving a dead appointment there.
+ */
+export async function sendBookingCancelled(args: {
+  to: string;
+  /** Extra notification addresses on the account (lib/notification-emails). */
+  copies?: string[];
+  recipientName: string;
+  audience: 'resident' | 'operator';
+  buildingName: string;
+  /** The other party: the operator for the resident's email, the resident for the operator's. */
+  counterpartyName?: string | null;
+  vehicleDescription?: string | null;
+  scheduledFor: string;
+  timeSlot: string | null;
+  /** Whether a refund was issued, so the resident isn't left wondering. */
+  refunded?: boolean;
+  ics?: string;
+}) {
+  const isResident = args.audience === 'resident';
+  const row = (label: string, value: string) =>
+    `<tr><td style="padding:8px 0;color:#666">${label}</td><td style="padding:8px 0;font-weight:600">${escapeHtml(value)}</td></tr>`;
+  const when = args.timeSlot ? `${args.scheduledFor} at ${args.timeSlot}` : args.scheduledFor;
+  const link = isResident ? '/resident/bookings' : '/operator/bookings';
+  return sendWithCopies({
+    from: FROM,
+    to: args.to,
+    subject: `Wash cancelled — ${args.scheduledFor}`,
+    ...(args.ics
+      ? { attachments: [{ filename: 'lavo-wash.ics', content: Buffer.from(args.ics).toString('base64') }] }
+      : {}),
+    html: `
+      <p>Hi ${escapeHtml(args.recipientName)},</p>
+      <p>${
+        isResident
+          ? `Your car wash at <strong>${escapeHtml(args.buildingName)}</strong> has been cancelled. There's nothing left to do — you can leave your keys where they are.`
+          : `A resident at <strong>${escapeHtml(args.buildingName)}</strong> cancelled their wash. You don't need to service this vehicle.`
+      }</p>
+      <table style="border-collapse:collapse;width:100%;max-width:400px;margin:16px 0">
+        ${args.counterpartyName ? row(isResident ? 'Operator' : 'Resident', args.counterpartyName) : ''}
+        ${args.vehicleDescription ? row('Vehicle', args.vehicleDescription) : ''}
+        <tr><td style="padding:8px 0;color:#666">Was</td><td style="padding:8px 0;color:#666;text-decoration:line-through">${escapeHtml(when)}</td></tr>
+        ${isResident && args.refunded ? row('Refund', 'Issued to your original payment method') : ''}
+      </table>
+      <p style="margin-top:24px"><a href="${APP_URL}${link}" style="display:inline-block;padding:12px 18px;border-radius:8px;background:#00ff88;color:#000;font-weight:600;text-decoration:none">${
+        isResident ? 'Book another wash' : 'View bookings'
+      }</a></p>
+      <p style="color:#666;font-size:13px">The calendar invite attached to this email removes the wash from your calendar.</p>
+    `,
+  }, args.copies);
+}
+
 export async function sendWashComplete(args: {
   to: string;
   /** Extra notification addresses on the account (lib/notification-emails). */

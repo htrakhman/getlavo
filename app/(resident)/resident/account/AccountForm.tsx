@@ -114,9 +114,11 @@ export function AccountForm({ profile, residentId, prefs }: {
               someone can actually read down. */}
           <Toggle label="Email me when I book a wash" checked locked />
           <Toggle label="Email me when my wash is rescheduled" checked locked />
+          <Toggle label="Email me when my wash is cancelled" checked locked />
           <Toggle label="Email me if there's a problem with my payment" checked locked />
           <p className="text-xs text-ink-500">
-            Booking confirmations, schedule changes and payment problems always send — those aren't optional.
+            Booking confirmations, schedule changes, cancellations and payment problems always send — those
+            aren't optional. Each one carries a calendar invite and a link back into Lavo.
           </p>
         </div>
 

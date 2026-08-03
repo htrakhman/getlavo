@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
+import { notifyCancelled } from '@/lib/booking-cancel';
 
 export async function POST(req: Request, { params }: { params: { id: string } }) {
   const session = await getSessionUser();
@@ -71,6 +72,13 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         .eq('status', 'scheduled');
     }
   }
+
+  // After the roster cleanup, so the operator's email reflects a booking that is
+  // already off their list. Never fails the cancellation: the money is refunded
+  // and the row is updated either way.
+  await notifyCancelled(admin, booking.id, { refunded }).catch((e) =>
+    console.error('[bookings/cancel] notification failed', { bookingId: booking.id, message: e?.message }),
+  );
 
   return NextResponse.json({ ok: true, refunded });
 }
