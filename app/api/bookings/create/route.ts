@@ -7,6 +7,9 @@ import { priceAddonSelection, recordBookingAddonOrders, releaseBookingAddonOrder
 import { washDayForBooking } from '@/lib/wash-day-for-booking';
 import { SLOT_HOLDING_STATUSES } from '@/lib/availability';
 import { WAIVER_VERSION } from '@/lib/waiver';
+import { BOOKING_TERMS_VERSION, bookingTermKeys } from '@/lib/booking-terms';
+import { CANCELLATION_CUTOFF_HOURS } from '@/lib/cancellation-policy';
+import { audit } from '@/lib/audit';
 import { standardWashPricing, washCentsFor } from '@/lib/wash-pricing';
 import { destinationChargeParams, resolveSplit } from '@/lib/stripe/connect-split';
 import { normalizeSize, priceForVehicle } from '@/lib/vehicle-sizes';
@@ -27,7 +30,9 @@ const Body = z.object({
   recurringCadence: z.enum(['weekly', 'biweekly', 'monthly']).optional(),
   addonIds: z.array(z.string().uuid()).max(10).optional(),
   promoCode: z.string().optional(),
-  waiverAccepted: z.boolean().optional(),
+  /** The per-booking service acknowledgment (see lib/booking-terms.ts). */
+  termsAccepted: z.boolean().optional(),
+  termsVersion: z.string().max(40).optional(),
 });
 
 /**
@@ -90,8 +95,19 @@ async function createBooking(req: Request) {
   }
   const body = Body.safeParse(raw);
   if (!body.success) return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
-  const { operatorId, vehicleId, scheduledFor, timeSlot, bookingType, packageId, partnershipId, recurringCadence, addonIds, promoCode, waiverAccepted } =
+  const { operatorId, vehicleId, scheduledFor, timeSlot, bookingType, packageId, partnershipId, recurringCadence, addonIds, promoCode, termsAccepted } =
     body.data;
+
+  // Nothing is charged without it. The form ticks this on every booking, so a
+  // request arriving without it is a stale tab from before the acknowledgment
+  // existed — better to send it back for one tap than to take money against
+  // terms the resident was never shown.
+  if (!termsAccepted) {
+    return NextResponse.json(
+      { error: 'Please confirm the booking terms to continue.' },
+      { status: 400 },
+    );
+  }
 
   const admin = supabaseAdmin();
   const sb = supabaseServer();
@@ -103,28 +119,23 @@ async function createBooking(req: Request) {
     .single();
   if (!resident) return NextResponse.json({ error: 'Resident record not found' }, { status: 404 });
 
-  // One time service acknowledgment: an independent operator does the work,
-  // Lavo and the building are not liable for vehicle damage, and the
-  // operator may enter the garage or lot. Recorded once per waiver version
-  // so it stays provable.
-  const { data: waiver } = await admin
-    .from('waiver_acceptances')
-    .select('id')
-    .eq('profile_id', session.user.id)
-    .eq('waiver_version', WAIVER_VERSION)
-    .maybeSingle();
-  if (!waiver) {
-    if (!waiverAccepted) {
-      return NextResponse.json({ error: 'Please accept the service acknowledgment to book.' }, { status: 400 });
-    }
-    const { error: waiverError } = await admin.from('waiver_acceptances').insert({
-      profile_id: session.user.id,
-      resident_id: resident.id,
-      waiver_version: WAIVER_VERSION,
+  // The liability half of the acknowledgment is one of the points the resident
+  // just ticked, so accepting the booking terms accepts the standing waiver
+  // too. Still recorded in waiver_acceptances, which is what everything else
+  // (and any future dispute) reads for "has this resident accepted version N".
+  // A duplicate is the normal case after the first booking, hence the ignored
+  // unique violation.
+  const { error: waiverError } = await admin.from('waiver_acceptances').insert({
+    profile_id: session.user.id,
+    resident_id: resident.id,
+    waiver_version: WAIVER_VERSION,
+  });
+  if (waiverError && waiverError.code !== '23505') {
+    console.error('[bookings/create] could not record the waiver acceptance', {
+      profileId: session.user.id,
+      message: waiverError.message,
     });
-    if (waiverError && waiverError.code !== '23505') {
-      return NextResponse.json({ error: 'Could not record your acknowledgment. Please try again.' }, { status: 500 });
-    }
+    return NextResponse.json({ error: 'Could not record your acknowledgment. Please try again.' }, { status: 500 });
   }
 
   const { data: vehicle } = await admin
@@ -325,6 +336,25 @@ async function createBooking(req: Request) {
   if (bookingError || !booking) {
     return NextResponse.json({ error: bookingError?.message ?? 'Failed to create booking' }, { status: 500 });
   }
+
+  // What this resident agreed to, on this booking, at this moment. The waiver
+  // row above answers "have they ever accepted"; this answers "what did they
+  // see before paying for this wash" — which is the question a refund dispute
+  // actually turns on, and the one nothing used to record.
+  await audit({
+    actorId: session.user.id,
+    actorRole: 'resident',
+    action: 'booking.terms_accepted',
+    entityType: 'booking',
+    entityId: booking.id,
+    metadata: {
+      termsVersion: BOOKING_TERMS_VERSION,
+      waiverVersion: WAIVER_VERSION,
+      points: bookingTermKeys(),
+      cancellationCutoffHours: CANCELLATION_CUTOFF_HOURS,
+      grossCents,
+    },
+  });
 
   // Record the add-ons before taking any money. If they can't be recorded the
   // crew would never be told to do the work, so cancel rather than charge for

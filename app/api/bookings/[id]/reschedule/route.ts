@@ -3,6 +3,7 @@ import { getSessionUser } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { getBuildingAvailability } from '@/lib/availability';
 import { rescheduleBooking } from '@/lib/booking-reschedule';
+import { CANCELLATION_CUTOFF_HOURS, refundEligibility } from '@/lib/cancellation-policy';
 import { audit } from '@/lib/audit';
 import { z } from 'zod';
 
@@ -68,6 +69,22 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
   if (scheduledFor === booking.scheduled_for && timeSlot === booking.time_slot) {
     return NextResponse.json({ error: 'That is already when your wash is booked.' }, { status: 400 });
+  }
+
+  // Moving a wash follows the same 24-hour window as cancelling it — the crew's
+  // day is built around the slots they're holding, and /help has said as much
+  // since long before anything enforced it. Inside the window the booking keeps
+  // its time; the resident can still cancel, they just can't be refunded.
+  const moveWindow = refundEligibility(booking.scheduled_for, booking.time_slot);
+  if (!moveWindow.refundable) {
+    return NextResponse.json(
+      {
+        error:
+          `Washes can be moved up to ${CANCELLATION_CUTOFF_HOURS} hours before they start, and yours is inside that window. ` +
+          'Reach out to your operator if you need to change it.',
+      },
+      { status: 409 },
+    );
   }
 
   if (!booking.building_id) {

@@ -15,11 +15,15 @@ export function RefundButton({ bookingId }: { bookingId: string }) {
       body: JSON.stringify({ bookingId }),
     });
     setBusy(false);
+    const d = await res.json().catch(() => ({}));
     if (!res.ok) {
-      const d = await res.json().catch(() => ({}));
       alert(d.error ?? 'Refund failed');
       return;
     }
+    // Not every successful call moves money — say which happened rather than
+    // leaving an admin to assume a refund went out when none did.
+    if (d.outcome === 'already_refunded') alert('Already refunded — nothing further was charged back.');
+    if (d.outcome === 'nothing_captured') alert('No captured payment on this booking — nothing to refund. Marked cancelled.');
     router.refresh();
   }
 

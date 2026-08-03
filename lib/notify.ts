@@ -1,6 +1,7 @@
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { wrapEmail, paragraph, button, escape as esc } from '@/lib/email/template';
 import { notificationCopies } from '@/lib/notification-emails';
+import { CANCELLATION_CUTOFF_HOURS } from '@/lib/cancellation-policy';
 
 type NotificationType =
   | 'booking_confirmed'
@@ -175,6 +176,10 @@ function renderBody(type: NotificationType, data: any) {
     case 'booking_cancelled':
       return `${data.residentName ? `${data.residentName}'s` : 'Your'} wash at ${data.buildingName || 'your building'} on ${when(data)} was cancelled.${
         data.refunded ? ' A refund is on its way to the original payment method.' : ''
+      }${
+        data.refundWithheld
+          ? ` Cancelled within ${CANCELLATION_CUTOFF_HOURS} hours of the wash, so it isn't refunded.`
+          : ''
       }`;
     case 'wash_complete':
       return `Your ${data.vehicleDesc ?? 'car'} is clean. Photo in your Lavo app.`;
