@@ -6,6 +6,7 @@ import { SeoPageHeader } from '@/components/marketing/SeoPageHeader';
 import { VisibleFaq } from '@/components/marketing/VisibleFaq';
 import { breadcrumbSchema, faqPageSchema } from '@/lib/seo/schema';
 import { createPageMetadata } from '@/lib/seo/site';
+import { resolveSplit } from '@/lib/stripe/connect-split';
 
 export const metadata = createPageMetadata({
   path: '/help',
@@ -18,6 +19,17 @@ type HelpCategory = {
   title: string;
   items: { question: string; answer: string }[];
 };
+
+/**
+ * Worked payout figures for the operator answers below, computed from the split
+ * checkout actually charges (lib/stripe/connect-split.ts) instead of typed into
+ * prose. A change to the take rate or the processing estimate moves these with
+ * it, so the help centre can never quote an operator a number Lavo won't pay.
+ */
+const payoutExamples = [3500, 7000, 14000]
+  .map((gross) => resolveSplit(gross))
+  .map((s) => `$${(s.grossCents / 100).toFixed(2)} pays out $${(s.netCents / 100).toFixed(2)}`)
+  .join(', ');
 
 /**
  * Categorized by ICP: residents book, property managers launch and report,
@@ -121,7 +133,12 @@ const HELP_CATEGORIES: HelpCategory[] = [
       {
         question: 'What does Lavo charge?',
         answer:
-          'Lavo takes 10% of each booking, plus the card processing on that payment (2.9% + 30¢). There is no subscription, no lead fee, and no marketing spend required.',
+          `Lavo takes 10% of each booking. Card processing on that payment (2.9% + 30¢) comes out of your share as well, so your payout is the wash price minus 10% minus processing: ${payoutExamples}. The flat 30¢ counts for less as the price rises, so your share of a typical wash lands near 87%. There is no subscription, no lead fee, and no marketing spend required.`,
+      },
+      {
+        question: 'Why is my Stripe payout less than the booking price?',
+        answer:
+          'Stripe records each resident payment as a transfer of the full booking amount to your connected account, then an application fee that Lavo collects back out of it. Your take-home is the transfer minus that application fee, which Stripe never shows as its own line. Your Lavo earnings dashboard breaks out gross, fee, and net directly.',
       },
       {
         question: 'How do building partnerships start?',
