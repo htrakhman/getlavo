@@ -26,6 +26,7 @@ const AUDIENCES = [
       'Get a photo when your wash is done',
     ],
     signupHref: '/signup?role=resident',
+    learnMoreHref: '/residents',
     accentBar: 'border-t-teal-500',
     accentTitle: 'text-teal-600',
     accentDot: 'bg-teal-500',
@@ -41,6 +42,7 @@ const AUDIENCES = [
       'We handle operators, scheduling, and payments',
     ],
     signupHref: '/signup?role=building_manager',
+    learnMoreHref: '/buildings',
     accentBar: 'border-t-sky-400',
     accentTitle: 'text-sky-500',
     accentDot: 'bg-sky-400',
@@ -56,6 +58,7 @@ const AUDIENCES = [
       'Stripe payouts directly to your account',
     ],
     signupHref: '/signup?role=operator',
+    learnMoreHref: '/operators',
     accentBar: 'border-t-blue-800',
     accentTitle: 'text-blue-800',
     accentDot: 'bg-blue-800',
@@ -226,7 +229,7 @@ export default async function Home({
                     Sign up →
                   </Link>
                   <Link
-                    href={`/how-it-works#${a.id}`}
+                    href={a.learnMoreHref}
                     className="text-sm font-medium text-ink-400 hover:text-ink-100 transition-colors"
                   >
                     Learn more
