@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import Stripe from 'stripe';
 import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
+import { refundBookingPayment } from '@/lib/stripe/refund-booking';
 import { audit } from '@/lib/audit';
 import { notifyRefunded } from '@/lib/refund';
 
@@ -13,7 +13,6 @@ export async function POST(req: Request) {
   if (profile?.role !== 'admin') return NextResponse.json({ error: 'forbidden' }, { status: 403 });
 
   if (!process.env.STRIPE_SECRET_KEY) return NextResponse.json({ error: 'stripe not configured' }, { status: 503 });
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2024-06-20' });
 
   const { bookingId } = await req.json();
   if (!bookingId) return NextResponse.json({ error: 'missing bookingId' }, { status: 400 });
@@ -23,49 +22,37 @@ export async function POST(req: Request) {
   if (!booking) return NextResponse.json({ error: 'not found' }, { status: 404 });
   if (!booking.stripe_payment_intent_id) return NextResponse.json({ error: 'no payment to refund' }, { status: 400 });
 
-  try {
-    // Stripe rejects `refund_application_fee` on a charge that never carried
-    // one, which is every booking taken before the split started stating an
-    // application fee (lib/stripe/connect-split.ts). Ask the charge first so an
-    // old booking still refunds instead of erroring out.
-    let hasApplicationFee = false;
-    try {
-      const intent = await stripe.paymentIntents.retrieve(booking.stripe_payment_intent_id, {
-        expand: ['latest_charge'],
-      });
-      const charge = intent.latest_charge as Stripe.Charge | null;
-      hasApplicationFee = !!charge?.application_fee;
-    } catch (e: any) {
-      console.error('[admin/refund] could not read the charge before refunding', {
-        bookingId,
-        message: e?.message,
-      });
-    }
+  // An admin override is not bound by the resident's 24-hour window — that is
+  // the point of having one. It reverses the operator transfer and the platform
+  // fee the same way a self-serve refund does (lib/stripe/refund-booking.ts).
+  const result = await refundBookingPayment(admin, {
+    bookingId,
+    paymentIntentId: booking.stripe_payment_intent_id,
+  });
+  if (!result.ok) return NextResponse.json({ error: result.error }, { status: 400 });
 
-    const refund = await stripe.refunds.create({
-      payment_intent: booking.stripe_payment_intent_id,
-      reverse_transfer: true,
-      ...(hasApplicationFee ? { refund_application_fee: true } : {}),
-    });
-    await admin.from('bookings').update({ status: 'cancelled' }).eq('id', bookingId);
-    // Keep the ledger honest: a refunded booking's mirrored charge is no
-    // longer money the operator earned.
-    await admin.from('charges').update({ status: 'refunded' }).eq('booking_id', bookingId);
-    // An admin refund used to move the money in silence — the resident's first
-    // and only signal was a credit on their statement days later. Tell them.
-    await notifyRefunded(admin, bookingId, refund.amount ?? booking.gross_cents ?? 0).catch((e) =>
+  await admin.from('bookings').update({ status: 'cancelled' }).eq('id', bookingId);
+
+  // An admin refund used to move the money in silence — the resident's first
+  // and only signal was a credit on their statement days later. Never fails the
+  // refund: the money is already back by the time this runs.
+  if (result.outcome === 'refunded') {
+    await notifyRefunded(admin, bookingId, result.amountCents ?? booking.gross_cents ?? 0).catch((e) =>
       console.error('[admin/refund] notification failed', { bookingId, message: e?.message }),
     );
-    await audit({
-      actorId: session.user.id,
-      actorRole: 'admin',
-      action: 'admin.refund',
-      entityType: 'booking',
-      entityId: bookingId,
-      metadata: { refundId: refund.id, amount: booking.gross_cents },
-    });
-    return NextResponse.json({ refundId: refund.id });
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 400 });
   }
+
+  await audit({
+    actorId: session.user.id,
+    actorRole: 'admin',
+    action: 'admin.refund',
+    entityType: 'booking',
+    entityId: bookingId,
+    metadata: {
+      refundId: result.refundId,
+      amount: booking.gross_cents,
+      outcome: result.outcome,
+    },
+  });
+  return NextResponse.json({ refundId: result.refundId, outcome: result.outcome });
 }

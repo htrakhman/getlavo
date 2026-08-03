@@ -1,5 +1,6 @@
 import { Resend } from 'resend';
 import { logError } from '@/lib/error-log';
+import { CANCELLATION_CUTOFF_HOURS } from '@/lib/cancellation-policy';
 
 let cached: Resend | null = null;
 function client() {
@@ -248,6 +249,12 @@ export async function sendBookingCancelled(args: {
   timeSlot: string | null;
   /** Whether a refund was issued, so the resident isn't left wondering. */
   refunded?: boolean;
+  /**
+   * A payment that was kept because the cancellation landed inside the 24-hour
+   * window. Said out loud here rather than left as a missing refund line — a
+   * resident who reads nothing about their money assumes it's coming back.
+   */
+  refundWithheld?: boolean;
   ics?: string;
 }) {
   const isResident = args.audience === 'resident';
@@ -274,7 +281,17 @@ export async function sendBookingCancelled(args: {
         ${args.vehicleDescription ? row('Vehicle', args.vehicleDescription) : ''}
         <tr><td style="padding:8px 0;color:#666">Was</td><td style="padding:8px 0;color:#666;text-decoration:line-through">${escapeHtml(when)}</td></tr>
         ${isResident && args.refunded ? row('Refund', 'Issued to your original payment method') : ''}
+        ${
+          isResident && args.refundWithheld
+            ? row('Refund', `Not issued — cancelled within ${CANCELLATION_CUTOFF_HOURS} hours of the wash`)
+            : ''
+        }
       </table>
+      ${
+        isResident && args.refundWithheld
+          ? `<p style="color:#666;font-size:13px">Our cancellation policy gives a full refund up to ${CANCELLATION_CUTOFF_HOURS} hours before a wash. This one was cancelled inside that window, so the operator&rsquo;s reserved slot is paid for. Questions? Reply to this email.</p>`
+          : ''
+      }
       <p style="margin-top:24px"><a href="${APP_URL}${link}" style="display:inline-block;padding:12px 18px;border-radius:8px;background:#00ff88;color:#000;font-weight:600;text-decoration:none">${
         isResident ? 'Book another wash' : 'View bookings'
       }</a></p>

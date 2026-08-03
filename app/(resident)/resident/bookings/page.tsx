@@ -6,6 +6,7 @@ import { dateShort, money } from '@/lib/format';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { BookingActions } from './BookingActions';
+import { CANCELLATION_POLICY_LINE } from '@/lib/cancellation-policy';
 
 const STATUS_LABEL: Record<string, string> = {
   pending_payment: 'Pending payment',
@@ -97,6 +98,13 @@ export default async function ResidentBookings({
             A calendar invite is on its way to your email. Before your wash window,{' '}
             <strong>drop your keys at the front desk</strong> — if the crew can&apos;t get your keys
             they can&apos;t wash the car, and the booking isn&apos;t refunded.
+          </p>
+          <p className="mt-2 text-sm text-ink-300">
+            {CANCELLATION_POLICY_LINE}{' '}
+            <Link href="/legal/terms" className="underline underline-offset-2 hover:text-gleam">
+              Read the policy
+            </Link>
+            .
           </p>
         </div>
       )}

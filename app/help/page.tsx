@@ -63,7 +63,7 @@ const HELP_CATEGORIES: HelpCategory[] = [
       {
         question: 'Can I cancel or reschedule?',
         answer:
-          'Yes. Cancel from your resident portal up to 24 hours before your scheduled slot, per our terms. Rescheduling follows the same window.',
+          'Yes. Cancel from your resident portal any time before the wash — more than 24 hours ahead of your slot and the full amount is refunded to your original payment method, inside 24 hours the booking can still be cancelled but is not refunded. Rescheduling follows the same 24-hour window.',
       },
       {
         question: 'What if my building is not on Lavo yet?',

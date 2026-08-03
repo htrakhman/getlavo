@@ -94,7 +94,7 @@ const HOME_FAQ: { question: string; answer: string; node?: React.ReactNode }[] =
   {
     question: 'Can I cancel?',
     answer:
-      'Yes — cancel from your resident portal up to 24 hours before your scheduled slot, per our terms.',
+      'Yes — cancel from your resident portal any time. Cancel more than 24 hours before your slot and you are refunded in full; inside 24 hours the booking is not refunded.',
   },
 ];
 
