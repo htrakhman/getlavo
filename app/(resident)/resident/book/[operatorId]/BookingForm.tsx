@@ -798,8 +798,18 @@ export function BookingForm({
                     </span>
                     {/* Full row width rather than beside the checkbox: the
                         label column shrinks around each add-on's own price,
-                        which staggered the tier prices from row to row. */}
-                    <SizePriceList raw={a.size_prices} format={money} className="mt-1 text-xs text-ink-500" />
+                        which staggered the tier prices from row to row.
+
+                        `flatCents` so an add-on the operator never tiered still
+                        answers the vehicle question — one line, all three
+                        icons, one price — instead of sitting mute beside
+                        packages that break their price out by vehicle. */}
+                    <SizePriceList
+                      raw={a.size_prices}
+                      flatCents={a.price_cents}
+                      format={money}
+                      className="mt-1 text-xs text-ink-500"
+                    />
                   </label>
                 );
               })}
