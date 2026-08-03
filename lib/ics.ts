@@ -3,7 +3,9 @@
  * building's local timezone (the platform operates in New Jersey).
  */
 
-const TZ = 'America/New_York';
+/** Every wash happens on the building's clock (see lib/cancellation-policy.ts). */
+export const WASH_TZ = 'America/New_York';
+const TZ = WASH_TZ;
 const DEFAULT_DURATION_MINS = 60;
 
 export type CalendarPerson = {

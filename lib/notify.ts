@@ -1,6 +1,7 @@
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { wrapEmail, paragraph, button, escape as esc } from '@/lib/email/template';
 import { notificationCopies } from '@/lib/notification-emails';
+import { refundOutcomeCopy } from '@/lib/cancellation-policy';
 
 type NotificationType =
   | 'booking_confirmed'
@@ -173,8 +174,10 @@ function renderBody(type: NotificationType, data: any) {
     case 'booking_rescheduled':
       return `${data.residentName ? `${data.residentName}'s` : 'Your'} wash at ${data.buildingName || 'your building'} moved from ${data.previousScheduledFor ?? 'its earlier slot'}${data.previousTimeSlot ? ` at ${data.previousTimeSlot}` : ''} to ${when(data)}.`;
     case 'booking_cancelled':
+      // No refund line at all unless the charge actually settled one way or the
+      // other — see lib/cancellation-policy.ts for the 24-hour window.
       return `${data.residentName ? `${data.residentName}'s` : 'Your'} wash at ${data.buildingName || 'your building'} on ${when(data)} was cancelled.${
-        data.refunded ? ' A refund is on its way to the original payment method.' : ''
+        data.refund ? ` ${refundOutcomeCopy(data.refund)}` : ''
       }`;
     case 'wash_complete':
       return `Your ${data.vehicleDesc ?? 'car'} is clean. Photo in your Lavo app.`;

@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { DayTimePicker, longLabel, type AvailabilityDay } from '@/components/DayTimePicker';
 import { CancelBookingButton } from './CancelBookingButton';
+import { REFUND_WINDOW_HOURS, isRefundableCancellation } from '@/lib/cancellation-policy';
 
 /**
  * What a resident can do to a wash they've already booked: move it, drop it, or
@@ -99,7 +100,11 @@ export function BookingActions({
         >
           {open ? 'Keep this time' : 'Reschedule'}
         </button>
-        <CancelBookingButton bookingId={bookingId} />
+        <CancelBookingButton
+          bookingId={bookingId}
+          scheduledFor={scheduledFor}
+          timeSlot={timeSlot}
+        />
       </div>
 
       {open && (
@@ -150,8 +155,10 @@ export function BookingActions({
             </>
           ) : (
             <p className="mt-4 text-sm text-ink-400">
-              Your operator has no open slots in the next two weeks. Cancel for a refund and rebook
-              when new days open up.
+              Your operator has no open slots in the next two weeks.{' '}
+              {isRefundableCancellation(scheduledFor, timeSlot)
+                ? 'Cancel for a refund and rebook when new days open up.'
+                : `You can still cancel, though a wash inside ${REFUND_WINDOW_HOURS} hours isn't refunded.`}
             </p>
           )}
         </div>

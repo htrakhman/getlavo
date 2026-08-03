@@ -1,5 +1,6 @@
 import { Resend } from 'resend';
 import { logError } from '@/lib/error-log';
+import { REFUND_WINDOW_HOURS, type RefundOutcome } from '@/lib/cancellation-policy';
 
 let cached: Resend | null = null;
 function client() {
@@ -246,8 +247,11 @@ export async function sendBookingCancelled(args: {
   vehicleDescription?: string | null;
   scheduledFor: string;
   timeSlot: string | null;
-  /** Whether a refund was issued, so the resident isn't left wondering. */
-  refunded?: boolean;
+  /**
+   * How the charge settled, so the resident isn't left wondering. Omitted when
+   * there was no charge to settle — an unpaid booking says nothing either way.
+   */
+  refund?: RefundOutcome;
   ics?: string;
 }) {
   const isResident = args.audience === 'resident';
@@ -273,7 +277,16 @@ export async function sendBookingCancelled(args: {
         ${args.counterpartyName ? row(isResident ? 'Operator' : 'Resident', args.counterpartyName) : ''}
         ${args.vehicleDescription ? row('Vehicle', args.vehicleDescription) : ''}
         <tr><td style="padding:8px 0;color:#666">Was</td><td style="padding:8px 0;color:#666;text-decoration:line-through">${escapeHtml(when)}</td></tr>
-        ${isResident && args.refunded ? row('Refund', 'Issued to your original payment method') : ''}
+        ${
+          isResident && args.refund
+            ? row(
+                'Refund',
+                args.refund === 'issued'
+                  ? 'Issued to your original payment method'
+                  : `Not issued — cancelled within ${REFUND_WINDOW_HOURS} hours of the wash`,
+              )
+            : ''
+        }
       </table>
       <p style="margin-top:24px"><a href="${APP_URL}${link}" style="display:inline-block;padding:12px 18px;border-radius:8px;background:#00ff88;color:#000;font-weight:600;text-decoration:none">${
         isResident ? 'Book another wash' : 'View bookings'

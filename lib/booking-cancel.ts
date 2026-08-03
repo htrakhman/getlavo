@@ -7,6 +7,7 @@ import {
 } from '@/lib/booking-calendar';
 import { notify } from '@/lib/notify';
 import { notificationCopies } from '@/lib/notification-emails';
+import type { RefundOutcome } from '@/lib/cancellation-policy';
 
 /**
  * Tell both sides a wash was called off.
@@ -20,7 +21,7 @@ import { notificationCopies } from '@/lib/notification-emails';
 export async function notifyCancelled(
   admin: SupabaseClient,
   bookingId: string,
-  opts: { refunded?: boolean } = {},
+  opts: { refund?: RefundOutcome } = {},
 ) {
   const { data: booking } = await admin
     .from('bookings')
@@ -72,7 +73,7 @@ export async function notifyCancelled(
       recipientName: resident.full_name ?? 'there',
       audience: 'resident',
       counterpartyName: operator?.name ?? null,
-      refunded: opts.refunded,
+      refund: opts.refund,
       ics: residentCancelIcs(details, { email: resident.email, name: resident.full_name }),
     }).catch((e) =>
       console.error('[booking-cancel] resident email failed', { bookingId, message: e?.message }),
@@ -106,7 +107,7 @@ export async function notifyCancelled(
         buildingName: building?.name ?? '',
         scheduledFor: booking.scheduled_for,
         timeSlot: booking.time_slot,
-        refunded: opts.refunded,
+        refund: opts.refund,
         link: '/resident/bookings',
       },
       { skipEmail: true },
