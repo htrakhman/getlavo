@@ -25,8 +25,13 @@ type HelpCategory = {
  * checkout actually charges (lib/stripe/connect-split.ts) instead of typed into
  * prose. A change to the take rate or the processing estimate moves these with
  * it, so the help centre can never quote an operator a number Lavo won't pay.
+ *
+ * Priced at full-detail tickets rather than single-wash ones. An operator
+ * reading this is deciding whether their whole book of business fits on Lavo,
+ * and the fee on a $35 wash is a rounding error next to the fee on a $500
+ * detail — the number they actually need to see before they commit.
  */
-const payoutExamples = [3500, 7000, 14000]
+const payoutExamples = [15000, 30000, 50000]
   .map((gross) => resolveSplit(gross))
   .map((s) => `$${(s.grossCents / 100).toFixed(2)} pays out $${(s.netCents / 100).toFixed(2)}`)
   .join(', ');
@@ -148,7 +153,7 @@ const HELP_CATEGORIES: HelpCategory[] = [
       {
         question: 'Can I offer add-on services?',
         answer:
-          'Yes. Offer extras such as interior detail, wax, or tire shine. They are billed through Stripe alongside the wash, and you keep the proceeds minus the platform fee.',
+          'Yes. Offer extras such as interior detail, wax, or tire shine. They are billed through Stripe alongside the wash and split exactly the same way — 10% to Lavo, card processing out of your share, the rest to you.',
       },
       {
         question: 'What does Lavo charge?',

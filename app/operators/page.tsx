@@ -4,12 +4,35 @@ import { RelatedLinks } from '@/components/marketing/RelatedLinks';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { breadcrumbSchema, faqPageSchema, serviceSchema } from '@/lib/seo/schema';
 import { createPageMetadata } from '@/lib/seo/site';
+import { resolveSplit } from '@/lib/stripe/connect-split';
 
 export const metadata = createPageMetadata({
   path: '/operators',
   title: 'Recurring Mobile Car Wash Demand for Operators | Lavo',
   description:
     'Lavo helps mobile car wash operators get recurring apartment building demand with scheduled wash days, resident bookings, and automatic payouts.',
+});
+
+/**
+ * The two worked examples under "The math works", priced at detail tickets
+ * rather than single washes. An operator sizing up Lavo is weighing their whole
+ * book of business, and the fee on a $35 wash tells them nothing about what a
+ * $500 ceramic package costs them to run through the platform.
+ *
+ * Computed from the split checkout actually charges rather than typed in — the
+ * payouts here used to be hardcoded strings, which is a promise that silently
+ * goes stale the first time the take rate or the processing estimate moves.
+ */
+const PAYOUT_EXAMPLES = [
+  { grossCents: 15000, label: 'resident pays (full detail)' },
+  { grossCents: 50000, label: 'resident pays (ceramic package)' },
+].map(({ grossCents, label }) => {
+  const split = resolveSplit(grossCents);
+  return {
+    label,
+    price: `$${Math.round(split.grossCents / 100)}`,
+    payout: `$${(split.netCents / 100).toFixed(2)}`,
+  };
 });
 
 const OPERATORS_RELATED = [
@@ -117,22 +140,23 @@ export default function OperatorsPage() {
           <h2 className="font-display text-4xl">The math works</h2>
           <p className="mt-3 text-ink-300">Lavo takes 10% of each booking plus card processing. You keep the rest — transferred automatically.</p>
         </div>
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-          <div className="card p-6 text-center">
-            <div className="font-display text-4xl text-gleam">$35</div>
-            <div className="mt-2 text-sm text-ink-400">resident pays (building day)</div>
-            <div className="mt-3 text-xs text-ink-500">Your payout: ~$30.18</div>
-          </div>
-          <div className="card p-6 text-center">
-            <div className="font-display text-4xl">$45</div>
-            <div className="mt-2 text-sm text-ink-400">resident pays (on-demand)</div>
-            <div className="mt-3 text-xs text-ink-500">Your payout: ~$38.89</div>
-          </div>
-          <div className="card p-6 text-center">
-            <div className="font-display text-4xl">$12k+</div>
-            <div className="mt-2 text-sm text-ink-400">annual from 1 building</div>
-            <div className="mt-3 text-xs text-ink-500">60 units · 2 washes/month each</div>
-          </div>
+        {/*
+          Two worked payouts and nothing else. There used to be a third card
+          promising "$12k+ annual from 1 building · 60 units · 2 washes/month
+          each" — a number with no stated participation rate behind it, which
+          made it both unfalsifiable and, at 1,440 washes a year, far too low
+          for its own assumptions. What an operator can verify is the payout on
+          a price they recognise; what they can't verify doesn't belong next to
+          it.
+        */}
+        <div className="mx-auto grid max-w-3xl grid-cols-1 gap-6 md:grid-cols-2">
+          {PAYOUT_EXAMPLES.map((example, i) => (
+            <div key={example.label} className="card p-6 text-center">
+              <div className={`font-display text-4xl${i === 0 ? ' text-gleam' : ''}`}>{example.price}</div>
+              <div className="mt-2 text-sm text-ink-400">{example.label}</div>
+              <div className="mt-3 text-xs text-ink-500">Your payout: ~{example.payout}</div>
+            </div>
+          ))}
         </div>
         <p className="mt-6 text-center text-xs text-ink-500">
           Example pricing. You set your own rates. Lavo take rate is 10% per booking, plus card processing of 2.9% + 30¢.
@@ -173,7 +197,7 @@ export default function OperatorsPage() {
             ['Crew tool', 'Run wash days from your phone. Each vehicle row shows the resident, spot label, make/model/color, and plate. Mark done or flag in one tap.'],
             ['Earnings dashboard', 'See gross revenue, Lavo fee, and your net payout per period. Full transaction history at a glance.'],
             ['Radius matching', 'Set your service area in miles. Lavo only shows you to buildings inside your radius — no wasted lead chasing.'],
-            ['Add-on revenue', 'Offer residents extras like interior detail, wax, or tire shine. Billed separately via Stripe. You keep the proceeds minus the platform fee.'],
+            ['Add-on revenue', 'Offer residents extras like interior detail, wax, or tire shine. Billed separately via Stripe and split exactly like a wash — 10% to Lavo, card processing out of your share, the rest to you.'],
           ].map(([title, body]) => (
             <div key={String(title)} className="card p-6">
               <h3 className="font-display text-xl mb-2">{title}</h3>
