@@ -48,7 +48,7 @@ function fallbackDays(): AvailabilityDay[] {
   return Array.from({ length: DAYS_AHEAD }).map((_, i) => {
     const d = new Date(start);
     d.setDate(start.getDate() + i);
-    return { date: isoLocal(d), dow: DOW[d.getDay()], slots: TIME_SLOTS, full: false };
+    return { date: isoLocal(d), dow: DOW[d.getDay()], slots: TIME_SLOTS, taken: [], full: false };
   });
 }
 

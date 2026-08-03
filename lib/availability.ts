@@ -15,19 +15,59 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
  *    always bookable on top of either of the above.
  * Slot times always come from the operator's hours for that weekday. For a
  * non-partnered operator only their own hours/days apply.
+ *
+ * Within a day, an hour that already holds a booking is taken: the crew washes
+ * one vehicle at a time, so a second resident can't be promised the same hour.
+ * Taken hours are reported separately from open ones (`taken`) so the pickers
+ * can show them greyed out rather than silently dropping them — a resident
+ * seeing 1:00 PM disappear learns nothing; seeing it crossed out says why.
  */
 
 const DOW_KEYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const;
 const DAYS_AHEAD = 14;
 
+/** Vehicles one operator can take in the same hour. One crew, one car. */
+const SLOT_CAPACITY = 1;
+
 type DayHours = { open?: string; close?: string; closed?: boolean };
 
-export type AvailabilityDay = { date: string; dow: string; slots: string[]; full: boolean };
+export type AvailabilityDay = {
+  date: string;
+  dow: string;
+  /** Hours still bookable, in order. */
+  slots: string[];
+  /** Hours the operator works that day but has already filled. */
+  taken: string[];
+  full: boolean;
+};
 
 function hourLabel(h: number): string {
   const period = h >= 12 ? 'PM' : 'AM';
   const display = h % 12 === 0 ? 12 : h % 12;
   return `${display}:00 ${period}`;
+}
+
+/**
+ * Bookings store the slot as the label the picker showed ("1:00 PM"), but rows
+ * predating that — or written by hand — can carry "13:00" or odd spacing.
+ * Comparing on the hour rather than the string keeps those counting against
+ * the slot they actually occupy.
+ */
+function slotKey(value: string | null | undefined): string | null {
+  const raw = (value ?? '').trim();
+  if (!raw) return null;
+  const twelve = /^(\d{1,2}):(\d{2})\s*(AM|PM)$/i.exec(raw);
+  if (twelve) {
+    let h = parseInt(twelve[1], 10) % 12;
+    if (twelve[3].toUpperCase() === 'PM') h += 12;
+    return hourLabel(h);
+  }
+  const twentyFour = /^(\d{1,2}):(\d{2})$/.exec(raw);
+  if (twentyFour) {
+    const h = parseInt(twentyFour[1], 10);
+    if (h >= 0 && h <= 23) return hourLabel(h);
+  }
+  return raw.toUpperCase().replace(/\s+/g, ' ');
 }
 
 function parseHour(value: string | undefined, fallback: number): number {
@@ -93,7 +133,7 @@ export async function getBuildingAvailability(
     (() => {
       const q = admin
         .from('bookings')
-        .select('scheduled_for')
+        .select('scheduled_for, time_slot')
         .eq('operator_id', operator.id)
         .in('status', ['confirmed', 'in_progress'])
         .gte('scheduled_for', from)
@@ -111,16 +151,56 @@ export async function getBuildingAvailability(
       : Promise.resolve({ data: [] as { scheduled_for: string }[] }),
   ]);
 
-  const bookedPerDay = new Map<string, number>();
-  for (const b of booked ?? []) {
-    bookedPerDay.set(b.scheduled_for, (bookedPerDay.get(b.scheduled_for) ?? 0) + 1);
-  }
-
   const agreedDates = new Set((agreedRows ?? []).map((r: any) => r.scheduled_for as string));
-  const managerDay = building.wash_day ?? building.preferred_wash_day ?? null;
 
-  const hours = (operator.hours_json ?? {}) as Record<string, DayHours>;
-  const capacity = operator.capacity_per_day ?? 20;
+  return buildAvailabilityDays({
+    dates,
+    bookings: (booked ?? []) as BookingRow[],
+    agreedDates,
+    managerDay: building.wash_day ?? building.preferred_wash_day ?? null,
+    hours: (operator.hours_json ?? {}) as Record<string, DayHours>,
+    capacity: operator.capacity_per_day ?? 20,
+    isPartnerOperator,
+  });
+}
+
+export type BookingRow = { scheduled_for: string; time_slot?: string | null };
+
+/**
+ * The day-by-day shape of availability, given everything already read from the
+ * database. Pure, so the rules that decide what a resident may book — which
+ * days are served, which hours are still free — are testable without a
+ * database (see scripts/slot-availability-test.ts).
+ */
+export function buildAvailabilityDays({
+  dates,
+  bookings,
+  agreedDates,
+  managerDay,
+  hours,
+  capacity,
+  isPartnerOperator,
+}: {
+  dates: string[];
+  bookings: BookingRow[];
+  agreedDates: Set<string>;
+  managerDay: string | null;
+  hours: Record<string, DayHours>;
+  capacity: number;
+  isPartnerOperator: boolean;
+}): AvailabilityDay[] {
+  const bookedPerDay = new Map<string, number>();
+  // date → slot label → how many vehicles are already on that hour.
+  const bookedPerSlot = new Map<string, Map<string, number>>();
+  for (const b of bookings) {
+    bookedPerDay.set(b.scheduled_for, (bookedPerDay.get(b.scheduled_for) ?? 0) + 1);
+    const slot = slotKey(b.time_slot);
+    // A booking with no time only holds a seat in the day, not in an hour.
+    if (!slot) continue;
+    const forDay = bookedPerSlot.get(b.scheduled_for) ?? new Map<string, number>();
+    forDay.set(slot, (forDay.get(slot) ?? 0) + 1);
+    bookedPerSlot.set(b.scheduled_for, forDay);
+  }
 
   return dates.map((date) => {
     const dow = DOW_KEYS[new Date(`${date}T12:00:00Z`).getUTCDay()];
@@ -128,17 +208,27 @@ export async function getBuildingAvailability(
     const operatorDay = dayHours?.closed !== true;
     const open = parseHour(dayHours?.open, 8);
     const close = parseHour(dayHours?.close, 17);
-    const full = (bookedPerDay.get(date) ?? 0) >= capacity;
+    const atDayCapacity = (bookedPerDay.get(date) ?? 0) >= capacity;
 
     const bookable = isPartnerOperator
       ? agreedDates.has(date) || (managerDay ? sameWeekday(managerDay, dow) : operatorDay)
       : operatorDay;
 
     const slots: string[] = [];
-    if (bookable && !full) {
-      for (let h = open; h < close; h++) slots.push(hourLabel(h));
+    const taken: string[] = [];
+    if (bookable && !atDayCapacity) {
+      const onSlot = bookedPerSlot.get(date);
+      for (let h = open; h < close; h++) {
+        const label = hourLabel(h);
+        if ((onSlot?.get(label) ?? 0) >= SLOT_CAPACITY) taken.push(label);
+        else slots.push(label);
+      }
     }
 
-    return { date, dow, slots, full };
+    // A day whose every working hour is spoken for is full to a resident, even
+    // when the day-level capacity still has room.
+    const full = atDayCapacity || (bookable && slots.length === 0 && taken.length > 0);
+
+    return { date, dow, slots, taken, full };
   });
 }
