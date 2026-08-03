@@ -29,6 +29,10 @@ import { VehicleTypeIcon } from './VehicleTypeIcon';
  * A tier with neither shows an em dash — the tier exists, the price doesn't
  * yet. Whether a package with no price anywhere draws those three blanks at all
  * is up to the caller (see `placeholders`).
+ *
+ * A row that is genuinely one price for every vehicle collapses to a single
+ * line carrying all three icons (see `flatCents`), rather than three rows
+ * repeating the same number.
  */
 export function SizePriceList({
   raw,
@@ -38,6 +42,7 @@ export function SizePriceList({
   format,
   priceStyle,
   placeholders = false,
+  flatCents,
 }: {
   raw: unknown;
   /**
@@ -67,11 +72,48 @@ export function SizePriceList({
    * all three regardless — a gap between two priced tiers is information.
    */
   placeholders?: boolean;
+  /**
+   * The row's single price, for a row that has no per-vehicle pricing at all.
+   *
+   * This is what add-ons need and packages don't. An add-on carries no
+   * description, so unlike a package there's no typed-out "Pricing: …" tail to
+   * fall back on — an add-on the operator never tiered had nothing to draw and
+   * rendered as a bare "+$10.00" next to packages showing all three vehicle
+   * rows. But it isn't unpriced: a flat add-on costs that same $10 whatever is
+   * parked there, which is a real answer to "what does this cost for my car"
+   * and belongs on the menu in the same language as everything else.
+   *
+   * Answered on one line with all three icons rather than three lines quoting
+   * the same number: the icons carry "any vehicle" on their own, and an
+   * operator with twenty add-ons would otherwise turn the booking form into a
+   * page of repeats.
+   */
+  flatCents?: number | null;
 }) {
   const priced = new Map(parseSizePrices(raw).map((t) => [t.size, t.price_cents]));
   const typed = typedTierPrices(description);
-  if (priced.size === 0 && Object.keys(typed).length === 0 && !placeholders) return null;
+  const untiered = priced.size === 0 && Object.keys(typed).length === 0;
+  const flat = untiered && Number.isFinite(flatCents) && (flatCents as number) > 0 ? (flatCents as number) : null;
+  if (untiered && flat == null && !placeholders) return null;
   const show = format ?? ((cents: number) => `$${(cents / 100).toFixed(decimals)}`);
+
+  if (flat != null) {
+    return (
+      <dl className={`grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-2 ${className}`}>
+        <span className="flex items-center gap-0.5">
+          {VEHICLE_SIZES.map((s) => (
+            <VehicleTypeIcon key={s.id} type={s.id} className="h-4 w-7 opacity-70" />
+          ))}
+        </span>
+        <dt className="truncate" title={VEHICLE_SIZES.map((s) => s.label).join(' · ')}>
+          Any vehicle type
+        </dt>
+        <dd className="justify-self-end text-gleam" style={priceStyle}>
+          {show(flat)}
+        </dd>
+      </dl>
+    );
+  }
 
   return (
     <dl className={`grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-2 gap-y-1 ${className}`}>

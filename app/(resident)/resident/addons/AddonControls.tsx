@@ -33,7 +33,12 @@ export function AddonRow({ residentId, addon, operatorName, alreadyRecurring, ve
         {tiers.length > 0 && !vehicleSize && <span className="text-base text-ink-400">from </span>}
         ${(priceForVehicle(addon, vehicleSize) / 100).toFixed(2)}
       </div>
-      <SizePriceList raw={addon.size_prices} decimals={2} className="mt-3 text-xs text-ink-400" />
+      <SizePriceList
+        raw={addon.size_prices}
+        flatCents={addon.price_cents}
+        decimals={2}
+        className="mt-3 text-xs text-ink-400"
+      />
       <div className="mt-4 flex flex-col gap-2">
         <button
           onClick={addRecurring}
