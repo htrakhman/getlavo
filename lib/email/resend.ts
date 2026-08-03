@@ -300,6 +300,61 @@ export async function sendBookingCancelled(args: {
   }, args.copies);
 }
 
+/**
+ * Money going back. Sent whenever a refund actually succeeds at Stripe —
+ * a resident cancelling their own wash, or an admin refunding one by hand.
+ *
+ * Deliberately its own email rather than a line on the cancellation notice.
+ * The cancellation is about the appointment; this is about the money, and the
+ * two answer different questions. A resident who cancels sees "cancelled" and
+ * then watches their statement for a credit that takes the better part of a
+ * week to land — with nothing telling them that wait is normal, the next stop
+ * is support, or worse, a chargeback against a payment we already refunded.
+ *
+ * The 5–10 business day window is Stripe's own published figure for card
+ * refunds, and it is the bank's timeline rather than ours: Stripe releases the
+ * funds immediately, and everything after that is the issuer posting the
+ * credit. Say so, so nobody reads day three as a refund that failed.
+ */
+export async function sendRefundIssued(args: {
+  to: string;
+  /** Extra notification addresses on the account (lib/notification-emails). */
+  copies?: string[];
+  recipientName: string;
+  /** What Stripe actually refunded, which is the number to quote. */
+  amountCents: number;
+  buildingName?: string | null;
+  scheduledFor: string;
+  timeSlot: string | null;
+}) {
+  const amount = (args.amountCents / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+  const when = args.timeSlot ? `${args.scheduledFor} at ${args.timeSlot}` : args.scheduledFor;
+  const row = (label: string, value: string) =>
+    `<tr><td style="padding:8px 0;color:#666">${label}</td><td style="padding:8px 0;font-weight:600">${escapeHtml(value)}</td></tr>`;
+  return sendWithCopies({
+    from: FROM,
+    to: args.to,
+    subject: `Refund issued — ${amount}`,
+    html: `
+      <p>Hi ${escapeHtml(args.recipientName)},</p>
+      <p>We've refunded <strong>${amount}</strong> for your cancelled wash${
+        args.buildingName ? ` at <strong>${escapeHtml(args.buildingName)}</strong>` : ''
+      }. There's nothing you need to do.</p>
+      <table style="border-collapse:collapse;width:100%;max-width:400px;margin:16px 0">
+        ${row('Amount refunded', amount)}
+        ${row('Wash', when)}
+        ${row('Refunded to', 'Your original payment method')}
+      </table>
+      <p>Refunds take <strong>5–10 business days</strong> to appear on your statement. The money goes back to
+      the card or account you paid with — we can't send it anywhere else.</p>
+      <p style="color:#666;font-size:13px">That window is your bank's, not ours: the refund leaves Lavo
+      straight away, and the rest is your bank posting the credit. If it hasn't landed after 10 business
+      days, reply to this email and we'll chase it.</p>
+      <p style="margin-top:24px"><a href="${APP_URL}/resident/bookings" style="display:inline-block;padding:12px 18px;border-radius:8px;background:#00ff88;color:#000;font-weight:600;text-decoration:none">Book another wash</a></p>
+    `,
+  }, args.copies);
+}
+
 export async function sendWashComplete(args: {
   to: string;
   /** Extra notification addresses on the account (lib/notification-emails). */

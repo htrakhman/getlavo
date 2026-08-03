@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { notifyCancelled } from '@/lib/booking-cancel';
+import { notifyRefunded } from '@/lib/refund';
 import { refundBookingPayment } from '@/lib/stripe/refund-booking';
 import {
   CANCELLATION_CUTOFF_HOURS,
@@ -90,6 +91,10 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   // taken is the state nobody can see is wrong from the outside.
   let refunded = false;
   let refundId: string | null = null;
+  // What Stripe actually sent back, which is what the resident's refund email
+  // quotes. Read off the refund rather than the booking's gross so the email
+  // can never promise more than the money that moved.
+  let refundedCents: number | null = null;
   if (paidFor && eligibility.refundable) {
     const result = await refundBookingPayment(admin, {
       bookingId: booking.id,
@@ -102,6 +107,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     // no money to send back, so the resident isn't told one is coming.
     refunded = result.outcome !== 'nothing_captured';
     refundId = result.refundId;
+    refundedCents = result.amountCents;
   }
 
   const { error } = await admin
@@ -159,6 +165,15 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   }).catch((e) =>
     console.error('[bookings/cancel] notification failed', { bookingId: booking.id, message: e?.message }),
   );
+
+  // Separate from the cancellation notice on purpose: that one settles the
+  // appointment, this one settles the money and carries the 5–10 business day
+  // wait, which is the thing a resident watching their statement needs.
+  if (refunded) {
+    await notifyRefunded(admin, booking.id, refundedCents ?? booking.gross_cents ?? 0).catch((e) =>
+      console.error('[bookings/cancel] refund notification failed', { bookingId: booking.id, message: e?.message }),
+    );
+  }
 
   return NextResponse.json({ ok: true, refunded });
 }

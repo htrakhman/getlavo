@@ -8,6 +8,7 @@ type NotificationType =
   | 'booking_received'
   | 'booking_rescheduled'
   | 'booking_cancelled'
+  | 'refund_issued'
   | 'wash_complete'
   | 'wash_flagged'
   | 'wash_reminder'
@@ -56,6 +57,7 @@ export async function notify(
     booking_received: 'New booking',
     booking_rescheduled: 'Wash moved to a new time',
     booking_cancelled: 'Wash cancelled',
+    refund_issued: 'Refund on its way',
     wash_complete: 'Your car is done.',
     wash_flagged: "We couldn't complete your wash",
     wash_reminder: 'Your wash is tomorrow',
@@ -150,7 +152,7 @@ function smsEligible(type: NotificationType) {
 
 function prefRespects(type: NotificationType, prefs: Record<string, boolean>, channel: 'email' | 'sms') {
   // Operational/account messages always go through.
-  const operational: NotificationType[] = ['booking_confirmed', 'booking_received', 'booking_rescheduled', 'booking_cancelled', 'payment_failed', 'pilot_signed', 'operator_assigned', 'wash_day_proposed', 'wash_day_confirmed', 'wash_day_declined', 'waitlist_building_live', 'coi_expiring', 'coi_expired', 'coi_approved'];
+  const operational: NotificationType[] = ['booking_confirmed', 'booking_received', 'booking_rescheduled', 'booking_cancelled', 'refund_issued', 'payment_failed', 'pilot_signed', 'operator_assigned', 'wash_day_proposed', 'wash_day_confirmed', 'wash_day_declined', 'waitlist_building_live', 'coi_expiring', 'coi_expired', 'coi_approved'];
   if (operational.includes(type)) return true;
   const map: Record<string, string> = {
     'wash_reminder:email': 'email_reminder',
@@ -181,6 +183,10 @@ function renderBody(type: NotificationType, data: any) {
           ? ` Cancelled within ${CANCELLATION_CUTOFF_HOURS} hours of the wash, so it isn't refunded.`
           : ''
       }`;
+    case 'refund_issued':
+      return `We've refunded ${data.amount ?? 'your payment'} for your cancelled wash${
+        data.buildingName ? ` at ${data.buildingName}` : ''
+      }. Refunds take 5–10 business days to appear on your statement.`;
     case 'wash_complete':
       return `Your ${data.vehicleDesc ?? 'car'} is clean. Photo in your Lavo app.`;
     case 'wash_flagged':

@@ -3,6 +3,7 @@ import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { refundBookingPayment } from '@/lib/stripe/refund-booking';
 import { audit } from '@/lib/audit';
+import { notifyRefunded } from '@/lib/refund';
 
 export async function POST(req: Request) {
   const session = await getSessionUser();
@@ -31,6 +32,16 @@ export async function POST(req: Request) {
   if (!result.ok) return NextResponse.json({ error: result.error }, { status: 400 });
 
   await admin.from('bookings').update({ status: 'cancelled' }).eq('id', bookingId);
+
+  // An admin refund used to move the money in silence — the resident's first
+  // and only signal was a credit on their statement days later. Never fails the
+  // refund: the money is already back by the time this runs.
+  if (result.outcome === 'refunded') {
+    await notifyRefunded(admin, bookingId, result.amountCents ?? booking.gross_cents ?? 0).catch((e) =>
+      console.error('[admin/refund] notification failed', { bookingId, message: e?.message }),
+    );
+  }
+
   await audit({
     actorId: session.user.id,
     actorRole: 'admin',

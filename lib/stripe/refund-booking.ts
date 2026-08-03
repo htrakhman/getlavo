@@ -26,7 +26,18 @@ export type RefundOutcome =
   | 'nothing_captured';
 
 export type RefundResult =
-  | { ok: true; outcome: RefundOutcome; refundId: string | null }
+  | {
+      ok: true;
+      outcome: RefundOutcome;
+      refundId: string | null;
+      /**
+       * What actually went back, in cents, straight from Stripe — null when
+       * nothing was captured. Callers quote this to the resident rather than
+       * the booking's gross so an email can never promise more than the money
+       * that moved.
+       */
+      amountCents: number | null;
+    }
   | { ok: false; error: string };
 
 /** Stripe's answer when the money is already back. Not a failure — the goal is met. */
@@ -59,6 +70,10 @@ export async function refundBookingPayment(
 
   let hasApplicationFee = false;
   let hasTransfer = false;
+  // Falls back to the charge when the refund object isn't the thing that
+  // reports the amount — an already-refunded charge knows what went back even
+  // though this call created no Refund of its own.
+  let capturedCents: number | null = null;
   try {
     const intent = await stripe.paymentIntents.retrieve(args.paymentIntentId, {
       expand: ['latest_charge'],
@@ -70,15 +85,21 @@ export async function refundBookingPayment(
     // failure would block a cancellation the resident is entitled to — nothing
     // was taken from them in the first place.
     if (!charge || !charge.captured) {
-      return { ok: true, outcome: 'nothing_captured', refundId: null };
+      return { ok: true, outcome: 'nothing_captured', refundId: null, amountCents: null };
     }
 
     hasApplicationFee = !!charge.application_fee;
     hasTransfer = !!charge.transfer;
+    capturedCents = charge.amount_captured ?? charge.amount ?? null;
 
     if (charge.refunded) {
       await markChargeRefunded(admin, args.bookingId);
-      return { ok: true, outcome: 'already_refunded', refundId: null };
+      return {
+        ok: true,
+        outcome: 'already_refunded',
+        refundId: null,
+        amountCents: charge.amount_refunded ?? capturedCents,
+      };
     }
   } catch (e: any) {
     // Couldn't read the charge — try the refund anyway rather than stranding a
@@ -98,11 +119,11 @@ export async function refundBookingPayment(
       ...(hasApplicationFee ? { refund_application_fee: true } : {}),
     });
     await markChargeRefunded(admin, args.bookingId);
-    return { ok: true, outcome: 'refunded', refundId: refund.id };
+    return { ok: true, outcome: 'refunded', refundId: refund.id, amountCents: refund.amount ?? capturedCents };
   } catch (e: any) {
     if (isAlreadyRefunded(e)) {
       await markChargeRefunded(admin, args.bookingId);
-      return { ok: true, outcome: 'already_refunded', refundId: null };
+      return { ok: true, outcome: 'already_refunded', refundId: null, amountCents: capturedCents };
     }
     console.error('[refund-booking] stripe refund failed', {
       bookingId: args.bookingId,
