@@ -10,6 +10,7 @@ import { SkipButton } from './SkipButton';
 import { RateWash } from './RateWash';
 import { Complain } from './Complain';
 import { PhotoThumb } from '@/components/PhotoLightbox';
+import { washHistory, washOutcome } from '@/lib/wash-history';
 
 export default async function ResidentWashes() {
   const session = await getSessionUser();
@@ -34,7 +35,7 @@ export default async function ResidentWashes() {
 
   // Admin client for the same RLS reason as above; every query is still scoped
   // to this resident via building_id / resident.id from the row fetched above.
-  const [{ data: nextWashDay }, { data: nextBooking }, { data: history }, { data: skips }, { data: reviews }, { data: partnership }] = await Promise.all([
+  const [{ data: nextWashDay }, { data: nextBooking }, { data: pastWashes, error: washesErr }, { data: skips }, { data: reviews }, { data: partnership }] = await Promise.all([
     sbAdmin.from('wash_days')
       .select('id, scheduled_for, operator:operators(name)')
       .eq('building_id', resident.building_id)
@@ -53,11 +54,14 @@ export default async function ResidentWashes() {
       .order('scheduled_for')
       .limit(1)
       .maybeSingle(),
+    // Every wash on this resident's record; washHistory() keeps the ones that
+    // already happened and orders them by wash day. The cap is per resident —
+    // one row per wash day they've been rostered for — so it never bites.
     sbAdmin.from('washes')
-      .select('id, status, completed_at, photo_url, flag_reason, wash_day:wash_days(scheduled_for)')
+      .select('id, status, completed_at, photo_url, flag_reason, wash_day_id, wash_day:wash_days(scheduled_for)')
       .eq('resident_id', resident.id)
       .order('completed_at', { ascending: false, nullsFirst: false })
-      .limit(20),
+      .limit(200),
     sbAdmin.from('wash_skips')
       .select('wash_day_id')
       .eq('resident_id', resident.id),
@@ -73,6 +77,10 @@ export default async function ResidentWashes() {
       .maybeSingle(),
   ]);
 
+  if (washesErr) {
+    console.error('[washes] wash history query error:', washesErr.message, washesErr.details);
+  }
+
   const partnerOp = (partnership?.operator as any) ?? null;
   const hasActiveOperator = partnerOp?.status === 'approved' && !!partnerOp?.stripe_onboarding_complete;
 
@@ -80,6 +88,7 @@ export default async function ResidentWashes() {
 
   const skipIds = new Set((skips ?? []).map((s) => s.wash_day_id));
   const nextSkipped = nextWashDay && skipIds.has(nextWashDay.id);
+  const history = washHistory(pastWashes as any[], today, 20);
   // A wash the resident booked themselves takes priority over the building-wide
   // schedule when it comes first (or on the same day, since it has a time slot).
   const bookingIsNext =
@@ -105,7 +114,7 @@ export default async function ResidentWashes() {
         </span>
       </div>
 
-      {!history?.length && (bookingIsNext || nextWashDay) && (
+      {!history.length && (bookingIsNext || nextWashDay) && (
         <div className="mb-6 card border-gleam/30 p-5 text-sm text-ink-200">
           You're registered. Your first wash is {dateShort(bookingIsNext ? nextBooking!.scheduled_for : nextWashDay!.scheduled_for)}.
         </div>
@@ -175,7 +184,7 @@ export default async function ResidentWashes() {
         </div>
       </div>
 
-      {!history?.length && (
+      {!history.length && (
         <div className="mt-8 card p-6">
           <h3 className="font-display text-lg">What to expect</h3>
           <ol className="mt-3 space-y-2 text-sm text-ink-300">
@@ -186,7 +195,7 @@ export default async function ResidentWashes() {
         </div>
       )}
 
-      {!!history?.length && (
+      {!!history.length && (
         <div className="mt-8">
           <h2 className="font-display text-xl mb-3">Wash history</h2>
           <div className="space-y-3">
@@ -197,7 +206,9 @@ export default async function ResidentWashes() {
                     <div className="text-sm">{dateShort(w.wash_day?.scheduled_for ?? w.completed_at)}</div>
                     {w.flag_reason && <div className="mt-1 text-xs text-amber-600">⚑ {w.flag_reason}</div>}
                   </div>
-                  <span className={`chip ${w.status === 'completed' ? 'text-gleam' : ''}`}>{w.status}</span>
+                  <span className={`chip ${w.status === 'completed' ? 'text-gleam' : ''}`}>
+                    {washOutcome(w, skipIds.has(w.wash_day_id))}
+                  </span>
                 </div>
                 {w.photo_url && (
                   <div className="mt-3">
