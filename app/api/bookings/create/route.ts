@@ -5,12 +5,16 @@ import { applyPromoToBooking, recordPromoRedemption } from '@/lib/promo';
 import { confirmPaidBookingAndNotify } from '@/lib/booking-confirm';
 import { priceAddonSelection, recordBookingAddonOrders, releaseBookingAddonOrders } from '@/lib/addons';
 import { washDayForBooking } from '@/lib/wash-day-for-booking';
+import { SLOT_HOLDING_STATUSES } from '@/lib/availability';
 import { WAIVER_VERSION } from '@/lib/waiver';
 import { standardWashPricing, washCentsFor } from '@/lib/wash-pricing';
 import { destinationChargeParams, resolveSplit } from '@/lib/stripe/connect-split';
 import { normalizeSize, priceForVehicle } from '@/lib/vehicle-sizes';
 import Stripe from 'stripe';
 import { z } from 'zod';
+
+/** What counts against an operator's day and hour — see lib/availability.ts. */
+const HELD_STATUSES = SLOT_HOLDING_STATUSES as unknown as string[];
 
 const Body = z.object({
   operatorId: z.string().uuid(),
@@ -255,7 +259,7 @@ async function createBooking(req: Request) {
     .select('id', { count: 'exact', head: true })
     .eq('operator_id', operatorId)
     .eq('scheduled_for', scheduledFor)
-    .in('status', ['confirmed', 'in_progress']);
+    .in('status', HELD_STATUSES);
 
   if ((existingBookings ?? 0) >= operator.capacity_per_day) {
     return NextResponse.json({ error: 'No capacity available on this date' }, { status: 409 });
@@ -263,7 +267,9 @@ async function createBooking(req: Request) {
 
   // The crew washes one vehicle at a time, so an hour someone already holds is
   // gone — the calendar greys it out (see lib/availability.ts), and this stops a
-  // stale tab or a direct POST from stacking a second car onto it.
+  // stale tab or a direct POST from stacking a second car onto it. Cancelled
+  // bookings aren't counted, so an hour freed by a cancellation is bookable the
+  // moment it's given up.
   if (timeSlot) {
     const { count: slotBookings } = await admin
       .from('bookings')
@@ -271,7 +277,7 @@ async function createBooking(req: Request) {
       .eq('operator_id', operatorId)
       .eq('scheduled_for', scheduledFor)
       .eq('time_slot', timeSlot)
-      .in('status', ['confirmed', 'in_progress']);
+      .in('status', HELD_STATUSES);
 
     if ((slotBookings ?? 0) > 0) {
       return NextResponse.json(

@@ -29,6 +29,17 @@ const DAYS_AHEAD = 14;
 /** Vehicles one operator can take in the same hour. One crew, one car. */
 const SLOT_CAPACITY = 1;
 
+/**
+ * The statuses that actually hold an operator's time. A booking only occupies
+ * its day and its hour while it is live — cancelling one (or having it
+ * refunded, or abandoning checkout, all of which land the row on `cancelled`)
+ * hands the hour straight back, and the next resident to look sees it open
+ * again. Nothing has to be released by hand, which is the point: the day the
+ * cancel path forgets a clean-up step is the day an operator's calendar starts
+ * holding hours nobody is coming for.
+ */
+export const SLOT_HOLDING_STATUSES = ['confirmed', 'in_progress'] as const;
+
 type DayHours = { open?: string; close?: string; closed?: boolean };
 
 export type AvailabilityDay = {
@@ -135,7 +146,7 @@ export async function getBuildingAvailability(
         .from('bookings')
         .select('scheduled_for, time_slot')
         .eq('operator_id', operator.id)
-        .in('status', ['confirmed', 'in_progress'])
+        .in('status', SLOT_HOLDING_STATUSES as unknown as string[])
         .gte('scheduled_for', from)
         .lte('scheduled_for', to);
       return opts.excludeBookingId ? q.neq('id', opts.excludeBookingId) : q;
