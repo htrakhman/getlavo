@@ -131,16 +131,6 @@ const HELP_CATEGORIES: HelpCategory[] = [
           'Residents pay in the app. Net earnings flow to your connected Stripe account per completed booking. Your earnings dashboard breaks out gross, fees, and net.',
       },
       {
-        question: 'What does Lavo charge?',
-        answer:
-          `Lavo takes 10% of each booking. Card processing on that payment (2.9% + 30¢) comes out of your share as well, so your payout is the wash price minus 10% minus processing: ${payoutExamples}. The flat 30¢ counts for less as the price rises, so your share of a typical wash lands near 87%. There is no subscription, no lead fee, and no marketing spend required.`,
-      },
-      {
-        question: 'Why is my Stripe payout less than the booking price?',
-        answer:
-          'Stripe records each resident payment as a transfer of the full booking amount to your connected account, then an application fee that Lavo collects back out of it. Your take-home is the transfer minus that application fee, which Stripe never shows as its own line. Your Lavo earnings dashboard breaks out gross, fee, and net directly.',
-      },
-      {
         question: 'How do building partnerships start?',
         answer:
           'Accept requests from buildings in your radius, or work with buildings already asking for Lavo in your area. You can decline any request that does not fit your route or capacity.',
@@ -159,6 +149,11 @@ const HELP_CATEGORIES: HelpCategory[] = [
         question: 'Can I offer add-on services?',
         answer:
           'Yes. Offer extras such as interior detail, wax, or tire shine. They are billed through Stripe alongside the wash, and you keep the proceeds minus the platform fee.',
+      },
+      {
+        question: 'What does Lavo charge?',
+        answer:
+          `Lavo takes 10% of each booking, and card processing on that payment (2.9% + 30¢) comes out of your share as well: ${payoutExamples}. In Stripe your connected account shows the booking transferred in and Lavo's fee collected back out of it, so your take-home is the difference between the two. There is no subscription, no lead fee, and no marketing spend required.`,
       },
     ],
   },
