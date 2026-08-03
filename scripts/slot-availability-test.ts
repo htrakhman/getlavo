@@ -10,7 +10,7 @@
  * the calendar can grey it out instead of selling it again.
  */
 
-import { buildAvailabilityDays, type BookingRow } from '../lib/availability';
+import { buildAvailabilityDays, SLOT_HOLDING_STATUSES, type BookingRow } from '../lib/availability';
 
 let failures = 0;
 function check(name: string, cond: boolean) {
@@ -71,6 +71,26 @@ function main() {
     'a booking with no time holds no hour',
     days([{ scheduled_for: '2026-08-07', time_slot: null }])[0].taken.length === 0,
   );
+
+  // ── giving an hour up hands it straight back ────────────────────────────
+  // Cancelling sets status to 'cancelled' (app/api/bookings/[id]/cancel), and a
+  // refund does the same — neither is read as holding time, so the hour is open
+  // to the next resident with no clean-up step to forget.
+  const holding: readonly string[] = SLOT_HOLDING_STATUSES;
+  check('a cancelled booking holds no time', !holding.includes('cancelled'));
+  check('an unpaid booking holds no time', !holding.includes('pending_payment'));
+  check('a confirmed booking holds its time', holding.includes('confirmed'));
+  check('a wash under way holds its time', holding.includes('in_progress'));
+
+  // The rows availability reads are already filtered to those statuses, so a
+  // cancelled 1:00 PM simply isn't there — and the hour comes back open.
+  const afterCancel = days([])[0];
+  check('the freed hour is open again', afterCancel.slots.includes('1:00 PM'));
+  check('the freed hour is no longer marked taken', !afterCancel.taken.includes('1:00 PM'));
+  check('nothing else moved', afterCancel.slots.length === 11 && !afterCancel.full);
+
+  // A day everyone walked away from stops reading as full.
+  check('a day emptied by cancellations is no longer full', !days([])[0].full);
 
   // ── a day with every hour spoken for reads as full ──────────────────────
   const allHours = Array.from({ length: 11 }).map((_, i) => ({
