@@ -1,6 +1,5 @@
 import { PageHeader } from '@/components/PortalShell';
 import { getSessionUser, supabaseServer, supabaseAdmin } from '@/lib/supabase/server';
-import { WAIVER_VERSION } from '@/lib/waiver';
 import { listBookableAddons, listRecurringAddonIds } from '@/lib/addons';
 import { getPackagesForOperator } from '@/lib/service-packages';
 import { standardWashPricing } from '@/lib/wash-pricing';
@@ -37,18 +36,15 @@ export default async function BookOperator({
 
   if (!resident || !operator) redirect('/resident/book');
 
-  const [{ data: vehicles }, { data: waiver }, addons, recurringAddonIds, packages, washPricing] = await Promise.all([
+  // The service acknowledgment is asked on every booking now (see
+  // lib/booking-terms.ts), so nothing here has to look up whether this resident
+  // has accepted the one-time waiver — the booking API still records it.
+  const [{ data: vehicles }, addons, recurringAddonIds, packages, washPricing] = await Promise.all([
     admin
       .from('vehicles')
       .select('id, make, model, color, year, license_plate, notes, is_primary, size')
       .eq('resident_id', resident.id)
       .order('is_primary', { ascending: false }),
-    admin
-      .from('waiver_acceptances')
-      .select('id')
-      .eq('profile_id', session.user.id)
-      .eq('waiver_version', WAIVER_VERSION)
-      .maybeSingle(),
     listBookableAddons(admin, operator.id),
     listRecurringAddonIds(admin, resident.id, operator.id),
     getPackagesForOperator(admin, operator.id),
@@ -92,7 +88,6 @@ export default async function BookOperator({
         partnershipId={searchParams.partnershipId}
         initialDate={searchParams.date}
         initialTimeSlot={searchParams.time}
-        waiverAccepted={!!waiver}
         addons={addons}
         initialAddonIds={recurringAddonIds}
         packages={packages}

@@ -4,6 +4,11 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { DayTimePicker, longLabel, type AvailabilityDay } from '@/components/DayTimePicker';
 import { CancelBookingButton } from './CancelBookingButton';
+import {
+  CANCELLATION_CUTOFF_HOURS,
+  cancellationNotice,
+  refundEligibility,
+} from '@/lib/cancellation-policy';
 
 /**
  * What a resident can do to a wash they've already booked: move it, drop it, or
@@ -13,6 +18,11 @@ import { CancelBookingButton } from './CancelBookingButton';
  * free-form date, so the resident can only land on a slot the crew is actually
  * working — the same list the booking form shows, minus this booking's own seat
  * (see /api/availability).
+ *
+ * Both moving and refunding stop 24 hours before the wash (see
+ * lib/cancellation-policy.ts). Inside that window the Reschedule button says why
+ * it's unavailable rather than opening a picker whose every choice the server
+ * would refuse.
  */
 export function BookingActions({
   bookingId,
@@ -61,6 +71,7 @@ export function BookingActions({
   }, [open, days, operatorId, bookingId, scheduledFor, timeSlot]);
 
   const unchanged = date === scheduledFor && time === timeSlot;
+  const cancelWindow = refundEligibility(scheduledFor, timeSlot);
 
   async function submit() {
     if (!date) return;
@@ -85,6 +96,19 @@ export function BookingActions({
 
   return (
     <div className="mt-4 border-t border-white/10 pt-3">
+      {/* The policy, on the booking it applies to — a resident shouldn't have
+          to remember a checkout footnote to know where their money stands. */}
+      <p className="mb-2 text-right text-[11px] text-ink-500">
+        {cancellationNotice(cancelWindow)}{' '}
+        <a
+          href="/legal/terms"
+          target="_blank"
+          rel="noreferrer"
+          className="underline underline-offset-2 hover:text-gleam"
+        >
+          Cancellation policy
+        </a>
+      </p>
       <div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-2 text-xs">
         <Link
           href={`/resident/book/${operatorId}`}
@@ -92,14 +116,23 @@ export function BookingActions({
         >
           Book another wash
         </Link>
-        <button
-          onClick={() => setOpen((v) => !v)}
-          className="text-ink-500 transition hover:text-gleam"
-          aria-expanded={open}
-        >
-          {open ? 'Keep this time' : 'Reschedule'}
-        </button>
-        <CancelBookingButton bookingId={bookingId} />
+        {cancelWindow.refundable ? (
+          <button
+            onClick={() => setOpen((v) => !v)}
+            className="text-ink-500 transition hover:text-gleam"
+            aria-expanded={open}
+          >
+            {open ? 'Keep this time' : 'Reschedule'}
+          </button>
+        ) : (
+          <span
+            className="cursor-not-allowed text-ink-600"
+            title={`Washes can be moved up to ${CANCELLATION_CUTOFF_HOURS} hours before they start.`}
+          >
+            Reschedule closed
+          </span>
+        )}
+        <CancelBookingButton bookingId={bookingId} scheduledFor={scheduledFor} timeSlot={timeSlot} />
       </div>
 
       {open && (
@@ -150,8 +183,9 @@ export function BookingActions({
             </>
           ) : (
             <p className="mt-4 text-sm text-ink-400">
-              Your operator has no open slots in the next two weeks. Cancel for a refund and rebook
-              when new days open up.
+              Your operator has no open slots in the next two weeks. Cancel for a full refund — you
+              are outside the {CANCELLATION_CUTOFF_HOURS}-hour window — and rebook when new days
+              open up.
             </p>
           )}
         </div>

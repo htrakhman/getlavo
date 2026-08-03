@@ -8,6 +8,8 @@ import { BookingCalendar, longLabel } from '@/components/BookingCalendar';
 import { ReadonlyField, EditableField } from '@/components/ResidentField';
 import type { AvailabilityDay } from '@/components/DayTimePicker';
 import { captureEvent } from '@/lib/analytics';
+import { BOOKING_TERMS_VERSION, bookingTerms } from '@/lib/booking-terms';
+import { CANCELLATION_POLICY_LINE } from '@/lib/cancellation-policy';
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -87,7 +89,6 @@ export function BookingForm({
   partnershipId,
   initialDate,
   initialTimeSlot,
-  waiverAccepted,
   addons,
   initialAddonIds,
   packages,
@@ -118,7 +119,6 @@ export function BookingForm({
   partnershipId?: string;
   initialDate?: string;
   initialTimeSlot?: string;
-  waiverAccepted: boolean;
   addons: { id: string; label: string; price_cents: number; size_prices?: unknown }[];
   initialAddonIds: string[];
   packages: { id: string; name: string; description: string | null; price_cents: number; size_prices?: unknown }[];
@@ -201,8 +201,12 @@ export function BookingForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [date, availability]);
 
-  const needsWaiver = !waiverAccepted;
-  const [agreeWaiver, setAgreeWaiver] = useState(false);
+  // The acknowledgment is asked on every booking, not once per resident: it
+  // covers this booking's charge and this booking's refund window, both of
+  // which are decisions about this wash. Ticking it also stands in for the
+  // one-time liability waiver, whose wording is one of the points listed.
+  const terms = useMemo(bookingTerms, []);
+  const [agreeTerms, setAgreeTerms] = useState(false);
   const [recurring, setRecurring] = useState<'none' | 'weekly' | 'biweekly' | 'monthly'>('none');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -271,7 +275,8 @@ export function BookingForm({
           partnershipId: partnershipId ?? undefined,
           recurringCadence: recurring === 'none' ? undefined : recurring,
           addonIds,
-          waiverAccepted: needsWaiver ? agreeWaiver : undefined,
+          termsAccepted: agreeTerms,
+          termsVersion: BOOKING_TERMS_VERSION,
         }),
       });
 
@@ -650,35 +655,52 @@ export function BookingForm({
             </div>
           </div>
 
-          {needsWaiver && (
-            <div className="rounded-xl border border-white/10 bg-ink-800/50 p-4 space-y-2">
-              <label className="flex items-start gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="mt-1 h-4 w-4 shrink-0 accent-gleam"
-                  checked={agreeWaiver}
-                  onChange={(e) => setAgreeWaiver(e.target.checked)}
-                />
-                <span className="text-xs text-ink-300">
-                  I get that an independent operator performs this service, that my building and Lavo
-                  are not liable for vehicle damage, and that the operator may enter the garage or lot
-                  to reach my car.
-                </span>
-              </label>
-              <p className="text-[11px] text-ink-500">
-                One time thing before your first wash. Details in the{' '}
+          {/* Everything the resident is agreeing to, on every booking, directly
+              above the button that spends the money. The refund window used to
+              live only in the grey line under the button while the liability
+              waiver was a one-time checkbox — so a returning resident could pay
+              without being shown the rule that decides whether they get their
+              money back. */}
+          <div className="rounded-xl border border-white/10 bg-ink-800/50 p-4 space-y-3">
+            <h4 className="text-sm font-medium">Before you book</h4>
+            <ul className="space-y-1.5 text-xs text-ink-300">
+              {terms.map((t) => (
+                <li key={t.key} className="flex gap-2">
+                  <span aria-hidden className="mt-[2px] text-gleam">•</span>
+                  <span>{t.text}</span>
+                </li>
+              ))}
+            </ul>
+            <label className="flex cursor-pointer items-start gap-3 border-t border-white/10 pt-3">
+              <input
+                type="checkbox"
+                className="mt-0.5 h-4 w-4 shrink-0 accent-gleam"
+                checked={agreeTerms}
+                onChange={(e) => setAgreeTerms(e.target.checked)}
+              />
+              <span className="text-xs text-ink-200">
+                I have read and agree to the points above, the{' '}
                 <a href="/legal/terms" target="_blank" rel="noreferrer" className="text-gleam underline underline-offset-2">
-                  full terms
-                </a>.
-              </p>
-            </div>
-          )}
+                  Terms of Service
+                </a>
+                ,{' '}
+                <a href="/legal/damage-policy" target="_blank" rel="noreferrer" className="text-gleam underline underline-offset-2">
+                  damage policy
+                </a>{' '}
+                and{' '}
+                <a href="/legal/privacy" target="_blank" rel="noreferrer" className="text-gleam underline underline-offset-2">
+                  privacy policy
+                </a>
+                .
+              </span>
+            </label>
+          </div>
 
           {err && <div className="text-sm text-red-400">{err}</div>}
 
           <button
             onClick={book}
-            disabled={busy || nothingBookable || !vehicleId || !vehicleSize || !date || (needsWaiver && !agreeWaiver)}
+            disabled={busy || nothingBookable || !vehicleId || !vehicleSize || !date || !agreeTerms}
             className="btn-primary w-full"
           >
             {busy
@@ -686,7 +708,7 @@ export function BookingForm({
               : (priceCents > 0 ? `Book · ${money(priceCents)}` : 'Book free wash')}
           </button>
           <p className="text-[11px] text-ink-400 text-center">
-            Secure payment via Stripe. Cancellation available up to 24h before.
+            Secure payment via Stripe. {CANCELLATION_POLICY_LINE}
           </p>
         </div>
       </div>

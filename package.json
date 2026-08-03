@@ -24,6 +24,7 @@
     "validate:notification-emails": "tsx --tsconfig tsconfig.scripts.json scripts/notification-emails-test.ts",
     "validate:notification-copy-delivery": "tsx --tsconfig tsconfig.scripts.json scripts/notification-copy-delivery-test.ts",
     "validate:wash-history": "tsx --tsconfig tsconfig.scripts.json scripts/wash-history-test.ts",
+    "validate:cancellation-policy": "tsx --tsconfig tsconfig.scripts.json scripts/cancellation-policy-test.ts",
     "db:push": "supabase db push"
   },
   "dependencies": {

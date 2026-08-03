@@ -20,7 +20,11 @@ import { notificationCopies } from '@/lib/notification-emails';
 export async function notifyCancelled(
   admin: SupabaseClient,
   bookingId: string,
-  opts: { refunded?: boolean } = {},
+  opts: {
+    refunded?: boolean;
+    /** A payment kept because the cancellation landed inside the 24-hour window. */
+    refundWithheld?: boolean;
+  } = {},
 ) {
   const { data: booking } = await admin
     .from('bookings')
@@ -73,6 +77,7 @@ export async function notifyCancelled(
       audience: 'resident',
       counterpartyName: operator?.name ?? null,
       refunded: opts.refunded,
+      refundWithheld: opts.refundWithheld,
       ics: residentCancelIcs(details, { email: resident.email, name: resident.full_name }),
     }).catch((e) =>
       console.error('[booking-cancel] resident email failed', { bookingId, message: e?.message }),
@@ -107,6 +112,7 @@ export async function notifyCancelled(
         scheduledFor: booking.scheduled_for,
         timeSlot: booking.time_slot,
         refunded: opts.refunded,
+        refundWithheld: opts.refundWithheld,
         link: '/resident/bookings',
       },
       { skipEmail: true },
