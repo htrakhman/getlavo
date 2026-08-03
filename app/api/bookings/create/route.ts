@@ -261,6 +261,26 @@ async function createBooking(req: Request) {
     return NextResponse.json({ error: 'No capacity available on this date' }, { status: 409 });
   }
 
+  // The crew washes one vehicle at a time, so an hour someone already holds is
+  // gone — the calendar greys it out (see lib/availability.ts), and this stops a
+  // stale tab or a direct POST from stacking a second car onto it.
+  if (timeSlot) {
+    const { count: slotBookings } = await admin
+      .from('bookings')
+      .select('id', { count: 'exact', head: true })
+      .eq('operator_id', operatorId)
+      .eq('scheduled_for', scheduledFor)
+      .eq('time_slot', timeSlot)
+      .in('status', ['confirmed', 'in_progress']);
+
+    if ((slotBookings ?? 0) > 0) {
+      return NextResponse.json(
+        { error: 'That time was just booked. Please pick another time.' },
+        { status: 409 },
+      );
+    }
+  }
+
   // Building-day bookings belong to the building's wash day: link the row so
   // the crew roster and prep views can count this resident.
   const washDayId =

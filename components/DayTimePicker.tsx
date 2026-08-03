@@ -1,9 +1,38 @@
 'use client';
 
-export type AvailabilityDay = { date: string; dow: string; slots: string[]; full: boolean };
+export type AvailabilityDay = {
+  date: string;
+  dow: string;
+  slots: string[];
+  /** Working hours already booked. Optional so an older payload still renders. */
+  taken?: string[];
+  full: boolean;
+};
 
 function dayNumber(date: string): string {
   return String(parseInt(date.slice(8, 10), 10));
+}
+
+/** "1:00 PM" → 13. Slots come from the operator's hours as on-the-hour labels. */
+export function slotHour(label: string): number {
+  const m = /^(\d{1,2}):(\d{2})\s*(AM|PM)$/i.exec(label.trim());
+  if (!m) return 12;
+  let h = parseInt(m[1], 10) % 12;
+  if (m[3].toUpperCase() === 'PM') h += 12;
+  return h;
+}
+
+/**
+ * Every hour the operator works that day, in clock order, each flagged with
+ * whether it's still open. Booked hours stay in the grid — greyed out — so the
+ * day reads as "1:00 PM is taken" rather than as an hour that never existed.
+ */
+export function daySlotEntries(day: AvailabilityDay | null): { time: string; taken: boolean }[] {
+  if (!day) return [];
+  return [
+    ...day.slots.map((time) => ({ time, taken: false })),
+    ...(day.taken ?? []).map((time) => ({ time, taken: true })),
+  ].sort((a, b) => slotHour(a.time) - slotHour(b.time));
 }
 
 function monthLabel(date: string): string {
@@ -76,19 +105,23 @@ export function DayTimePicker({
         <>
           <div className="mt-4 text-sm text-ink-300">{longLabel(selectedDay.date)}</div>
           <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4" role="radiogroup" aria-label="Choose a time">
-            {selectedDay.slots.map((time) => {
-              const isSelected = time === selectedTime;
+            {daySlotEntries(selectedDay).map(({ time, taken }) => {
+              const isSelected = !taken && time === selectedTime;
               return (
                 <button
                   key={time}
                   type="button"
                   role="radio"
                   aria-checked={isSelected}
+                  aria-label={taken ? `${time} — already booked` : time}
+                  disabled={taken}
                   onClick={() => onSelectTime(time)}
                   className={`rounded-xl border px-2 py-2.5 text-center text-sm transition ${
                     isSelected
                       ? 'border-gleam/70 bg-gleam/15 font-semibold text-gleam shadow-glow'
-                      : 'border-white/10 bg-ink-900/60 text-ink-100 hover:border-gleam/40'
+                      : taken
+                        ? 'cursor-not-allowed border-white/5 bg-white/[0.02] text-ink-500/60 line-through'
+                        : 'border-white/10 bg-ink-900/60 text-ink-100 hover:border-gleam/40'
                   }`}
                 >
                   {time}

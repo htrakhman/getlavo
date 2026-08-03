@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import type { AvailabilityDay } from './DayTimePicker';
+import { daySlotEntries, slotHour, type AvailabilityDay } from './DayTimePicker';
 
 /**
  * Full month-grid calendar with a time-slot picker, used by the resident
@@ -40,15 +40,6 @@ export function longLabel(date: string): string {
     month: 'long',
     day: 'numeric',
   });
-}
-
-/** "1:00 PM" → 13. Slots come from the operator's hours as on-the-hour labels. */
-function slotHour(label: string): number {
-  const m = /^(\d{1,2}):(\d{2})\s*(AM|PM)$/i.exec(label.trim());
-  if (!m) return 12;
-  let h = parseInt(m[1], 10) % 12;
-  if (m[3].toUpperCase() === 'PM') h += 12;
-  return h;
 }
 
 const SLOT_GROUPS = [
@@ -118,9 +109,11 @@ export function BookingCalendar({
   })();
 
   const selectedDay = selectedDate ? byDate.get(selectedDate) ?? null : null;
+  // Booked hours ride along with the open ones so they can be shown taken
+  // instead of vanishing from the grid.
   const grouped = SLOT_GROUPS.map((g) => ({
     label: g.label,
-    slots: (selectedDay?.slots ?? []).filter((s) => g.match(slotHour(s))),
+    slots: daySlotEntries(selectedDay).filter((s) => g.match(slotHour(s.time))),
   })).filter((g) => g.slots.length > 0);
 
   // Nothing to collapse into until there's a day to name.
@@ -280,7 +273,7 @@ function TimeSlots({
   className,
 }: {
   selectedDay: AvailabilityDay | null;
-  grouped: { label: string; slots: string[] }[];
+  grouped: { label: string; slots: { time: string; taken: boolean }[] }[];
   selectedTime: string | null;
   onSelectTime: (time: string) => void;
   showDayLabel?: boolean;
@@ -297,8 +290,15 @@ function TimeSlots({
                 {showDayLabel ? longLabel(selectedDay.date) : 'Pick a time'}
               </span>
             </div>
-            <span className="chip border-gleam/25 bg-gleam/[0.07] text-gleam">
-              {selectedDay.slots.length} time{selectedDay.slots.length === 1 ? '' : 's'} available
+            <span className="flex flex-wrap items-center gap-2">
+              <span className="chip border-gleam/25 bg-gleam/[0.07] text-gleam">
+                {selectedDay.slots.length} time{selectedDay.slots.length === 1 ? '' : 's'} available
+              </span>
+              {(selectedDay.taken?.length ?? 0) > 0 && (
+                <span className="chip border-white/10 bg-white/5 text-ink-400">
+                  {selectedDay.taken!.length} booked
+                </span>
+              )}
             </span>
           </div>
           <div className="mt-4 space-y-4" role="radiogroup" aria-label="Choose a time">
@@ -308,19 +308,23 @@ function TimeSlots({
                   {group.label}
                 </div>
                 <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-5">
-                  {group.slots.map((time) => {
-                    const isSelected = time === selectedTime;
+                  {group.slots.map(({ time, taken }) => {
+                    const isSelected = !taken && time === selectedTime;
                     return (
                       <button
                         key={time}
                         type="button"
                         role="radio"
                         aria-checked={isSelected}
+                        aria-label={taken ? `${time} — already booked` : time}
+                        disabled={taken}
                         onClick={() => onSelectTime(time)}
                         className={`rounded-xl border px-2 py-2.5 text-center text-sm tabular-nums transition duration-150 ${
                           isSelected
                             ? 'border-gleam bg-gleam font-bold text-ink-950 shadow-glow'
-                            : 'border-white/10 bg-ink-900 font-medium text-ink-100 hover:-translate-y-0.5 hover:border-gleam/50 hover:text-gleam'
+                            : taken
+                              ? 'cursor-not-allowed border-transparent bg-white/5 font-medium text-ink-500/60 line-through'
+                              : 'border-white/10 bg-ink-900 font-medium text-ink-100 hover:-translate-y-0.5 hover:border-gleam/50 hover:text-gleam'
                         }`}
                       >
                         {time}
