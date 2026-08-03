@@ -75,16 +75,29 @@ function paramValue(s: string) {
 function personLines(
   prop: 'ORGANIZER' | 'ATTENDEE',
   person: CalendarPerson | undefined,
+  method: IcsMethod,
 ): string[] {
   if (!person?.email) return [];
   const cn = person.name ? `;CN=${paramValue(person.name)}` : '';
+  // Nothing to RSVP to on a cancellation — the event is being withdrawn, and
+  // asking for a reply to it reads as a second invite in some clients.
   const extra =
-    prop === 'ATTENDEE' ? ';ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=TRUE' : '';
+    prop === 'ATTENDEE' && method !== 'CANCEL'
+      ? ';ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=TRUE'
+      : '';
   return [`${prop}${cn}${extra}:mailto:${person.email}`];
 }
 
-/** Builds a VCALENDAR string. `method: 'REQUEST'` makes mail clients render it as an invite. */
-export function buildIcs(event: WashEvent, opts: { method?: 'PUBLISH' | 'REQUEST' } = {}): string {
+/**
+ * `REQUEST` makes mail clients render the file as an actionable invite;
+ * `CANCEL` withdraws an event they already hold, which is the only way to get a
+ * cancelled wash off someone's calendar rather than leaving them with an
+ * appointment nobody is coming to.
+ */
+export type IcsMethod = 'PUBLISH' | 'REQUEST' | 'CANCEL';
+
+/** Builds a VCALENDAR string. */
+export function buildIcs(event: WashEvent, opts: { method?: IcsMethod } = {}): string {
   const method = opts.method ?? 'PUBLISH';
   const parsed = parseTimeSlot(event.time);
   const duration = event.durationMins ?? DEFAULT_DURATION_MINS;
@@ -109,7 +122,7 @@ export function buildIcs(event: WashEvent, opts: { method?: 'PUBLISH' | 'REQUEST
     `UID:${event.uid}`,
     `DTSTAMP:${stamp}`,
     `SEQUENCE:${Math.max(0, Math.trunc(event.sequence ?? 0))}`,
-    'STATUS:CONFIRMED',
+    method === 'CANCEL' ? 'STATUS:CANCELLED' : 'STATUS:CONFIRMED',
     ...dtLines,
     `SUMMARY:${icsEscape(event.title)}`,
     ...(event.description ? [`DESCRIPTION:${icsEscape(event.description)}`] : []),
@@ -117,8 +130,8 @@ export function buildIcs(event: WashEvent, opts: { method?: 'PUBLISH' | 'REQUEST
     // Gmail and Google Calendar only render a METHOD:REQUEST as an actionable
     // invite when it names both an organizer and an attendee; without them the
     // file degrades to a plain attachment the recipient has to open by hand.
-    ...personLines('ORGANIZER', event.organizer),
-    ...personLines('ATTENDEE', event.attendee),
+    ...personLines('ORGANIZER', event.organizer, method),
+    ...personLines('ATTENDEE', event.attendee, method),
     'END:VEVENT',
     'END:VCALENDAR',
   ];

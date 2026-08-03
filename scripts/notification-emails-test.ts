@@ -13,13 +13,17 @@
  *     resident's mail — with no primary address there is nobody to copy, and
  *     mailing the extras alone would leak a resident's wash schedule to a
  *     third party the account no longer belongs to.
+ *  4. The primary address leaking back into the copies list. Copies go out as
+ *     their own message now (lib/email/resend.ts), so a primary that survived
+ *     the filter would send the resident two of every email rather than being
+ *     collapsed by the mail provider as one `to`/`cc` list would have.
  */
 
 import {
   MAX_NOTIFICATION_EMAILS,
   isValidEmail,
   normalizeNotificationEmails,
-  notificationRecipients,
+  notificationCopies,
 } from '../lib/notification-emails';
 
 let failures = 0;
@@ -53,19 +57,19 @@ function main() {
   );
   check('caps the list server-side', many.length === MAX_NOTIFICATION_EMAILS);
 
-  const recipients = notificationRecipients({
+  const copies = notificationCopies({
     email: primary,
     notification_emails: ['partner@example.com', primary],
   });
-  check('primary is addressed first', recipients[0] === primary);
-  check('extras ride along', recipients.includes('partner@example.com'));
-  check('no duplicate of the primary', recipients.length === 2);
+  check('extras are returned', copies.includes('partner@example.com'));
+  check('the primary is never in the copies list', !copies.includes(primary));
+  check('no duplicate of the primary', copies.length === 1);
 
   check(
-    'no primary means no recipients',
-    notificationRecipients({ email: null, notification_emails: ['partner@example.com'] }).length === 0,
+    'no primary means no copies',
+    notificationCopies({ email: null, notification_emails: ['partner@example.com'] }).length === 0,
   );
-  check('missing column tolerated', notificationRecipients({ email: primary }).length === 1);
+  check('missing column tolerated', notificationCopies({ email: primary }).length === 0);
 
   if (failures) {
     console.error(`\n${failures} check(s) failed.`);

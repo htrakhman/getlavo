@@ -122,3 +122,27 @@ export function residentInviteIcs(d: BookingCalendarDetails, attendee?: Calendar
 export function operatorInviteIcs(d: BookingCalendarDetails, attendee?: CalendarPerson) {
   return buildIcs(operatorWashEvent(d, attendee), { method: attendee ? 'REQUEST' : 'PUBLISH' });
 }
+
+/**
+ * A calendar only honors a cancellation whose SEQUENCE is at least the one it
+ * already holds for that UID. Rescheduling ships sequence 1 and no counter is
+ * persisted anywhere, so cancellations sit far above the range a booking can
+ * reach by moving — a cancelled wash left sitting on someone's calendar is the
+ * failure that actually costs them a morning.
+ */
+const CANCEL_SEQUENCE = 100;
+
+/** Withdraws the wash from the recipient's calendar (see METHOD:CANCEL in lib/ics.ts). */
+export function residentCancelIcs(d: BookingCalendarDetails, attendee?: CalendarPerson) {
+  return buildIcs(
+    { ...residentWashEvent(d, attendee), sequence: CANCEL_SEQUENCE },
+    { method: 'CANCEL' },
+  );
+}
+
+export function operatorCancelIcs(d: BookingCalendarDetails, attendee?: CalendarPerson) {
+  return buildIcs(
+    { ...operatorWashEvent(d, attendee), sequence: CANCEL_SEQUENCE },
+    { method: 'CANCEL' },
+  );
+}

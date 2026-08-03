@@ -109,8 +109,16 @@ export function AccountForm({ profile, residentId, prefs }: {
         <div className="space-y-3">
           <Toggle label="Email me the day before my building's wash day" checked={p.email_reminder} onChange={() => toggle('email_reminder')} />
           <Toggle label="Email me when the operator finishes my car" checked={p.email_complete} onChange={() => toggle('email_complete')} />
+          {/* Spelled out as rows rather than a sentence of fine print. These
+              send either way, and "everything above" below has to mean a list
+              someone can actually read down. */}
+          <Toggle label="Email me when I book a wash" checked locked />
+          <Toggle label="Email me when my wash is rescheduled" checked locked />
+          <Toggle label="Email me when my wash is cancelled" checked locked />
+          <Toggle label="Email me if there's a problem with my payment" checked locked />
           <p className="text-xs text-ink-500">
-            Booking confirmations, schedule changes and payment problems always send — those aren't optional.
+            Booking confirmations, schedule changes, cancellations and payment problems always send — those
+            aren't optional. Each one carries a calendar invite and a link back into Lavo.
           </p>
         </div>
 
@@ -215,11 +223,43 @@ function DataPanel() {
   );
 }
 
-function Toggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: () => void }) {
+/**
+ * `locked` is an always-on notification: shown checked so the list reads as the
+ * full set of what gets sent, but not switchable — the server ignores a
+ * preference for these anyway (see prefRespects in lib/notify.ts), and a toggle
+ * that silently doesn't take is worse than no toggle.
+ */
+function Toggle({
+  label,
+  checked,
+  onChange,
+  locked,
+}: {
+  label: string;
+  checked: boolean;
+  onChange?: () => void;
+  locked?: boolean;
+}) {
+  const Row = locked ? 'div' : 'label';
   return (
-    <label className="flex cursor-pointer items-center justify-between rounded-lg border border-white/5 px-3 py-3 hover:bg-white/5">
+    <Row
+      className={`flex items-center justify-between rounded-lg border border-white/5 px-3 py-3 ${
+        locked ? '' : 'cursor-pointer hover:bg-white/5'
+      }`}
+    >
       <span className="text-sm">{label}</span>
-      <input type="checkbox" checked={checked} onChange={onChange} className="h-4 w-4 accent-gleam" />
-    </label>
+      <span className="flex items-center gap-2">
+        {locked && <span className="text-xs text-ink-500">Always</span>}
+        <input
+          type="checkbox"
+          checked={checked}
+          onChange={onChange}
+          disabled={locked}
+          readOnly={locked}
+          aria-label={locked ? `${label} (always on)` : undefined}
+          className="h-4 w-4 accent-gleam"
+        />
+      </span>
+    </Row>
   );
 }
