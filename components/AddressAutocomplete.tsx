@@ -94,7 +94,15 @@ export function AddressAutocomplete({
         const data = await res.json();
         let feats: PhotonFeature[] = data.features ?? [];
         if (mode === 'address') {
-          feats = feats.filter((f) => f.properties.street || f.properties.housenumber || f.properties.osm_key === 'place');
+          // Office parks and commercial centers are mapped as named features with
+          // no housenumber/street, so a name alone has to qualify or they vanish.
+          feats = feats.filter(
+            (f) =>
+              f.properties.street ||
+              f.properties.housenumber ||
+              f.properties.osm_key === 'place' ||
+              f.properties.name,
+          );
         }
         setSuggestions(feats);
         setOpen(true);
