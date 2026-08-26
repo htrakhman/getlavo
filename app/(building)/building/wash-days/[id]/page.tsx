@@ -9,17 +9,29 @@ import { ConfirmProposal } from './ConfirmProposal';
 export default async function BuildingWashDayDetail({ params }: { params: { id: string } }) {
   const session = await getSessionUser();
   if (!session) redirect('/login');
-  const { current: building } = await getCurrentBuildingForSession(session.user.id);
+  const { current: building, all } = await getCurrentBuildingForSession(session.user.id);
   if (!building) redirect('/building/onboarding');
 
   const sb = supabaseServer();
+  // Resolve against every building this manager owns, not just the open one.
+  // A wash-day notification names one specific building, and the manager is
+  // rarely standing in it when they click — scoping to the current building
+  // rendered "Not found" for a day they own and were asked to confirm.
   const { data: wd } = await sb
     .from('wash_days')
-    .select('id, scheduled_for, started_at, completed_at, confirmation, operator:operators(name)')
+    .select('id, building_id, scheduled_for, started_at, completed_at, confirmation, operator:operators(name)')
     .eq('id', params.id)
-    .eq('building_id', building.id)
+    .in('building_id', all.map((b) => b.id))
     .maybeSingle();
   if (!wd) return <div className="p-6">Not found.</div>;
+
+  // Owned, but under a different building — switch to it so the sidebar and
+  // the page agree, then come back here.
+  if (wd.building_id !== building.id) {
+    redirect(
+      `/api/building/select?buildingId=${wd.building_id}&next=${encodeURIComponent(`/building/wash-days/${params.id}`)}`,
+    );
+  }
 
   const { data: washes } = await sb
     .from('washes')
