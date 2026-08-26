@@ -336,11 +336,7 @@ function SignupForm() {
           </button>
         </form>
 
-        <p className="mt-8 text-center text-xs text-ink-500">
-          Trusted by residents across buildings in New Jersey
-        </p>
-
-        <div className="mt-6 text-center text-sm text-ink-400">
+        <div className="mt-8 text-center text-sm text-ink-400">
           Already have an account? <a href="/login" className="text-gleam">Login</a>
         </div>
       </div>
