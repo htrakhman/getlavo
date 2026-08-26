@@ -1,4 +1,5 @@
 const PLACES_AUTOCOMPLETE = 'https://places.googleapis.com/v1/places:autocomplete';
+const PLACES_TEXT_SEARCH = 'https://places.googleapis.com/v1/places:searchText';
 const PLACES_DETAILS = 'https://places.googleapis.com/v1/places';
 
 export type PlacePrediction = {
@@ -58,6 +59,61 @@ export async function placesAutocomplete(input: string, sessionToken?: string): 
       placeId: p.placeId.replace(/^places\//, ''),
       mainText: p.structuredFormat?.mainText?.text ?? p.text?.text ?? '',
       secondaryText: p.structuredFormat?.secondaryText?.text ?? '',
+    });
+  }
+  return out;
+}
+
+/**
+ * Maps-style querying. Autocomplete is tuned for incremental typing and often
+ * returns nothing for a pasted listing that mixes a property name with its
+ * street address ("Bingham Office Center 30600 Telegraph, Bingham Farms, MI").
+ * Text Search is the endpoint behind Maps search proper, which handles those,
+ * so it serves as the retry when autocomplete comes back empty.
+ */
+export async function placesTextSearch(input: string): Promise<PlacePrediction[]> {
+  const key = process.env.GOOGLE_PLACES_API_KEY;
+  if (!key || !input.trim()) return [];
+
+  const res = await fetch(PLACES_TEXT_SEARCH, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Goog-Api-Key': key,
+      'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.location',
+    },
+    body: JSON.stringify({
+      textQuery: input.trim().slice(0, 200),
+      regionCode: 'US',
+      maxResultCount: 8,
+    }),
+  });
+  if (!res.ok) {
+    const t = await res.text();
+    console.error('placesTextSearch', res.status, t);
+    return [];
+  }
+  const data = (await res.json()) as {
+    places?: Array<{
+      id?: string;
+      displayName?: { text?: string };
+      formattedAddress?: string;
+      location?: { latitude?: number; longitude?: number };
+    }>;
+  };
+  const out: PlacePrediction[] = [];
+  for (const p of data.places ?? []) {
+    if (!p.id) continue;
+    const name = p.displayName?.text ?? '';
+    const addr = p.formattedAddress ?? '';
+    if (!name && !addr) continue;
+    out.push({
+      placeId: p.id.replace(/^places\//, ''),
+      mainText: name || addr,
+      secondaryText: name ? addr : '',
+      formattedAddress: addr,
+      lat: p.location?.latitude,
+      lng: p.location?.longitude,
     });
   }
   return out;

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { placesAutocomplete, type PlacePrediction } from '@/lib/places-google';
+import { placesAutocomplete, placesTextSearch, type PlacePrediction } from '@/lib/places-google';
 import { rateLimit, clientIp, rateLimitResponse } from '@/lib/rate-limit';
 import { normalizeAddressQuery } from '@/lib/geo';
 
@@ -68,7 +68,17 @@ export async function POST(req: NextRequest) {
     console.warn('places/autocomplete: GOOGLE_PLACES_API_KEY unset — falling back to Photon');
   }
   let predictions: PlacePrediction[] = hasGoogle ? await placesAutocomplete(input, sessionToken) : [];
-  let source: 'google' | 'photon' = 'google';
+  let source: 'google' | 'google-text' | 'photon' = 'google';
+
+  // A pasted commercial listing carries a property name and a street address in
+  // one string, which autocomplete frequently misses. Text Search is what backs
+  // Maps search and does resolve those, so retry there before dropping to the
+  // fallback geocoder.
+  if (predictions.length === 0 && hasGoogle) {
+    predictions = await placesTextSearch(input);
+    source = 'google-text';
+  }
+
   if (predictions.length === 0) {
     predictions = await photonFallback(input);
     source = 'photon';
