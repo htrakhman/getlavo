@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { placesAutocomplete, type PlacePrediction } from '@/lib/places-google';
 import { rateLimit, clientIp, rateLimitResponse } from '@/lib/rate-limit';
+import { normalizeAddressQuery } from '@/lib/geo';
 
 type Photon = {
   features?: Array<{
@@ -21,7 +22,7 @@ type Photon = {
 
 async function photonFallback(input: string): Promise<PlacePrediction[]> {
   try {
-    const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(input.slice(0, 200))}&limit=6&lang=en&countrycode=us`;
+    const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(input.slice(0, 200))}&limit=10&lang=en&countrycode=us`;
     const res = await fetch(url, { headers: { 'User-Agent': 'getlavo/1.0' } });
     if (!res.ok) return [];
     const data = (await res.json()) as Photon;
@@ -54,7 +55,8 @@ export async function POST(req: NextRequest) {
   if (!rl.ok) return rateLimitResponse(rl);
 
   const body = await req.json().catch(() => ({}));
-  const input = typeof body.input === 'string' ? body.input.trim() : '';
+  const raw = typeof body.input === 'string' ? body.input.trim() : '';
+  const input = normalizeAddressQuery(raw);
   const sessionToken = typeof body.sessionToken === 'string' ? body.sessionToken : undefined;
   if (input.length < 3) return NextResponse.json({ predictions: [] });
 

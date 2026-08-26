@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { rateLimit, clientIp, rateLimitResponse } from '@/lib/rate-limit';
+import { normalizeAddressQuery } from '@/lib/geo';
 
 export async function GET(req: NextRequest) {
   const rl = rateLimit(`addr-suggest:${clientIp(req)}`, { limit: 60, windowMs: 60_000 });
@@ -8,7 +9,7 @@ export async function GET(req: NextRequest) {
   const q = req.nextUrl.searchParams.get('q') ?? '';
   if (q.trim().length < 3) return NextResponse.json({ features: [] });
 
-  const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(q.trim().slice(0, 200))}&limit=6&lang=en`;
+  const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(normalizeAddressQuery(q).slice(0, 200))}&limit=10&lang=en&countrycode=us`;
   try {
     const res = await fetch(url, { headers: { 'User-Agent': 'getlavo/1.0' } });
     if (!res.ok) return NextResponse.json({ features: [] });
