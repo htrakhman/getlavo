@@ -27,6 +27,27 @@ function parseFormattedAddress(formattedAddress: string, buildingName: string) {
   };
 }
 
+/**
+ * Split a non-Google prediction into form fields. These arrive shaped as
+ * mainText `"Name — 123 Street"` (or just the street when the place is
+ * unnamed) and secondaryText `"City, ST, 12345"`.
+ */
+function parsePrediction(pick: PlacePick) {
+  const main = (pick.mainText ?? '').trim();
+  // Match only a spaced dash, the separator the fallback builds, so a
+  // hyphenated place name ("Wilkes-Barre Center") stays intact.
+  const split = main.match(/^(.*?)\s[—–-]\s(.*)$/);
+  const name = split ? split[1].trim() : main;
+  const street = split ? split[2].trim() : main;
+
+  const tail = (pick.secondaryText ?? '').split(',').map((s) => s.trim()).filter(Boolean);
+  const postal = tail.find((t) => /^\d{5}(?:-\d{4})?$/.test(t)) ?? '';
+  const state = tail.find((t) => /^[A-Z]{2}$/.test(t)) ?? '';
+  const city = tail.find((t) => t !== postal && t !== state) ?? '';
+
+  return { name, street, city, state, postal };
+}
+
 export default function OnboardingForm() {
   const router = useRouter();
   const [step, setStep] = useState<Step>(1);
@@ -67,6 +88,23 @@ export default function OnboardingForm() {
   async function handlePickFromPlaces(pick: PlacePick) {
     setName(pick.mainText);
     setPlaceId(pick.placeId ?? '');
+
+    // Fallback predictions carry no place id but do carry their own address
+    // parts and coordinates. Sending the empty id to the details endpoint just
+    // earns a 400 and leaves every field below the name blank, so read the
+    // prediction directly instead.
+    if (!pick.placeId) {
+      const p = parsePrediction(pick);
+      if (p.name) setName(p.name);
+      if (p.street) setAddr1(p.street);
+      if (p.city) setCity(p.city);
+      if (p.state) setRegion(p.state);
+      if (p.postal) setPostal(p.postal);
+      if (typeof pick.lat === 'number') setLat(pick.lat);
+      if (typeof pick.lng === 'number') setLng(pick.lng);
+      return;
+    }
+
     try {
       const res = await fetch('/api/places/details', {
         method: 'POST',
