@@ -1,7 +1,14 @@
 'use client';
 import { useState } from 'react';
 
-export function CopyResidentLink({ url }: { url: string }) {
+export function CopyResidentLink({
+  url,
+  className = 'btn-primary',
+}: {
+  url: string;
+  /** Lets the button sit inline next to a card's other links, not just as the page action. */
+  className?: string;
+}) {
   const [copied, setCopied] = useState(false);
 
   async function copy() {
@@ -15,7 +22,7 @@ export function CopyResidentLink({ url }: { url: string }) {
   }
 
   return (
-    <button onClick={copy} className="btn-primary">
+    <button onClick={copy} className={className}>
       {copied ? 'Copied!' : 'Copy resident link'}
     </button>
   );
