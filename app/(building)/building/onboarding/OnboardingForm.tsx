@@ -118,6 +118,12 @@ export default function OnboardingForm() {
       return;
     }
 
+    await fetch('/api/building/select', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ buildingId: building.id }),
+    });
+    router.refresh();
     router.push('/building/share');
   }
 
