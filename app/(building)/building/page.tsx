@@ -96,7 +96,11 @@ export default async function BuildingDashboard() {
       <PageHeader
         eyebrow={building.name}
         title="Building overview"
-        action={buildingUrl ? <CopyResidentLink url={buildingUrl} /> : null}
+        action={
+          <Link href="/building/onboarding?add=1" className="btn-primary shrink-0">
+            {all.length === 0 ? 'Add your first building' : 'Add building'}
+          </Link>
+        }
       />
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
@@ -129,7 +133,12 @@ export default async function BuildingDashboard() {
           <div className="card p-6">
             <div className="mb-3 flex items-center justify-between">
               <h3 className="font-display text-xl">Resident link</h3>
-              <Link href="/building/share" className="text-xs text-gleam">QR code →</Link>
+              {/* Copy moved down from the page action, which is now Add
+                  building — this card is where the link already lives. */}
+              <div className="flex items-center gap-3">
+                <CopyResidentLink url={buildingUrl} className="text-xs text-gleam" />
+                <Link href="/building/share" className="text-xs text-gleam">QR code →</Link>
+              </div>
             </div>
             <div className="rounded-xl bg-ink-800/50 px-4 py-3 font-mono text-sm text-ink-200 truncate">
               {buildingUrl}
@@ -186,26 +195,6 @@ export default async function BuildingDashboard() {
             >
               Download CSV
             </a>
-          </div>
-        </div>
-
-        {/* Managers often run more than one property, and the only route in was
-            the sidebar switcher's menu. Name the action for where they are. */}
-        <div className="card p-6 lg:col-span-2">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <h3 className="font-display text-xl mb-2">
-                {all.length === 0 ? 'Add your first building' : 'Add another building'}
-              </h3>
-              <p className="text-ink-300 text-sm">
-                {all.length === 0
-                  ? 'Set it up once to get a resident link, wash days, and a car wash partner.'
-                  : `You manage ${all.length} building${all.length !== 1 ? 's' : ''}. Add another and switch between them from the sidebar.`}
-              </p>
-            </div>
-            <Link href="/building/onboarding?add=1" className="btn-primary shrink-0">
-              Add building →
-            </Link>
           </div>
         </div>
       </div>
