@@ -186,6 +186,14 @@ export default function OnboardingForm() {
               <label className="label">Search building</label>
               <PlacesAutocomplete onPick={handlePickFromPlaces} placeholder="Search by building name or address…" />
             </div>
+            {/* The search is a shortcut, not a required step. Say so between the
+                two, so a search that finds nothing reads as skippable rather
+                than as the form being broken. */}
+            <div className="md:col-span-2 flex items-center gap-3 py-1">
+              <span className="h-px flex-1 bg-ink-700" />
+              <span className="text-xs uppercase tracking-widest text-ink-500">or fill in manually</span>
+              <span className="h-px flex-1 bg-ink-700" />
+            </div>
             <div className="md:col-span-2">
               <label className="label">Building name</label>
               <input
@@ -195,9 +203,6 @@ export default function OnboardingForm() {
                 onChange={(e) => setName(e.target.value)}
                 required
               />
-              {!name && (
-                <p className="mt-1 text-xs text-ink-500">Search above to auto-fill, or type the name directly.</p>
-              )}
             </div>
             <div className="md:col-span-2">
               <label className="label">Street address</label>
