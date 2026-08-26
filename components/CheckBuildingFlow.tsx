@@ -39,6 +39,8 @@ export function CheckBuildingFlow() {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [match, setMatch] = useState<Match | null>(null);
+  const [manualOpen, setManualOpen] = useState(false);
+  const [manual, setManual] = useState('');
 
   async function resolveByPick(pick: PlacePick) {
     setBusy(true);
@@ -90,6 +92,19 @@ export function CheckBuildingFlow() {
     }
   }
 
+  /** Hand-typed address: no place id, so the match endpoint builds the place
+   *  from the text and routes it as a building not yet on Lavo. */
+  function submitManual() {
+    const text = manual.trim();
+    if (text.length < 5) return;
+    resolveByPick({
+      placeId: '',
+      mainText: text.split(',')[0]?.trim() || text,
+      secondaryText: text.split(',').slice(1).join(',').trim(),
+      formattedAddress: text,
+    });
+  }
+
   return (
     <div className="mx-auto w-full max-w-lg space-y-6 text-left">
       {!match && (
@@ -97,6 +112,45 @@ export function CheckBuildingFlow() {
           <PlacesAutocomplete onPick={resolveByPick} disabled={busy} />
           {busy && <p className="text-sm text-ink-500">Checking this address on Lavo…</p>}
           {err && <p className="text-sm text-red-400">{err}</p>}
+
+          {/* Commercial property is often published as a name plus a range of
+              street numbers and does not come back from address lookup at all.
+              Without a way through by hand, those visitors hit a dead end on
+              the first screen — the match endpoint accepts a typed address, so
+              offer one. */}
+          {!manualOpen ? (
+            <button
+              type="button"
+              onClick={() => setManualOpen(true)}
+              className="text-sm text-gleam underline underline-offset-4"
+            >
+              Can&apos;t find your building? Enter the address manually
+            </button>
+          ) : (
+            <div className="space-y-2">
+              <label htmlFor="manual-address" className="label">
+                Building name and address
+              </label>
+              <input
+                id="manual-address"
+                value={manual}
+                onChange={(e) => setManual(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && manual.trim().length >= 5 && !busy) submitManual();
+                }}
+                placeholder="Bingham Office Center, 30600 Telegraph, Bingham Farms, MI"
+                className="w-full rounded-xl border border-white/15 bg-white/[0.06] px-4 py-3.5 text-base text-ink-100 outline-none ring-gleam/40 focus:ring-2 placeholder:text-ink-500"
+              />
+              <button
+                type="button"
+                onClick={submitManual}
+                disabled={busy || manual.trim().length < 5}
+                className="btn-primary"
+              >
+                Continue
+              </button>
+            </div>
+          )}
         </>
       )}
 
