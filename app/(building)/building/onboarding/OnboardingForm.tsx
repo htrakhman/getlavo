@@ -4,7 +4,6 @@ import { AddressAutocomplete, type ParsedAddress } from '@/components/AddressAut
 import { PlacesAutocomplete, type PlacePick } from '@/components/PlacesAutocomplete';
 import { supabaseBrowser } from '@/lib/supabase/client';
 import { generateSlug } from '@/lib/geo';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 type Step = 1 | 2;
@@ -49,7 +48,6 @@ function parsePrediction(pick: PlacePick) {
 }
 
 export default function OnboardingForm() {
-  const router = useRouter();
   const [step, setStep] = useState<Step>(1);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -161,8 +159,11 @@ export default function OnboardingForm() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ buildingId: building.id }),
     });
-    router.refresh();
-    router.push('/building/share');
+    // A client-side push keeps the mounted (building) layout, so the sidebar
+    // switcher would keep rendering the building list captured before this
+    // insert — refresh() races with the push and loses. Load the destination
+    // as a full document so the layout re-runs against the new cookie.
+    window.location.assign('/building/share');
   }
 
   const totalSteps = 2;
