@@ -10,7 +10,7 @@ import { RetentionChart } from './RetentionChart';
 export default async function BuildingDashboard() {
   const session = await getSessionUser();
   if (!session) redirect('/login');
-  const { current: building } = await getCurrentBuildingForSession(session.user.id);
+  const { current: building, all } = await getCurrentBuildingForSession(session.user.id);
   if (!building) redirect('/building/onboarding');
   const sb = supabaseServer();
 
@@ -186,6 +186,26 @@ export default async function BuildingDashboard() {
             >
               Download CSV
             </a>
+          </div>
+        </div>
+
+        {/* Managers often run more than one property, and the only route in was
+            the sidebar switcher's menu. Name the action for where they are. */}
+        <div className="card p-6 lg:col-span-2">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h3 className="font-display text-xl mb-2">
+                {all.length === 0 ? 'Add your first building' : 'Add another building'}
+              </h3>
+              <p className="text-ink-300 text-sm">
+                {all.length === 0
+                  ? 'Set it up once to get a resident link, wash days, and a car wash partner.'
+                  : `You manage ${all.length} building${all.length !== 1 ? 's' : ''}. Add another and switch between them from the sidebar.`}
+              </p>
+            </div>
+            <Link href="/building/onboarding?add=1" className="btn-primary shrink-0">
+              Add building →
+            </Link>
           </div>
         </div>
       </div>
