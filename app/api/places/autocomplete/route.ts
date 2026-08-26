@@ -61,11 +61,17 @@ export async function POST(req: NextRequest) {
   if (input.length < 3) return NextResponse.json({ predictions: [] });
 
   const hasGoogle = !!process.env.GOOGLE_PLACES_API_KEY;
+  if (!hasGoogle) {
+    // Photon (OpenStreetMap) barely covers US commercial property, so without a
+    // Google key named office parks and centers simply never resolve. Make that
+    // visible instead of looking like an empty result set.
+    console.warn('places/autocomplete: GOOGLE_PLACES_API_KEY unset — falling back to Photon');
+  }
   let predictions: PlacePrediction[] = hasGoogle ? await placesAutocomplete(input, sessionToken) : [];
   let source: 'google' | 'photon' = 'google';
   if (predictions.length === 0) {
     predictions = await photonFallback(input);
     source = 'photon';
   }
-  return NextResponse.json({ predictions, source });
+  return NextResponse.json({ predictions, source, googleConfigured: hasGoogle });
 }
