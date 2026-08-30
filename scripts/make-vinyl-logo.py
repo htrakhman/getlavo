@@ -1,7 +1,12 @@
-"""Generate the getlavo.io vinyl lockup: Lavo droplet mark + "getlavo.io" wordmark.
+"""Generate the Lavo vinyl decal artwork.
+
+Two lockups, each in colour, white and black:
+
+  getlavo-vinyl-*   droplet mark + "getlavo.io"
+  lavo-vinyl-*      droplet mark + "LAVO" with "getlavo.io" beneath it
 
 Everything is vector: the mark is traced from public/lavo-mark.png (only 231px
-wide, far too small to print) and the wordmark is converted to outlines, so the
+wide, far too small to print) and the type is converted to outlines, so the
 files stay sharp at any decal size and need no fonts installed.
 
     pip install fonttools brotli uharfbuzz potracer pillow numpy cairosvg
@@ -33,11 +38,18 @@ MARK_SRC = os.path.join(ROOT, "public", "lavo-mark.png")
 FONT_URL = ("https://fonts.gstatic.com/s/plusjakartasans/v12/"
             "LDIoaomQNQcsA88c7O9yZ4KMCoOg4Ko20yw.woff2")
 
-WORDMARK = "getlavo.io"
-WEIGHT = 800
-LETTER_SPACING = -8       # font units per 1000 em; a touch tighter than default
 INK = "#191E2B"           # ink-100, the wordmark colour used on the site
+BLUE = "#2B86D6"          # picked from the middle of the mark's own gradient
 PNG_WIDTH = 6000          # ~20 in wide at 300 dpi
+
+# Type: (text, weight, tracking in font units per 1000 em).
+DOMAIN = ("getlavo.io", 800, -8)
+NAME = ("LAVO", 800, 30)              # 30 ~= Tailwind tracking-wide, as on the site
+DOMAIN_SUB = ("getlavo.io", 700, 120)  # second line of the stacked lockup, letterspaced
+
+SUB_RATIO = 0.42          # sub-line size relative to LAVO
+SUB_GAP = 0.16            # space between the two lines, relative to LAVO
+BLOCK_FILL = 0.88         # how much of the mark's height the two lines span
 
 # Tracing: upscale, blur away the 231px staircase, threshold, trace.
 TRACE_SCALE = 8
@@ -111,23 +123,24 @@ def fit_gradient(im, bins=10):
 
 # ----------------------------------------------------------------------- wordmark
 
-def load_font():
+def load_font(weight):
     os.makedirs(CACHE, exist_ok=True)
-    ttf = os.path.join(CACHE, f"pjs-{WEIGHT}.ttf")
+    ttf = os.path.join(CACHE, f"pjs-{weight}.ttf")
     if not os.path.exists(ttf):
         woff2 = os.path.join(CACHE, "pjs.woff2")
         if not os.path.exists(woff2):
             urllib.request.urlretrieve(FONT_URL, woff2)
         font = TTFont(woff2)
         font.flavor = None
-        font = instancer.instantiateVariableFont(font, {"wght": WEIGHT})
+        font = instancer.instantiateVariableFont(font, {"wght": weight})
         font.save(ttf)
     return ttf
 
 
-def outline_text(text):
-    """Shape the text with HarfBuzz and return (path markup, advance, ink box, upem)."""
-    with open(load_font(), "rb") as fh:
+def outline_text(spec):
+    """Shape (text, weight, tracking) and return a Line: outlines plus metrics."""
+    text, weight, tracking = spec
+    with open(load_font(weight), "rb") as fh:
         data = fh.read()
     hb_font = hb.Font(hb.Face(data))
     buf = hb.Buffer()
@@ -153,35 +166,19 @@ def outline_text(text):
                 lo, hi = bounds.bounds[1] + pos.y_offset, bounds.bounds[3] + pos.y_offset
                 y_lo = lo if y_lo is None else min(y_lo, lo)
                 y_hi = hi if y_hi is None else max(y_hi, hi)
-        x += pos.x_advance + LETTER_SPACING
-    return ("\n    ".join(parts), x - LETTER_SPACING, (y_lo, y_hi),
-            tt["head"].unitsPerEm)
+        x += pos.x_advance + tracking
+    return dict(paths="\n    ".join(parts), advance=x - tracking,
+                ink=(y_lo, y_hi), upem=tt["head"].unitsPerEm)
 
 
 # ------------------------------------------------------------------------ lockup
 
-def build_svg(mark, text_path, advance, ink, upem, mark_fill, text_fill, grad=None):
-    mark_d, mw, mh, _ = mark
-
-    # The mark stands 1.75x the type size, as in components/Logo.tsx.
-    font_size = mh / 1.75
-    scale = font_size / upem
-    text_w = advance * scale
-
-    # Sit the wordmark's ink box dead centre against the mark, so the ascenders
-    # and the g descender balance around the droplet.
-    baseline = mh / 2 + (ink[0] + ink[1]) / 2 * scale
-
-    gap = 0.26 * mh
-    pad = 0.06 * mh
-    text_x = pad + mw + gap
-    w, h = text_x + text_w + pad, mh + 2 * pad
-
-    defs = ""
-    if grad:
-        stops = "\n      ".join(
-            f'<stop offset="{o * 100:.0f}%" stop-color="{c}"/>' for o, c in grad["stops"])
-        defs = f'''
+def gradient_defs(grad, pad):
+    if not grad:
+        return ""
+    stops = "\n      ".join(f'<stop offset="{o * 100:.0f}%" stop-color="{c}"/>'
+                            for o, c in grad["stops"])
+    return f"""
   <defs>
     <linearGradient id="lavoGrad" gradientUnits="userSpaceOnUse"
         x1="{grad['x1']:.2f}" y1="{grad['y1']:.2f}"
@@ -189,41 +186,103 @@ def build_svg(mark, text_path, advance, ink, upem, mark_fill, text_fill, grad=No
         gradientTransform="translate({pad:.2f} {pad:.2f})">
       {stops}
     </linearGradient>
-  </defs>'''
+  </defs>"""
 
-    return f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w:.2f} {h:.2f}"
-     width="{w:.2f}" height="{h:.2f}" role="img" aria-label="getlavo.io">{defs}
-  <g transform="translate({pad:.2f} {pad:.2f})">
-    <path fill-rule="evenodd" fill="{mark_fill}" d="{mark_d}"/>
-  </g>
-  <g fill="{text_fill}" transform="translate({text_x:.2f} {pad + baseline:.2f}) scale({scale:.6f} -{scale:.6f})">
-    {text_path}
-  </g>
+
+def wrap(w, h, label, defs, body):
+    return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w:.2f} {h:.2f}"
+     width="{w:.2f}" height="{h:.2f}" role="img" aria-label="{label}">{defs}
+{body}
 </svg>
-'''
+"""
 
 
-VARIANTS = [
-    ("getlavo-vinyl-color", "url(#lavoGrad)", INK, True),
-    ("getlavo-vinyl-white", "#FFFFFF", "#FFFFFF", False),
-    ("getlavo-vinyl-black", "#000000", "#000000", False),
+def text_group(line, size, x, baseline, fill):
+    scale = size / line["upem"]
+    return (f'  <g fill="{fill}" transform="translate({x:.2f} {baseline:.2f}) '
+            f'scale({scale:.6f} -{scale:.6f})">\n    {line["paths"]}\n  </g>')
+
+
+def build_inline(mark, domain, mark_fill, text_fill, grad=None):
+    """Mark with the domain set beside it on one line."""
+    mark_d, mw, mh, _ = mark
+
+    # The mark stands 1.75x the type size, as in components/Logo.tsx.
+    size = mh / 1.75
+    scale = size / domain["upem"]
+
+    # Sit the wordmark's ink box dead centre against the mark, so the ascenders
+    # and the g descender balance around the droplet.
+    baseline = mh / 2 + sum(domain["ink"]) / 2 * scale
+
+    pad = 0.06 * mh
+    text_x = pad + mw + 0.26 * mh
+    w, h = text_x + domain["advance"] * scale + pad, mh + 2 * pad
+
+    body = (f'  <g transform="translate({pad:.2f} {pad:.2f})">\n'
+            f'    <path fill-rule="evenodd" fill="{mark_fill}" d="{mark_d}"/>\n  </g>\n'
+            + text_group(domain, size, text_x, pad + baseline, text_fill))
+    return wrap(w, h, "getlavo.io", gradient_defs(grad, pad), body)
+
+
+def build_stacked(mark, name, sub, mark_fill, name_fill, sub_fill, grad=None):
+    """Mark with LAVO beside it and the domain on a second line beneath."""
+    mark_d, mw, mh, _ = mark
+
+    # Size the two lines together so the block fills most of the mark's height.
+    name_h = (name["ink"][1] - name["ink"][0]) / name["upem"]
+    sub_h = (sub["ink"][1] - sub["ink"][0]) / sub["upem"] * SUB_RATIO
+    size = BLOCK_FILL * mh / (name_h + SUB_GAP + sub_h)
+    sub_size = size * SUB_RATIO
+
+    name_scale, sub_scale = size / name["upem"], sub_size / sub["upem"]
+    block_h = (name_h + SUB_GAP + sub_h) * size
+    top = (mh - block_h) / 2
+
+    name_baseline = top + name["ink"][1] * name_scale
+    sub_baseline = (top + name_h * size + SUB_GAP * size + sub["ink"][1] * sub_scale)
+
+    pad = 0.06 * mh
+    text_x = pad + mw + 0.26 * mh
+    text_w = max(name["advance"] * name_scale, sub["advance"] * sub_scale)
+    w, h = text_x + text_w + pad, mh + 2 * pad
+
+    body = (f'  <g transform="translate({pad:.2f} {pad:.2f})">\n'
+            f'    <path fill-rule="evenodd" fill="{mark_fill}" d="{mark_d}"/>\n  </g>\n'
+            + text_group(name, size, text_x, pad + name_baseline, name_fill) + "\n"
+            + text_group(sub, sub_size, text_x, pad + sub_baseline, sub_fill))
+    return wrap(w, h, "LAVO - getlavo.io", gradient_defs(grad, pad), body)
+
+
+# (suffix, mark fill, name fill, sub fill, use gradient)
+PALETTES = [
+    ("color", "url(#lavoGrad)", INK, BLUE, True),
+    ("white", "#FFFFFF", "#FFFFFF", "#FFFFFF", False),
+    ("black", "#000000", "#000000", "#000000", False),
 ]
+
+
+def write(name, svg):
+    with open(os.path.join(OUT, name + ".svg"), "w") as fh:
+        fh.write(svg)
+    cairosvg.svg2png(bytestring=svg.encode(), output_width=PNG_WIDTH,
+                     write_to=os.path.join(OUT, name + ".png"))
+    print("wrote", name + ".svg", "+", name + ".png")
 
 
 def main():
     os.makedirs(OUT, exist_ok=True)
     mark = trace_mark()
-    text_path, advance, ink, upem = outline_text(WORDMARK)
+    grad = mark[3]
+    domain, name, sub = (outline_text(DOMAIN), outline_text(NAME),
+                         outline_text(DOMAIN_SUB))
 
-    for name, mark_fill, text_fill, gradient in VARIANTS:
-        svg = build_svg(mark, text_path, advance, ink, upem, mark_fill, text_fill,
-                        mark[3] if gradient else None)
-        svg_path = os.path.join(OUT, name + ".svg")
-        with open(svg_path, "w") as fh:
-            fh.write(svg)
-        cairosvg.svg2png(bytestring=svg.encode(), output_width=PNG_WIDTH,
-                         write_to=os.path.join(OUT, name + ".png"))
-        print("wrote", name + ".svg", "+", name + ".png")
+    for suffix, mark_fill, name_fill, sub_fill, gradient in PALETTES:
+        g = grad if gradient else None
+        write(f"getlavo-vinyl-{suffix}",
+              build_inline(mark, domain, mark_fill, name_fill, g))
+        write(f"lavo-vinyl-{suffix}",
+              build_stacked(mark, name, sub, mark_fill, name_fill, sub_fill, g))
 
 
 if __name__ == "__main__":
