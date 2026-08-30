@@ -145,8 +145,8 @@ export default async function Home({
       <section className="relative pt-16 pb-20 text-center px-6">
         <div className="mx-auto max-w-4xl">
           <h1 className="font-display text-5xl font-bold leading-[1.05] tracking-tight md:text-6xl lg:text-7xl">
-            Wash your car without<br />
-            <span className="gleam-text">thinking about it.</span>
+            The amenity your building<br />
+            <span className="gleam-text">forgot to add.</span>
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-balance text-lg text-ink-300">
             Book from your phone. Operators are vetted and insured. Buildings pay nothing.
