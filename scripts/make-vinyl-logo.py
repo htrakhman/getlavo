@@ -54,6 +54,11 @@ DOMAIN = ("getlavo.io", 800, -8)
 NAME = ("LAVO", 800, 30)              # 30 ~= Tailwind tracking-wide, as on the site
 DOMAIN_SUB = ("getlavo.io", 700, 120)  # second line of the stacked lockup, letterspaced
 
+# "shout it" in the request read as a typo for "about it"; see design/vinyl/README.
+TAGLINE = ("Wash your car without thinking about it", 600, 25)
+TAGLINE_FILL = 0.97       # tagline width as a share of the lockup above it
+TAGLINE_GAP = 0.20        # space above the tagline, relative to the mark height
+
 SUB_RATIO = 0.42          # sub-line size relative to LAVO
 SUB_GAP = 0.16            # space between the two lines, relative to LAVO
 BLOCK_FILL = 0.88         # how much of the mark's height the two lines span
@@ -174,7 +179,7 @@ def outline_text(spec):
                 y_lo = lo if y_lo is None else min(y_lo, lo)
                 y_hi = hi if y_hi is None else max(y_hi, hi)
         x += pos.x_advance + tracking
-    return dict(paths="\n    ".join(parts), advance=x - tracking,
+    return dict(text=text, paths="\n    ".join(parts), advance=x - tracking,
                 ink=(y_lo, y_hi), upem=tt["head"].unitsPerEm)
 
 
@@ -230,6 +235,35 @@ def build_inline(mark, domain, mark_fill, text_fill, grad=None):
             f'    <path fill-rule="evenodd" fill="{mark_fill}" d="{mark_d}"/>\n  </g>\n'
             + text_group(domain, size, text_x, pad + baseline, text_fill))
     return wrap(w, h, "getlavo.io", gradient_defs(grad, pad), body)
+
+
+def build_tagline(mark, domain, tagline, mark_fill, text_fill, tag_fill, grad=None):
+    """The inline lockup with a tagline centred on a second line beneath it."""
+    mark_d, mw, mh, _ = mark
+
+    size = mh / 1.75
+    scale = size / domain["upem"]
+    baseline = mh / 2 + sum(domain["ink"]) / 2 * scale
+
+    pad = 0.06 * mh
+    text_x = pad + mw + 0.26 * mh
+    lockup_w = mw + 0.26 * mh + domain["advance"] * scale
+
+    # Size the tagline to run almost the full width of the lockup above it.
+    tag_size = (TAGLINE_FILL * lockup_w / tagline["advance"]) * tagline["upem"]
+    tag_scale = tag_size / tagline["upem"]
+    tag_w = tagline["advance"] * tag_scale
+    tag_x = pad + (lockup_w - tag_w) / 2
+    tag_baseline = mh + TAGLINE_GAP * mh + tagline["ink"][1] * tag_scale
+
+    w = pad + lockup_w + pad
+    h = tag_baseline - tagline["ink"][0] * tag_scale + 2 * pad
+
+    body = (f'  <g transform="translate({pad:.2f} {pad:.2f})">\n'
+            f'    <path fill-rule="evenodd" fill="{mark_fill}" d="{mark_d}"/>\n  </g>\n'
+            + text_group(domain, size, text_x, pad + baseline, text_fill) + "\n"
+            + text_group(tagline, tag_size, tag_x, pad + tag_baseline, tag_fill))
+    return wrap(w, h, f'getlavo.io - {tagline["text"]}', gradient_defs(grad, pad), body)
 
 
 def build_stacked(mark, name, sub, mark_fill, name_fill, sub_fill, grad=None):
@@ -309,6 +343,7 @@ def main():
     grad = mark[3]
     domain, name, sub = (outline_text(DOMAIN), outline_text(NAME),
                          outline_text(DOMAIN_SUB))
+    tagline = outline_text(TAGLINE)
 
     for suffix, mark_fill, name_fill, sub_fill, gradient in PALETTES:
         g = grad if gradient else None
@@ -316,6 +351,10 @@ def main():
         # flattened JPEG is only worth writing for the colour lockups.
         write(f"getlavo-vinyl-{suffix}",
               build_inline(mark, domain, mark_fill, name_fill, g),
+              jpg=gradient)
+        write(f"getlavo-tagline-vinyl-{suffix}",
+              build_tagline(mark, domain, tagline, mark_fill, name_fill,
+                            sub_fill, g),
               jpg=gradient)
         write(f"lavo-vinyl-{suffix}",
               build_stacked(mark, name, sub, mark_fill, name_fill, sub_fill, g),

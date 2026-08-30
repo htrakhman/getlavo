@@ -1,11 +1,18 @@
 # Lavo vinyl decal artwork
 
-Two lockups, each print-ready for a custom vinyl decal.
+Three lockups, each print-ready for a custom vinyl decal.
 
 **`getlavo-vinyl-*`** — the droplet with `getlavo.io` beside it on a single line.
 20 × 5.4 in.
 
+**`getlavo-tagline-vinyl-*`** — the same, with *Wash your car without thinking
+about it* on a second line beneath. 20 × 7.3 in.
+
 **`lavo-vinyl-*`** — the droplet, `LAVO`, and `getlavo.io` beneath it. 20 × 6.9 in.
+
+> The tagline was given as "wash your car without thinking shout it"; "shout"
+> is set as "about". Change `TAGLINE` in `scripts/make-vinyl-logo.py` and
+> re-run if the literal wording was intended.
 
 ## Colourways
 
