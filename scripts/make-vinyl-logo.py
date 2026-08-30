@@ -5,6 +5,9 @@ Two lockups, each in colour, white and black:
   getlavo-vinyl-*   droplet mark + "getlavo.io"
   lavo-vinyl-*      droplet mark + "LAVO" with "getlavo.io" beneath it
 
+Each is written in the formats print shops ask for: PNG (transparent, dpi
+stamped), SVG, PDF and EPS, plus a flattened JPG for the colour lockups.
+
 Everything is vector: the mark is traced from public/lavo-mark.png (only 231px
 wide, far too small to print) and the type is converted to outlines, so the
 files stay sharp at any decal size and need no fonts installed.
@@ -40,7 +43,11 @@ FONT_URL = ("https://fonts.gstatic.com/s/plusjakartasans/v12/"
 
 INK = "#191E2B"           # ink-100, the wordmark colour used on the site
 BLUE = "#2B86D6"          # picked from the middle of the mark's own gradient
-PNG_WIDTH = 6000          # ~20 in wide at 300 dpi
+
+# Every raster is written at PRINT_WIDTH inches wide and stamped with its dpi,
+# so an uploader reads the physical size instead of guessing 72 dpi.
+PRINT_WIDTH = 20.0
+DPI = 300
 
 # Type: (text, weight, tracking in font units per 1000 em).
 DOMAIN = ("getlavo.io", 800, -8)
@@ -262,12 +269,38 @@ PALETTES = [
 ]
 
 
-def write(name, svg):
-    with open(os.path.join(OUT, name + ".svg"), "w") as fh:
+def write(name, svg, jpg=False):
+    """Write one lockup in every format a decal seller is likely to ask for."""
+    data = svg.encode()
+    path = lambda ext: os.path.join(OUT, f"{name}.{ext}")
+    written = ["svg"]
+
+    with open(path("svg"), "w") as fh:
         fh.write(svg)
-    cairosvg.svg2png(bytestring=svg.encode(), output_width=PNG_WIDTH,
-                     write_to=os.path.join(OUT, name + ".png"))
-    print("wrote", name + ".svg", "+", name + ".png")
+
+    # Vector, sized to the real print width. cairosvg takes output_width in CSS
+    # pixels at 96 dpi, so 20 in is 1920 px, which cairo lays out as 1440 pt.
+    css_px = PRINT_WIDTH * 96
+    cairosvg.svg2pdf(bytestring=data, output_width=css_px, write_to=path("pdf"))
+    cairosvg.svg2eps(bytestring=data, output_width=css_px, write_to=path("eps"))
+    written += ["pdf", "eps"]
+
+    # Raster, stamped with its dpi so uploaders read 20 in and not 83 in.
+    png = io.BytesIO()
+    cairosvg.svg2png(bytestring=data, output_width=int(PRINT_WIDTH * DPI),
+                     write_to=png)
+    image = Image.open(io.BytesIO(png.getvalue()))
+    image.save(path("png"), dpi=(DPI, DPI))
+    written.append("png")
+
+    if jpg:
+        # JPEG cannot hold transparency, so flatten onto white first.
+        flat = Image.new("RGB", image.size, "white")
+        flat.paste(image, mask=image)
+        flat.save(path("jpg"), quality=95, subsampling=0, dpi=(DPI, DPI))
+        written.append("jpg")
+
+    print("wrote", name, "->", ", ".join(written))
 
 
 def main():
@@ -279,10 +312,14 @@ def main():
 
     for suffix, mark_fill, name_fill, sub_fill, gradient in PALETTES:
         g = grad if gradient else None
+        # A white or black logo on a white JPEG background is useless, so the
+        # flattened JPEG is only worth writing for the colour lockups.
         write(f"getlavo-vinyl-{suffix}",
-              build_inline(mark, domain, mark_fill, name_fill, g))
+              build_inline(mark, domain, mark_fill, name_fill, g),
+              jpg=gradient)
         write(f"lavo-vinyl-{suffix}",
-              build_stacked(mark, name, sub, mark_fill, name_fill, sub_fill, g))
+              build_stacked(mark, name, sub, mark_fill, name_fill, sub_fill, g),
+              jpg=gradient)
 
 
 if __name__ == "__main__":
