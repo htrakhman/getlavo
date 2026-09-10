@@ -10,6 +10,7 @@ import { hasApprovedInsurance } from '@/lib/insurance';
 import { OperatorTabs } from '../marketplace/OperatorTabs';
 import { resolveGoverningLaw } from '@/lib/governing-law';
 import { getPendingAgreementsForManager } from '@/lib/pending-agreements';
+import { MINIMUM_CUTOFF_HOURS } from '@/lib/wash-day-minimum';
 import { PendingAgreementsBanner } from './PendingAgreementsBanner';
 
 export const dynamic = 'force-dynamic';
@@ -142,6 +143,7 @@ export default async function ContractPage() {
       ])
     : [{ data: null }, { data: null }];
 
+  const minBookings = Math.max(0, op?.min_bookings_per_day ?? 0);
   const managerName = session.profile.full_name || session.profile.email;
   const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   const washDay = bFull?.wash_day || bFull?.preferred_wash_day || contract?.service_day || null;
@@ -299,7 +301,28 @@ export default async function ContractPage() {
                 </li>
                 <li>
                   <span className="text-ink-400">Frequency:</span>{' '}
-                  <strong className="text-white">Weekly (or as agreed per scheduling tool)</strong>
+                  <strong className="text-white">
+                    Weekly{minBookings > 0 ? ', subject to the minimum below' : ''}
+                  </strong>
+                </li>
+                <li>
+                  <span className="text-ink-400">Minimum bookings per wash day:</span>{' '}
+                  <strong className="text-white">{minBookings > 0 ? minBookings : 'None'}</strong>
+                  {minBookings > 0 ? (
+                    <div className="mt-1 text-xs text-ink-400">
+                      A scheduled wash day carrying fewer than {minBookings}{' '}
+                      {minBookings === 1 ? 'booking' : 'bookings'} {MINIMUM_CUTOFF_HOURS} hours
+                      beforehand is cancelled automatically and every affected resident is refunded
+                      in full. Service Provider is under no obligation to attend a wash day that
+                      does not meet this minimum, and no penalty arises from a day cancelled this
+                      way.
+                    </div>
+                  ) : (
+                    <div className="mt-1 text-xs text-ink-400">
+                      Service Provider attends every scheduled wash day regardless of how many
+                      residents book it.
+                    </div>
+                  )}
                 </li>
                 <li>
                   <span className="text-ink-400">Service location:</span>{' '}
@@ -390,7 +413,15 @@ export default async function ContractPage() {
               <p>
                 Service Provider&rsquo;s liability for any single incident is limited to the retail value of
                 the service rendered. Building Manager is not liable for vehicles damaged during service.
-                Lavo acts as platform intermediary and is not a party to the service relationship.
+              </p>
+              <p className="mt-3">
+                Lavo acts solely as a platform intermediary and is not a party to the service
+                relationship between Building Manager and Service Provider. Lavo does not guarantee
+                any volume of bookings, the attendance of Service Provider at any wash day, or the
+                quality of any Services performed, and is not liable to either party for a wash day
+                that is cancelled, missed or unsatisfactorily performed. Lavo&rsquo;s sole obligation
+                in respect of a cancelled wash day is to return to the affected residents the
+                payments it collected for it.
               </p>
             </section>
 

@@ -2,6 +2,7 @@ import { PDFDocument, PDFFont, PDFPage, StandardFonts, rgb } from 'pdf-lib';
 import { money } from '@/lib/format';
 import { hasApprovedInsurance } from '@/lib/insurance';
 import { DEFAULT_GOVERNING_LAW, resolveGoverningLaw } from '@/lib/governing-law';
+import { MINIMUM_CUTOFF_HOURS } from '@/lib/wash-day-minimum';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 // pdf-lib StandardFonts are WinAnsi (Latin-1) only — normalise smart quotes /
@@ -38,6 +39,8 @@ export interface ContractPdfData {
     managerEmail?: string | null;
   } | null;
   washDay?: string | null;
+  /** Operator's minimum bookings per wash day. 0 means they attend every day. */
+  minBookings?: number | null;
   governingLaw: string;
   packages: Array<{ name: string; description?: string | null; priceCents: number }>;
   addons: Array<{ label: string; priceCents: number }>;
@@ -196,8 +199,17 @@ export async function renderContractPdf(data: ContractPdfData): Promise<Uint8Arr
   heading(ctx, '2. Services');
   paragraph(ctx, `Service Provider agrees to provide car wash services ("Services") at ${buildingName}, ${address}.`);
   bullet(ctx, 'Scheduled wash day:', data.washDay || BLANK);
-  bullet(ctx, 'Frequency:', 'Weekly (or as agreed per the Lavo scheduling tool)');
+  const minBookings = Math.max(0, data.minBookings ?? 0);
+  bullet(ctx, 'Frequency:', minBookings > 0 ? 'Weekly, subject to the minimum below' : 'Weekly');
+  bullet(ctx, 'Minimum bookings per wash day:', minBookings > 0 ? String(minBookings) : 'None');
   bullet(ctx, 'Service location:', 'Building parking garage / designated wash area');
+  paragraph(
+    ctx,
+    minBookings > 0
+      ? `A scheduled wash day carrying fewer than ${minBookings} booking${minBookings === 1 ? '' : 's'} ${MINIMUM_CUTOFF_HOURS} hours beforehand is cancelled automatically and every affected resident is refunded in full. Service Provider is under no obligation to attend a wash day that does not meet this minimum, and no penalty arises from a day cancelled this way.`
+      : 'Service Provider attends every scheduled wash day regardless of how many residents book it.',
+    { color: MUTED, gap: 2 },
+  );
 
   if (data.packages.length) {
     ctx.y -= 4;
@@ -250,7 +262,8 @@ export async function renderContractPdf(data: ContractPdfData): Promise<Uint8Arr
 
   // 6. Limitation of Liability
   heading(ctx, '6. Limitation of Liability');
-  paragraph(ctx, 'Service Provider’s liability for any single incident is limited to the retail value of the service rendered. Building Manager is not liable for vehicles damaged during service. Lavo acts as platform intermediary and is not a party to the service relationship.');
+  paragraph(ctx, 'Service Provider’s liability for any single incident is limited to the retail value of the service rendered. Building Manager is not liable for vehicles damaged during service.');
+  paragraph(ctx, 'Lavo acts solely as a platform intermediary and is not a party to the service relationship between Building Manager and Service Provider. Lavo does not guarantee any volume of bookings, the attendance of Service Provider at any wash day, or the quality of any Services performed, and is not liable to either party for a wash day that is cancelled, missed or unsatisfactorily performed. Lavo’s sole obligation in respect of a cancelled wash day is to return to the affected residents the payments it collected for it.');
 
   // 7. Governing Law
   heading(ctx, '7. Governing Law');
@@ -348,6 +361,7 @@ export async function gatherContractPdfData(admin: SupabaseClient, contractId: s
       managerEmail: manager?.email,
     },
     washDay,
+    minBookings: op.min_bookings_per_day ?? 0,
     governingLaw: resolveGoverningLaw(building?.region, contract.governing_law),
     packages,
     addons,
@@ -368,6 +382,7 @@ export async function gatherOperatorPreviewData(admin: SupabaseClient, operatorI
     operator: operatorPdfShape(op),
     building: building ?? null,
     washDay: washDay ?? null,
+    minBookings: op.min_bookings_per_day ?? 0,
     // A preview scoped to a building shows that building's state, so the
     // operator reads the same clause the manager will be asked to sign.
     governingLaw: resolveGoverningLaw(buildingRegion),

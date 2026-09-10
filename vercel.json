@@ -7,6 +7,10 @@
     {
       "path": "/api/cron/insurance-expiry",
       "schedule": "0 14 * * *"
+    },
+    {
+      "path": "/api/cron/wash-day-minimum",
+      "schedule": "0 * * * *"
     }
   ]
 }
