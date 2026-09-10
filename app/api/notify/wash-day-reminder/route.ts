@@ -21,7 +21,11 @@ export async function POST(req: Request) {
     .from('wash_days')
     .select('id, building_id, building:buildings(name)')
     .eq('scheduled_for', tomorrow)
-    .in('confirmation', ['auto', 'confirmed']);
+    .in('confirmation', ['auto', 'confirmed'])
+    // The reminder also goes to subscribed residents who have no booking, so
+    // without this a day cancelled for missing its minimum still tells the
+    // whole building their wash is tomorrow.
+    .is('cancelled_at', null);
 
   let sent = 0;
   for (const d of days ?? []) {

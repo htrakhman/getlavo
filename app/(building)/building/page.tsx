@@ -47,6 +47,7 @@ export default async function BuildingDashboard() {
       .eq('building_id', building.id)
       .gte('scheduled_for', today)
       .neq('confirmation', 'declined')
+      .is('cancelled_at', null)
       .order('scheduled_for')
       .limit(5),
     sb.from('residents')
