@@ -128,7 +128,14 @@ export default async function OperatorContractsPage() {
         <div className="space-y-3">
           {contracts.map((c: any) => {
             const building = c.building;
-            const needsYourSig = c.status !== 'executed' && !c.operator_signed_at;
+            // Only an open agreement is awaiting anybody, and the two sides are
+            // tracked separately: this badge used to key off the operator's
+            // signature alone, so a brand-new offer nobody had touched read as
+            // "Needs your signature" and looked identical to one the manager
+            // had already countersigned.
+            const open = c.status === 'draft' || c.status === 'pending_signatures';
+            const needsYourSig = open && !c.operator_signed_at && !!c.manager_signed_at;
+            const awaitingManager = open && !c.manager_signed_at;
             return (
               <Link
                 key={c.id}
@@ -148,6 +155,13 @@ export default async function OperatorContractsPage() {
                     </div>
                     {needsYourSig && (
                       <div className="mt-0.5 text-xs text-amber-600">Needs your signature →</div>
+                    )}
+                    {awaitingManager && (
+                      <div className="mt-0.5 text-xs text-ink-400">
+                        {c.operator_signed_at
+                          ? 'You signed — waiting on the property manager'
+                          : 'Sent — waiting on the property manager. You can sign any time.'}
+                      </div>
                     )}
                   </div>
                 </div>
