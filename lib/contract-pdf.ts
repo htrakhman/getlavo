@@ -38,7 +38,6 @@ export interface ContractPdfData {
     managerName?: string | null;
     managerEmail?: string | null;
   } | null;
-  washDay?: string | null;
   /** Operator's minimum bookings per wash day. 0 means they attend every day. */
   minBookings?: number | null;
   governingLaw: string;
@@ -198,9 +197,19 @@ export async function renderContractPdf(data: ContractPdfData): Promise<Uint8Arr
   // 2. Services
   heading(ctx, '2. Services');
   paragraph(ctx, `Service Provider agrees to provide car wash services ("Services") at ${buildingName}, ${address}.`);
-  bullet(ctx, 'Scheduled wash day:', data.washDay || BLANK);
   const minBookings = Math.max(0, data.minBookings ?? 0);
-  bullet(ctx, 'Frequency:', minBookings > 0 ? 'Weekly, subject to the minimum below' : 'Weekly');
+  bullet(ctx, 'Service dates:', 'Scheduled through the Lavo platform');
+  paragraph(
+    ctx,
+    'Service Provider proposes dates and Building Manager confirms them. Either party may decline a proposed date, and a date that is not confirmed creates no obligation for either party.',
+    { color: MUTED, gap: 2 },
+  );
+  bullet(ctx, 'Frequency:', 'No fixed cadence');
+  paragraph(
+    ctx,
+    'This Agreement commits neither party to any particular day of the week or number of visits. Service Provider sets their own availability and may change it at any time.',
+    { color: MUTED, gap: 2 },
+  );
   bullet(ctx, 'Minimum bookings per wash day:', minBookings > 0 ? String(minBookings) : 'None');
   bullet(ctx, 'Service location:', 'Building parking garage / designated wash area');
   paragraph(
@@ -263,7 +272,9 @@ export async function renderContractPdf(data: ContractPdfData): Promise<Uint8Arr
   // 6. Limitation of Liability
   heading(ctx, '6. Limitation of Liability');
   paragraph(ctx, 'Service Provider’s liability for any single incident is limited to the retail value of the service rendered. Building Manager is not liable for vehicles damaged during service.');
-  paragraph(ctx, 'Lavo acts solely as a platform intermediary and is not a party to the service relationship between Building Manager and Service Provider. Lavo does not guarantee any volume of bookings, the attendance of Service Provider at any wash day, or the quality of any Services performed, and is not liable to either party for a wash day that is cancelled, missed or unsatisfactorily performed. Lavo’s sole obligation in respect of a cancelled wash day is to return to the affected residents the payments it collected for it.');
+  paragraph(ctx, 'Lavo acts solely as a platform intermediary. It is not a party to the service relationship between Building Manager and Service Provider, is not the provider of the Services, and does not direct, supervise or control how Service Provider performs them.');
+  paragraph(ctx, 'Lavo does not guarantee any volume of bookings, the attendance of Service Provider on any date, or the quality of any Services performed, and is not liable to either party for any date that is cancelled, missed or unsatisfactorily performed. Lavo is not liable for property damage, vehicle damage, personal injury or any other loss arising out of the Services, whether claimed by a party to this Agreement, a resident, or any third party. Service Provider is solely responsible for the Services and for the acts of its personnel.');
+  paragraph(ctx, 'Service Provider shall indemnify and hold Lavo harmless from any claim, demand or proceeding brought by any person arising out of the Services. Lavo’s aggregate liability to either party under this Agreement, on any theory, shall not exceed the platform fees Lavo actually collected in respect of this building in the one (1) month preceding the event giving rise to the claim, and in no event shall Lavo be liable for indirect, incidental or consequential damages. Lavo’s sole obligation in respect of a cancelled date is to return to the affected residents the payments it collected for it.');
 
   // 7. Governing Law
   heading(ctx, '7. Governing Law');
@@ -346,7 +357,6 @@ export async function gatherContractPdfData(admin: SupabaseClient, contractId: s
   const address = building
     ? `${building.address_line1}, ${building.city}, ${building.region} ${building.postal_code ?? ''}`.trim()
     : null;
-  const washDay = building?.wash_day || building?.preferred_wash_day || contract.service_day || null;
   const { packages, addons } = await loadPackagesAndAddons(admin, op.id);
 
   return {
@@ -360,7 +370,6 @@ export async function gatherContractPdfData(admin: SupabaseClient, contractId: s
       managerName: manager?.full_name || manager?.email,
       managerEmail: manager?.email,
     },
-    washDay,
     minBookings: op.min_bookings_per_day ?? 0,
     governingLaw: resolveGoverningLaw(building?.region, contract.governing_law),
     packages,
@@ -373,7 +382,7 @@ export async function gatherContractPdfData(admin: SupabaseClient, contractId: s
 }
 
 /** Assemble a preview from the operator's own profile, before any building is chosen. */
-export async function gatherOperatorPreviewData(admin: SupabaseClient, operatorId: string, building?: ContractPdfData['building'], washDay?: string | null, buildingRegion?: string | null): Promise<ContractPdfData | null> {
+export async function gatherOperatorPreviewData(admin: SupabaseClient, operatorId: string, building?: ContractPdfData['building'], buildingRegion?: string | null): Promise<ContractPdfData | null> {
   const { data: op } = await admin.from('operators').select('*').eq('id', operatorId).maybeSingle();
   if (!op) return null;
   const { packages, addons } = await loadPackagesAndAddons(admin, op.id);
@@ -381,7 +390,6 @@ export async function gatherOperatorPreviewData(admin: SupabaseClient, operatorI
     effectiveDate: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
     operator: operatorPdfShape(op),
     building: building ?? null,
-    washDay: washDay ?? null,
     minBookings: op.min_bookings_per_day ?? 0,
     // A preview scoped to a building shows that building's state, so the
     // operator reads the same clause the manager will be asked to sign.
