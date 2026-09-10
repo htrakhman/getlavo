@@ -9,6 +9,8 @@ import { money } from '@/lib/format';
 import { hasApprovedInsurance } from '@/lib/insurance';
 import { OperatorTabs } from '../marketplace/OperatorTabs';
 import { resolveGoverningLaw } from '@/lib/governing-law';
+import { getPendingAgreementsForManager } from '@/lib/pending-agreements';
+import { PendingAgreementsBanner } from './PendingAgreementsBanner';
 
 export const dynamic = 'force-dynamic';
 
@@ -130,10 +132,18 @@ export default async function ContractPage() {
   // Contract tab here too so the dot isn't nav-only.
   const contractPending = contract?.status === 'pending_signatures' && !isSigned;
 
+  // Offers on the manager's OTHER buildings. This page can only render the
+  // selected building's agreement, so without this the rest stay invisible and
+  // a manager who signs the one they landed on believes they are done.
+  const pendingAgreements = await getPendingAgreementsForManager(session.user.id);
+  const otherPending = pendingAgreements.filter((p) => p.buildingId !== building.id);
+
   return (
     <>
       <PageHeader eyebrow={building.name} title="Service agreement" />
       <OperatorTabs active="/building/contract" contractPending={contractPending} />
+
+      <PendingAgreementsBanner others={otherPending} />
 
       {isFullyExecuted && (
         <div className="mb-6 flex items-center gap-3 rounded-xl border border-gleam/30 bg-gleam/10 px-5 py-3">

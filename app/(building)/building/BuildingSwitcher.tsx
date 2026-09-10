@@ -4,7 +4,21 @@ import { useState } from 'react';
 import Link from 'next/link';
 import type { ManagedBuilding } from '@/lib/building';
 
-export function BuildingSwitcher({ current, all }: { current: ManagedBuilding | null; all: ManagedBuilding[] }) {
+export function BuildingSwitcher({
+  current,
+  all,
+  // Buildings whose agreement is still waiting on this manager's signature.
+  // Marking them in the picker is what makes a second or third pending offer
+  // discoverable — the portal renders one building at a time, so an unmarked
+  // list gives no hint that switching is worth doing.
+  pendingBuildingIds = [],
+}: {
+  current: ManagedBuilding | null;
+  all: ManagedBuilding[];
+  pendingBuildingIds?: string[];
+}) {
+  const pending = new Set(pendingBuildingIds);
+  const otherPendingCount = all.filter((b) => b.id !== current?.id && pending.has(b.id)).length;
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -33,6 +47,11 @@ export function BuildingSwitcher({ current, all }: { current: ManagedBuilding | 
         <div className="min-w-0">
           <div className="text-[10px] uppercase tracking-widest text-ink-400">Building</div>
           <div className="truncate text-sm font-medium">{current?.name ?? 'Select…'}</div>
+          {otherPendingCount > 0 && (
+            <div className="mt-0.5 text-[10px] font-medium text-amber-600">
+              {otherPendingCount} other{otherPendingCount === 1 ? '' : 's'} need your signature
+            </div>
+          )}
         </div>
         <span className="text-ink-400 text-xs">▾</span>
       </button>
@@ -47,7 +66,12 @@ export function BuildingSwitcher({ current, all }: { current: ManagedBuilding | 
               className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-white/5 ${b.id === current?.id ? 'text-gleam' : ''}`}
             >
               <span className="truncate">{b.name}</span>
-              {b.id === current?.id && <span className="text-xs">✓</span>}
+              <span className="ml-2 flex shrink-0 items-center gap-2">
+                {pending.has(b.id) && (
+                  <span className="text-[10px] font-medium text-amber-600">Needs signature</span>
+                )}
+                {b.id === current?.id && <span className="text-xs">✓</span>}
+              </span>
             </button>
           ))}
           <Link

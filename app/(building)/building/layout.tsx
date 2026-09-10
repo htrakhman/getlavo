@@ -1,7 +1,8 @@
 import { PortalShell } from '@/components/PortalShell';
-import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
+import { getSessionUser } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { getCurrentBuildingForSession } from '@/lib/building';
+import { getPendingAgreementsForManager } from '@/lib/pending-agreements';
 import { BuildingSwitcher } from './BuildingSwitcher';
 
 const NAV = [
@@ -24,23 +25,19 @@ export default async function BuildingLayout({ children }: { children: React.Rea
     redirect(home);
   }
 
-  const { current, all } = await getCurrentBuildingForSession(session.user.id);
+  const [{ current, all }, pending] = await Promise.all([
+    getCurrentBuildingForSession(session.user.id),
+    getPendingAgreementsForManager(session.user.id),
+  ]);
 
   // Red-dot guidance: flag "My operator" (which hosts the Contract tab) when
-  // an agreement is waiting on the manager's signature.
-  const alerts: string[] = [];
-  if (current) {
-    const sb = supabaseServer();
-    const { data: pendingContract } = await sb
-      .from('contracts')
-      .select('id')
-      .eq('building_id', current.id)
-      .eq('status', 'pending_signatures')
-      .is('manager_signed_at', null)
-      .limit(1)
-      .maybeSingle();
-    if (pendingContract) alerts.push('/building/marketplace');
-  }
+  // an agreement is waiting on the manager's signature. This counts EVERY
+  // building the manager owns, not just the selected one — scoped to the
+  // current building, the dot vanished the moment they switched away from the
+  // building with the offer, which is how offers on the other buildings went
+  // unnoticed entirely.
+  const alerts: string[] = pending.length ? ['/building/marketplace'] : [];
+  const pendingBuildingIds = pending.map((p) => p.buildingId);
 
   return (
     <PortalShell
@@ -48,7 +45,7 @@ export default async function BuildingLayout({ children }: { children: React.Rea
       accent="Building portal"
       alerts={alerts}
       user={{ name: session.profile.full_name, sub: session.profile.email, role: session.profile.role }}
-      sidebarTop={<BuildingSwitcher current={current} all={all} />}
+      sidebarTop={<BuildingSwitcher current={current} all={all} pendingBuildingIds={pendingBuildingIds} />}
       currentPortal="building"
       portals={session.portals}
     >
