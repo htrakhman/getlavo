@@ -157,6 +157,7 @@ export async function getBuildingAvailability(
           .select('scheduled_for, confirmation')
           .eq('building_id', buildingId)
           .in('confirmation', ['auto', 'confirmed'])
+          .is('cancelled_at', null)
           .gte('scheduled_for', from)
           .lte('scheduled_for', to)
       : Promise.resolve({ data: [] as { scheduled_for: string }[] }),

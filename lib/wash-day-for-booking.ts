@@ -29,6 +29,11 @@ export async function washDayForBooking(
     .eq('building_id', buildingId)
     .eq('scheduled_for', scheduledFor)
     .neq('confirmation', 'declined')
+    // A day cancelled for missing its minimum is finished. Reusing it would
+    // attach the new booking to a day nobody is coming to, and the sweeper
+    // skips already-cancelled days so it would never be judged again. Falling
+    // through to the insert starts a fresh day that can fill up on its own.
+    .is('cancelled_at', null)
     .limit(1)
     .maybeSingle();
   if (existingDay?.id) return existingDay.id;

@@ -31,6 +31,7 @@ export default async function OperatorOverview({ searchParams }: { searchParams:
       .eq('operator_id', op.id)
       .gte('scheduled_for', today)
       .neq('confirmation', 'declined')
+      .is('cancelled_at', null)
       .order('scheduled_for')
       .limit(5),
     sb.from('payouts')
