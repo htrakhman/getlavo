@@ -74,14 +74,6 @@ export default async function ContractPage() {
     op = opRow ?? null;
   }
 
-  // Fetch operator packages and addons for auto-fill
-  const [{ data: packages }, { data: addons }] = op
-    ? await Promise.all([
-        admin.from('service_packages').select('name, description, price_cents').eq('operator_id', op.id).eq('active', true).order('display_order'),
-        admin.from('operator_addons').select('label, price_cents').eq('operator_id', op.id).eq('active', true),
-      ])
-    : [{ data: null }, { data: null }];
-
   // Existing or auto-created contract
   let { data: contract } = await admin
     .from('contracts')
@@ -90,6 +82,29 @@ export default async function ContractPage() {
     .order('created_at', { ascending: false })
     .limit(1)
     .maybeSingle();
+
+  // The contract itself is the fallback source for the operator.
+  //
+  // This page derived the operator ONLY from `partnerships`, but an
+  // operator-initiated offer (/api/contracts/send) writes a contracts row and
+  // no partnership — partnership rows are created solely by the admin
+  // assign-operator route and the seed script. With no partnership the whole
+  // agreement collapsed to the "No agreement yet" empty state, so a manager
+  // who followed the offer email was told nothing was waiting and had no way
+  // to sign the contract that plainly existed. Read the operator off the
+  // contract when the partnership is missing.
+  if (!op && contract?.operator_id) {
+    const { data: opRow, error: opError } = await admin
+      .from('operators')
+      .select('*')
+      .eq('id', contract.operator_id)
+      .maybeSingle();
+    if (opError) {
+      operatorError = opError.message;
+      console.error('contract: operator-from-contract query failed:', opError.message);
+    }
+    op = opRow ?? null;
+  }
 
   // Auto-create a draft contract when both parties are present and no contract exists yet
   if (!contract && op) {
@@ -116,6 +131,16 @@ export default async function ContractPage() {
       contract = minimalContract;
     }
   }
+
+  // Fetch operator packages and addons for auto-fill. Runs after the operator
+  // is resolved from either source so a contract-sourced operator still gets
+  // its packages rendered into the agreement.
+  const [{ data: packages }, { data: addons }] = op
+    ? await Promise.all([
+        admin.from('service_packages').select('name, description, price_cents').eq('operator_id', op.id).eq('active', true).order('display_order'),
+        admin.from('operator_addons').select('label, price_cents').eq('operator_id', op.id).eq('active', true),
+      ])
+    : [{ data: null }, { data: null }];
 
   const managerName = session.profile.full_name || session.profile.email;
   const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
