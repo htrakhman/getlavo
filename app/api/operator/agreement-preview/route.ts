@@ -35,7 +35,6 @@ export async function GET(req: Request) {
       effectiveDate: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
       operator: { name: '', insuranceApproved: false },
       building: null,
-      washDay: null,
       governingLaw: DEFAULT_GOVERNING_LAW,
       packages: [],
       addons: [],
@@ -52,7 +51,6 @@ export async function GET(req: Request) {
 
   const buildingId = url.searchParams.get('building');
   let building = null;
-  let washDay: string | null = null;
   let buildingRegion: string | null = null;
   if (buildingId) {
     const { data: b } = await admin
@@ -68,12 +66,11 @@ export async function GET(req: Request) {
         managerName: manager?.full_name || manager?.email,
         managerEmail: manager?.email,
       };
-      washDay = b.wash_day || b.preferred_wash_day || null;
       buildingRegion = b.region ?? null;
     }
   }
 
-  const data = await gatherOperatorPreviewData(admin, op.id, building, washDay, buildingRegion);
+  const data = await gatherOperatorPreviewData(admin, op.id, building, buildingRegion);
   if (!data) return NextResponse.json({ error: 'could not build preview' }, { status: 500 });
 
   const bytes = await renderContractPdf(data);

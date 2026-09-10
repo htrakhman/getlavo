@@ -146,7 +146,6 @@ export default async function ContractPage() {
   const minBookings = Math.max(0, op?.min_bookings_per_day ?? 0);
   const managerName = session.profile.full_name || session.profile.email;
   const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-  const washDay = bFull?.wash_day || bFull?.preferred_wash_day || contract?.service_day || null;
   const address = bFull
     ? `${bFull.address_line1}, ${bFull.city}, ${bFull.region} ${bFull.postal_code}`
     : null;
@@ -296,14 +295,22 @@ export default async function ContractPage() {
               </p>
               <ul className="mt-3 space-y-2 pl-4">
                 <li>
-                  <span className="text-ink-400">Scheduled wash day:</span>{' '}
-                  <strong className="text-white">{washDay ?? BLANK('day of week')}</strong>
+                  <span className="text-ink-400">Service dates:</span>{' '}
+                  <strong className="text-white">Scheduled through the Lavo platform</strong>
+                  <div className="mt-1 text-xs text-ink-400">
+                    Service Provider proposes dates and Building Manager confirms them. Either party
+                    may decline a proposed date, and a date that is not confirmed creates no
+                    obligation for either party.
+                  </div>
                 </li>
                 <li>
                   <span className="text-ink-400">Frequency:</span>{' '}
-                  <strong className="text-white">
-                    Weekly{minBookings > 0 ? ', subject to the minimum below' : ''}
-                  </strong>
+                  <strong className="text-white">No fixed cadence</strong>
+                  <div className="mt-1 text-xs text-ink-400">
+                    This Agreement commits neither party to any particular day of the week or number
+                    of visits. Service Provider sets their own availability and may change it at any
+                    time.
+                  </div>
                 </li>
                 <li>
                   <span className="text-ink-400">Minimum bookings per wash day:</span>{' '}
@@ -415,12 +422,28 @@ export default async function ContractPage() {
                 the service rendered. Building Manager is not liable for vehicles damaged during service.
               </p>
               <p className="mt-3">
-                Lavo acts solely as a platform intermediary and is not a party to the service
-                relationship between Building Manager and Service Provider. Lavo does not guarantee
-                any volume of bookings, the attendance of Service Provider at any wash day, or the
-                quality of any Services performed, and is not liable to either party for a wash day
-                that is cancelled, missed or unsatisfactorily performed. Lavo&rsquo;s sole obligation
-                in respect of a cancelled wash day is to return to the affected residents the
+                Lavo acts solely as a platform intermediary. It is not a party to the service
+                relationship between Building Manager and Service Provider, is not the provider of
+                the Services, and does not direct, supervise or control how Service Provider
+                performs them.
+              </p>
+              <p className="mt-3">
+                Lavo does not guarantee any volume of bookings, the attendance of Service Provider
+                on any date, or the quality of any Services performed, and is not liable to either
+                party for any date that is cancelled, missed or unsatisfactorily performed. Lavo is
+                not liable for property damage, vehicle damage, personal injury or any other loss
+                arising out of the Services, whether claimed by a party to this Agreement, a
+                resident, or any third party. Service Provider is solely responsible for the
+                Services and for the acts of its personnel.
+              </p>
+              <p className="mt-3">
+                Service Provider shall indemnify and hold Lavo harmless from any claim, demand or
+                proceeding brought by any person arising out of the Services. Lavo&rsquo;s aggregate
+                liability to either party under this Agreement, on any theory, shall not exceed the
+                platform fees Lavo actually collected in respect of this building in the one (1)
+                month preceding the event giving rise to the claim, and in no event shall Lavo be
+                liable for indirect, incidental or consequential damages. Lavo&rsquo;s sole
+                obligation in respect of a cancelled date is to return to the affected residents the
                 payments it collected for it.
               </p>
             </section>
