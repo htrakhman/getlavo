@@ -4,6 +4,7 @@ import { insuranceDocViewUrl } from '@/lib/insurance-doc';
 import { redirect } from 'next/navigation';
 import { OperatorProfileEditor } from './OperatorProfileEditor';
 import { StandardWashEditor } from './StandardWashEditor';
+import { MinimumBookingsEditor } from './MinimumBookingsEditor';
 import { PackagesEditor } from './PackagesEditor';
 import { AddonsEditor } from './AddonsEditor';
 import { InsuranceUploader } from './InsuranceUploader';
@@ -61,6 +62,8 @@ export default async function OperatorProfilePage() {
         <Flagged show={needsStripe}><StripeConnectSection initialConnected={!!op.stripe_onboarding_complete} /></Flagged>
 
         <Flagged show={needsStandardWash}><StandardWashEditor op={op} /></Flagged>
+
+        <MinimumBookingsEditor op={op} />
 
         <Flagged show={needsPackages}><PackagesEditor operatorId={op.id} initial={packages ?? []} /></Flagged>
 
