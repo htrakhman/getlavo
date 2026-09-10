@@ -37,6 +37,21 @@ export async function activatePartnershipForContract(contractId: string): Promis
     if (!contract?.building_id || !contract.operator_id) return;
     if (contract.status !== 'executed') return;
 
+    // partnerships.requested_by is NOT NULL. In this flow the operator is the
+    // party who offered the agreement, so their owner is who asked for the
+    // partnership. Without it the insert is rejected outright — and because
+    // this function deliberately swallows its errors, that rejection would be
+    // invisible: the contract would execute, the building would stay on
+    // `prospect`, and the only trace would be a row in error_logs.
+    const { data: operatorRow } = await admin
+      .from('operators')
+      .select('owner_id')
+      .eq('id', contract.operator_id)
+      .maybeSingle();
+    if (!operatorRow?.owner_id) {
+      throw new Error(`operator ${contract.operator_id} has no owner_id`);
+    }
+
     const { building_id: buildingId, operator_id: operatorId } = contract;
     const now = new Date().toISOString();
 
@@ -74,6 +89,7 @@ export async function activatePartnershipForContract(contractId: string): Promis
         building_id: buildingId,
         operator_id: operatorId,
         status: 'active',
+        requested_by: operatorRow.owner_id,
         connected_at: now,
         responded_at: now,
       });
