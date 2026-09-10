@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { wrapEmail, button, paragraph } from '@/lib/email/template';
+import { activatePartnershipForContract } from '@/lib/contract-execution';
 
 export async function POST(req: Request, { params }: { params: { id: string } }) {
   const session = await getSessionUser();
@@ -115,5 +116,15 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   }
 
   const wasJustExecuted = (isManager && !!contract.operator_signed_at) || (isOperator && !!contract.manager_signed_at);
+
+  // Execution is what actually opens the building for business. Without this
+  // the contract reached 'executed' while the building stayed on 'prospect'
+  // with no partnership row, and every downstream gate — isBuildingBookable,
+  // /resident/book, wash-day proposals — kept refusing it. Runs for whichever
+  // side signs last, and never throws.
+  if (wasJustExecuted) {
+    await activatePartnershipForContract(contract.id);
+  }
+
   return NextResponse.json({ ok: true, executed: wasJustExecuted });
 }
