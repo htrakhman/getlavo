@@ -237,25 +237,59 @@ export function OnboardingForm() {
     const { data: { user } } = await sb.auth.getUser();
     if (!user) { setErr('Not signed in'); setBusy(false); return; }
 
-    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    // The page that renders this form already checks for an existing operator
+    // and redirects away — but that check happens at page load, and this
+    // submit can land afterward (a second tab, a slow connection, a resumed
+    // draft). Re-checking here closes that window: without it, two operator
+    // rows can exist for one owner_id, and since `operators.owner_id` has no
+    // uniqueness constraint, every operator page's `.maybeSingle()` lookup
+    // then starts throwing outright — not just this flow, the whole portal.
+    const { data: existingOp } = await sb
+      .from('operators')
+      .select('id')
+      .eq('owner_id', user.id)
+      .limit(1)
+      .maybeSingle();
+    if (existingOp) {
+      localStorage.removeItem(SAVE_KEY);
+      router.push('/operator');
+      return;
+    }
+
+    const baseSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'operator';
     const validPkgs = packages.filter((p) => p.name && p.price);
     const basePrice = validPkgs.length ? Math.round(parseFloat(validPkgs[0].price) * 100) : 3500;
 
     // Core insert — always-present columns
-    const { data: op, error: opErr } = await sb.from('operators').insert({
-      owner_id: user.id,
-      name,
-      slug,
-      description,
-      lat: lat ?? null,
-      lng: lng ?? null,
-      service_radius_miles: radius,
-      base_price_cents: basePrice,
-      open_slot_price_cents: Math.round(basePrice * 1.3),
-      capacity_per_day: 20,
-      hours_json: hours,
-      status: 'approved',
-    }).select('id').single();
+    //
+    // `slug` is unique across all operators, and a business name alone (or two
+    // people onboarding under a similar name) can collide. Without handling
+    // it, Postgres's raw "duplicate key value violates unique constraint
+    // operators_slug_key" reached the user verbatim via setErr below. Retry
+    // with a short random suffix instead — bounded, so a real outage still
+    // surfaces as an error rather than looping forever.
+    let op: { id: string } | null = null;
+    let opErr: { message: string; code?: string } | null = null;
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const slug = attempt === 0 ? baseSlug : `${baseSlug}-${Math.random().toString(36).slice(2, 6)}`;
+      const { data, error } = await sb.from('operators').insert({
+        owner_id: user.id,
+        name,
+        slug,
+        description,
+        lat: lat ?? null,
+        lng: lng ?? null,
+        service_radius_miles: radius,
+        base_price_cents: basePrice,
+        open_slot_price_cents: Math.round(basePrice * 1.3),
+        capacity_per_day: 20,
+        hours_json: hours,
+        status: 'approved',
+      }).select('id').single();
+      if (!error) { op = data; opErr = null; break; }
+      opErr = error;
+      if (error.code !== '23505') break; // Only a slug collision is worth retrying.
+    }
 
     if (opErr || !op) { setErr(opErr?.message ?? 'Failed to create profile'); setBusy(false); return; }
 

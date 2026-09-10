@@ -17,7 +17,16 @@ export function supabaseServer() {
             cookiesToSet.forEach(({ name, value, options }) =>
               cookieStore.set(name, value, options)
             );
-          } catch {}
+          } catch (e) {
+            // Expected in a Server Component render (cookies() is read-only
+            // there) — a session refresh just can't persist itself and the
+            // request still completes. But the same catch also hides a real
+            // failure to clear cookies from a Route Handler, where a write IS
+            // allowed — sign-out calls this exact path to clear the session,
+            // and a silently-eaten failure there looks identical to success:
+            // the redirect to /login still fires with the cookie untouched.
+            console.error('supabaseServer: cookie write failed', e);
+          }
         },
       },
     }
