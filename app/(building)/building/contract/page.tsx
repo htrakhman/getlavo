@@ -158,18 +158,19 @@ export default async function ContractPage() {
   // Contract tab here too so the dot isn't nav-only.
   const contractPending = contract?.status === 'pending_signatures' && !isSigned;
 
-  // Offers on the manager's OTHER buildings. This page can only render the
-  // selected building's agreement, so without this the rest stay invisible and
-  // a manager who signs the one they landed on believes they are done.
+  // Every building with an open agreement, current one included — a flat
+  // list rather than an implicit-current/explicit-others split. This page can
+  // only render one building's agreement at a time, so without this the rest
+  // stay invisible and a manager who signs the one they landed on believes
+  // they are done.
   const pendingAgreements = await getPendingAgreementsForManager(session.user.id);
-  const otherPending = pendingAgreements.filter((p) => p.buildingId !== building.id);
 
   return (
     <>
       <PageHeader eyebrow={building.name} title="Service agreement" />
       <OperatorTabs active="/building/contract" contractPending={contractPending} />
 
-      <PendingAgreementsBanner others={otherPending} />
+      <PendingAgreementsBanner pending={pendingAgreements} currentBuildingId={building.id} />
 
       {isFullyExecuted && (
         <div className="mb-6 flex items-center gap-3 rounded-xl border border-gleam/30 bg-gleam/10 px-5 py-3">
@@ -457,7 +458,7 @@ export default async function ContractPage() {
             </section>
 
             {/* Signatures */}
-            <section className="border-t border-white/10 pt-6">
+            <section id="sign" className="scroll-mt-6 border-t border-white/10 pt-6">
               <h3 className="mb-4 font-display text-lg text-white">Signatures</h3>
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div>
