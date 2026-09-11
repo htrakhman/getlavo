@@ -5,6 +5,9 @@ import { applyPromoToBooking, recordPromoRedemption } from '@/lib/promo';
 import { confirmPaidBookingAndNotify } from '@/lib/booking-confirm';
 import { priceAddonSelection, recordBookingAddonOrders, releaseBookingAddonOrders } from '@/lib/addons';
 import { washDayForBooking } from '@/lib/wash-day-for-booking';
+import { getBuildingBilling } from '@/lib/billing-for-building';
+import { resolveBillingSplit } from '@/lib/billing-arrangement';
+import { chargePropertyForWash } from '@/lib/stripe/charge-property';
 import { SLOT_HOLDING_STATUSES } from '@/lib/availability';
 import { WAIVER_VERSION } from '@/lib/waiver';
 import { BOOKING_TERMS_VERSION, bookingTermKeys } from '@/lib/booking-terms';
@@ -256,7 +259,33 @@ async function createBooking(req: Request) {
   }
   const { addons, totalCents: addonTotalCents } = addonResult;
 
-  const grossCents = promoResult.finalGrossCents + addonTotalCents;
+  // Who pays for the wash itself. Add-ons are always the occupant's — a
+  // property funds the wash it agreed to fund, not whatever an occupant ticks
+  // at checkout — so the split applies to the wash price alone and the add-on
+  // total is added to the occupant's side afterwards.
+  const billing = await getBuildingBilling(admin, resident.building_id);
+  const billingSplit = resolveBillingSplit({
+    mode: billing.mode,
+    washCents: promoResult.finalGrossCents,
+    subsidyCents: billing.subsidyCents,
+  });
+  const propertyChargeCents = billingSplit.propertyCents;
+
+  // An arrangement that bills the property is only honoured if the property
+  // actually has a card on file. Without one the wash would be performed with
+  // nobody charged for it, so fall back to the occupant paying in full rather
+  // than giving the operator's work away.
+  const propertyCanPay = propertyChargeCents > 0 && !!billing.paymentMethodId && !!billing.stripeCustomerId;
+  const occupantWashCents = propertyCanPay ? billingSplit.occupantCents : promoResult.finalGrossCents;
+  const propertyOwesCents = propertyCanPay ? propertyChargeCents : 0;
+  if (propertyChargeCents > 0 && !propertyCanPay) {
+    console.error('[bookings/create] property billing configured without a card on file', {
+      buildingId: resident.building_id,
+      mode: billing.mode,
+    });
+  }
+
+  const grossCents = occupantWashCents + addonTotalCents;
   const promoDiscountCents = promoResult.discountCents;
   const promoRow = promoResult.promo;
   // One split, used for both the booking row and the Stripe charge, so what the
@@ -330,6 +359,7 @@ async function createBooking(req: Request) {
       recurring_cadence: recurringCadence ?? null,
       promo_code_id: promoRow?.id ?? null,
       promo_discount_cents: promoDiscountCents,
+      property_charge_cents: propertyOwesCents,
     })
     .select()
     .single();
@@ -375,6 +405,37 @@ async function createBooking(req: Request) {
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2024-06-20' });
 
   if (grossCents <= 0) {
+    // The occupant owes nothing. If the property owes something, its card is
+    // charged HERE, before the booking is confirmed — there is no occupant
+    // payment to wait on, and confirming first would perform the wash with
+    // nobody charged if the card declines.
+    if (propertyOwesCents > 0) {
+      const charge = await chargePropertyForWash(admin, {
+        bookingId: booking.id,
+        buildingId: resident.building_id!,
+        amountCents: propertyOwesCents,
+        customerId: billing.stripeCustomerId,
+        paymentMethodId: billing.paymentMethodId,
+        operatorStripeAccountId: operator.stripe_account_id,
+        description: `Car wash — ${buildingName} · ${scheduledFor}`,
+      });
+      if (!charge.ok) {
+        await releaseBooking(booking.id);
+        return NextResponse.json(
+          {
+            error: charge.needsAction
+              ? 'The card on file for this property needs to be re-authorised before it can be charged. Please ask your property manager to update it.'
+              : `The property's card could not be charged: ${charge.error}`,
+          },
+          { status: 402 },
+        );
+      }
+      await admin
+        .from('bookings')
+        .update({ property_payment_intent_id: charge.paymentIntentId })
+        .eq('id', booking.id);
+    }
+
     await confirmPaidBookingAndNotify(admin, booking.id, null);
     if (promoRow) {
       await recordPromoRedemption(admin, {

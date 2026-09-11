@@ -11,6 +11,7 @@ import { OperatorTabs } from '../marketplace/OperatorTabs';
 import { resolveGoverningLaw } from '@/lib/governing-law';
 import { getPendingAgreementsForManager } from '@/lib/pending-agreements';
 import { MINIMUM_CUTOFF_HOURS } from '@/lib/wash-day-minimum';
+import { normalizeBillingMode, describeBillingArrangement } from '@/lib/billing-arrangement';
 import { PendingAgreementsBanner } from './PendingAgreementsBanner';
 
 export const dynamic = 'force-dynamic';
@@ -144,6 +145,8 @@ export default async function ContractPage() {
     : [{ data: null }, { data: null }];
 
   const minBookings = Math.max(0, op?.min_bookings_per_day ?? 0);
+  const billingMode = normalizeBillingMode(contract?.billing_mode);
+  const propertySubsidyCents = Math.max(0, contract?.property_subsidy_cents ?? 0);
   const managerName = session.profile.full_name || session.profile.email;
   const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   const address = bFull
@@ -383,8 +386,30 @@ export default async function ContractPage() {
             <section>
               <h3 className="mb-3 font-display text-lg text-white">3. Fees &amp; Payment</h3>
               <p>
-                Occupants pay Service Provider directly per wash via the Lavo platform. The property
-                incurs no per-wash charge. Lavo collects a platform fee from each Occupant transaction.
+                {billingMode === 'property_pays' ? (
+                  <>
+                    The property pays for each wash via the Lavo platform, charged to the payment
+                    method it keeps on file. Occupants book at no charge to themselves. Lavo collects
+                    a platform fee from each transaction.
+                  </>
+                ) : billingMode === 'property_subsidized' ? (
+                  <>
+                    The property covers{' '}
+                    <strong className="text-white">{money(propertySubsidyCents)}</strong> of each
+                    wash, charged to the payment method it keeps on file, and the Occupant pays the
+                    remainder at checkout. Lavo collects a platform fee from each transaction.
+                  </>
+                ) : (
+                  <>
+                    Occupants pay Service Provider directly per wash via the Lavo platform. The
+                    property incurs no per-wash charge. Lavo collects a platform fee from each
+                    Occupant transaction.
+                  </>
+                )}
+              </p>
+              <p className="mt-3 text-xs text-ink-400">
+                Optional add-ons an Occupant selects at checkout are always paid by that Occupant,
+                whatever the arrangement above.
               </p>
               {op?.base_price_cents && (
                 <p className="mt-3">

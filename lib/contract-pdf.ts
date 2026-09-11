@@ -3,6 +3,7 @@ import { money } from '@/lib/format';
 import { hasApprovedInsurance } from '@/lib/insurance';
 import { DEFAULT_GOVERNING_LAW, resolveGoverningLaw } from '@/lib/governing-law';
 import { MINIMUM_CUTOFF_HOURS } from '@/lib/wash-day-minimum';
+import { normalizeBillingMode, type BillingMode } from '@/lib/billing-arrangement';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 // pdf-lib StandardFonts are WinAnsi (Latin-1) only — normalise smart quotes /
@@ -40,6 +41,10 @@ export interface ContractPdfData {
   } | null;
   /** Operator's minimum bookings per wash day. 0 means they attend every day. */
   minBookings?: number | null;
+  /** Who pays for a wash under this agreement. */
+  billingMode?: BillingMode | string | null;
+  /** Per-wash amount the property covers, under property_subsidized. */
+  propertySubsidyCents?: number | null;
   governingLaw: string;
   packages: Array<{ name: string; description?: string | null; priceCents: number }>;
   addons: Array<{ label: string; priceCents: number }>;
@@ -318,7 +323,17 @@ export async function renderContractPdf(data: ContractPdfData): Promise<Uint8Arr
 
   // 3. Fees & Payment
   heading(ctx, '3. Fees & Payment');
-  paragraph(ctx, 'Occupants pay Service Provider directly per wash via the Lavo platform. The property incurs no per-wash charge. Lavo collects a platform fee from each Occupant transaction.');
+  const billingMode = normalizeBillingMode(data.billingMode);
+  const subsidyCents = Math.max(0, data.propertySubsidyCents ?? 0);
+  paragraph(
+    ctx,
+    billingMode === 'property_pays'
+      ? 'The property pays for each wash via the Lavo platform, charged to the payment method it keeps on file. Occupants book at no charge to themselves. Lavo collects a platform fee from each transaction.'
+      : billingMode === 'property_subsidized'
+        ? `The property covers ${money(subsidyCents)} of each wash, charged to the payment method it keeps on file, and the Occupant pays the remainder at checkout. Lavo collects a platform fee from each transaction.`
+        : 'Occupants pay Service Provider directly per wash via the Lavo platform. The property incurs no per-wash charge. Lavo collects a platform fee from each Occupant transaction.',
+  );
+  paragraph(ctx, 'Optional add-ons an Occupant selects at checkout are always paid by that Occupant, whatever the arrangement above.', { color: MUTED, gap: 2 });
   if (data.operator.basePriceCents) {
     bullet(ctx, 'Standard base price per wash:', money(data.operator.basePriceCents));
   }
@@ -436,6 +451,8 @@ export async function gatherContractPdfData(admin: SupabaseClient, contractId: s
       managerEmail: manager?.email,
     },
     minBookings: op.min_bookings_per_day ?? 0,
+    billingMode: contract.billing_mode ?? null,
+    propertySubsidyCents: contract.property_subsidy_cents ?? 0,
     governingLaw: resolveGoverningLaw(building?.region, contract.governing_law),
     packages,
     addons,

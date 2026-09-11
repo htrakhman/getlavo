@@ -6,6 +6,7 @@ import { money } from '@/lib/format';
 import { OperatorContractSigner } from './OperatorContractSigner';
 import { hasApprovedInsurance } from '@/lib/insurance';
 import { resolveGoverningLaw } from '@/lib/governing-law';
+import { normalizeBillingMode } from '@/lib/billing-arrangement';
 
 const BLANK = (label: string) => (
   <span className="inline-block min-w-[120px] border-b border-dashed border-ink-500 text-ink-500 italic px-1">
@@ -59,6 +60,8 @@ export default async function OperatorContractPage({ params }: { params: { id: s
   const governingLaw = resolveGoverningLaw(building?.region, contract.governing_law);
   const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
+  const billingMode = normalizeBillingMode(contract.billing_mode);
+  const propertySubsidyCents = Math.max(0, contract.property_subsidy_cents ?? 0);
   const managerSigned = !!contract.manager_signed_at;
   const operatorSigned = !!contract.operator_signed_at;
   const isFullyExecuted = contract.status === 'executed' || (managerSigned && operatorSigned);
@@ -194,13 +197,38 @@ export default async function OperatorContractPage({ params }: { params: { id: s
             {/* Fees */}
             <section>
               <h3 className="mb-3 font-display text-lg text-white">3. Fees &amp; Payment</h3>
+              {/* Must state the same arrangement the manager sees on their copy
+                  of this contract — one agreement cannot describe two different
+                  deals depending on who opens it. */}
               <p>
-                Residents pay Service Provider directly per wash via the Lavo platform. The building manager
-                incurs no per-wash charge. Lavo collects a platform fee from each resident transaction.
+                {billingMode === 'property_pays' ? (
+                  <>
+                    The property pays for each wash via the Lavo platform, charged to the payment
+                    method it keeps on file. Occupants book at no charge to themselves. Lavo collects
+                    a platform fee from each transaction.
+                  </>
+                ) : billingMode === 'property_subsidized' ? (
+                  <>
+                    The property covers{' '}
+                    <strong className="text-white">{money(propertySubsidyCents)}</strong> of each
+                    wash, charged to the payment method it keeps on file, and the Occupant pays the
+                    remainder at checkout. Lavo collects a platform fee from each transaction.
+                  </>
+                ) : (
+                  <>
+                    Occupants pay Service Provider directly per wash via the Lavo platform. The
+                    property incurs no per-wash charge. Lavo collects a platform fee from each
+                    Occupant transaction.
+                  </>
+                )}
+              </p>
+              <p className="mt-3 text-xs text-ink-400">
+                Optional add-ons an Occupant selects at checkout are always paid by that Occupant,
+                whatever the arrangement above.
               </p>
               {op.base_price_cents && (
                 <p className="mt-3">
-                  <span className="text-ink-400">Standard base price per resident wash:</span>{' '}
+                  <span className="text-ink-400">Standard base price per wash:</span>{' '}
                   <strong className="text-white">{money(op.base_price_cents)}</strong>
                 </p>
               )}
