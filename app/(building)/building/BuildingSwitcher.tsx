@@ -49,7 +49,7 @@ export function BuildingSwitcher({
           <div className="truncate text-sm font-medium">{current?.name ?? 'Select…'}</div>
           {otherPendingCount > 0 && (
             <div className="mt-0.5 text-[10px] font-medium text-amber-600">
-              {otherPendingCount} other{otherPendingCount === 1 ? '' : 's'} need your signature
+              {otherPendingCount} other building{otherPendingCount === 1 ? '' : 's'} need{otherPendingCount === 1 ? 's' : ''} your signature
             </div>
           )}
         </div>
