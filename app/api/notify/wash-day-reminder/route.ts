@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { notify } from '@/lib/notify';
 import { logJobRun, logError } from '@/lib/error-log';
+import { sweepWashDayMinimums } from '@/lib/wash-day-minimum-sweep';
 
 export async function POST(req: Request) {
   const start = Date.now();
@@ -13,6 +14,27 @@ export async function POST(req: Request) {
   }
 
   try {
+
+  // Cancel under-booked wash days BEFORE reminding anyone about them. This
+  // runs here rather than on its own schedule because vercel.json is capped
+  // at two daily cron entries on the current plan — a third, hourly entry
+  // failed every deployment for a day while every local build passed, since
+  // `next build` does not validate vercel.json against plan limits.
+  //
+  // Order matters beyond the cron budget: sweeping first means a day that
+  // just missed its minimum is already cancelled, and its residents already
+  // refunded and told, before this job would otherwise email the whole
+  // building that their wash is tomorrow.
+  let minimumSweep = { checked: 0, cancelled: 0, bookingsRefunded: 0 };
+  try {
+    minimumSweep = await sweepWashDayMinimums();
+  } catch (e) {
+    // A failed sweep must not cost the building its reminders.
+    void logError({
+      source: 'cron.wash-day-reminder.minimum-sweep',
+      message: e instanceof Error ? e.message : String(e),
+    });
+  }
 
   const sb = supabaseAdmin();
   const tomorrow = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
@@ -78,8 +100,8 @@ export async function POST(req: Request) {
     }
   }
 
-    await logJobRun({ jobName: 'wash_day_reminder', status: 'ok', durationMs: Date.now() - start, detail: { sent } });
-    return NextResponse.json({ sent });
+    await logJobRun({ jobName: 'wash_day_reminder', status: 'ok', durationMs: Date.now() - start, detail: { sent, minimumSweep } });
+    return NextResponse.json({ sent, minimumSweep });
   } catch (e: any) {
     await logError({ source: 'wash_day_reminder', message: e?.message ?? 'unknown', stack: e?.stack });
     await logJobRun({ jobName: 'wash_day_reminder', status: 'error', durationMs: Date.now() - start });
