@@ -4,6 +4,7 @@ import { hasApprovedInsurance } from '@/lib/insurance';
 import { DEFAULT_GOVERNING_LAW, resolveGoverningLaw } from '@/lib/governing-law';
 import { MINIMUM_CUTOFF_HOURS } from '@/lib/wash-day-minimum';
 import { normalizeBillingMode, type BillingMode } from '@/lib/billing-arrangement';
+import { LIABILITY_CLAUSES, insuranceClause } from '@/lib/contract-terms';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 // pdf-lib StandardFonts are WinAnsi (Latin-1) only — normalise smart quotes /
@@ -344,17 +345,17 @@ export async function renderContractPdf(data: ContractPdfData): Promise<Uint8Arr
 
   // 5. Insurance
   heading(ctx, '5. Insurance');
-  const insuranceLine = data.operator.insuranceApproved
-    ? `Service Provider shall maintain general liability insurance of no less than $1,000,000 per occurrence throughout the term. Current policy on file${data.operator.insuranceExpiresAt ? `, expires ${data.operator.insuranceExpiresAt.slice(0, 10)}` : ''}.`
-    : 'Service Provider shall maintain general liability insurance of no less than $1,000,000 per occurrence throughout the term. Proof of insurance to be provided prior to first service date.';
-  paragraph(ctx, insuranceLine);
+  paragraph(
+    ctx,
+    insuranceClause({
+      approved: data.operator.insuranceApproved,
+      expiresAt: data.operator.insuranceExpiresAt,
+    }),
+  );
 
   // 6. Limitation of Liability
   heading(ctx, '6. Limitation of Liability');
-  paragraph(ctx, 'Service Provider’s liability for any single incident is limited to the retail value of the service rendered. Property Manager is not liable for vehicles damaged during service.');
-  paragraph(ctx, 'Lavo acts solely as a platform intermediary. It is not a party to the service relationship between Property Manager and Service Provider, is not the provider of the Services, and does not direct, supervise or control how Service Provider performs them.');
-  paragraph(ctx, 'Lavo does not guarantee any volume of bookings, the attendance of Service Provider on any date, or the quality of any Services performed, and is not liable to either party for any date that is cancelled, missed or unsatisfactorily performed. Lavo is not liable for property damage, vehicle damage, personal injury or any other loss arising out of the Services, whether claimed by a party to this Agreement, an Occupant, or any third party. Service Provider is solely responsible for the Services and for the acts of its personnel.');
-  paragraph(ctx, 'Service Provider shall indemnify and hold Lavo harmless from any claim, demand or proceeding brought by any person arising out of the Services. Lavo’s aggregate liability to either party under this Agreement, on any theory, shall not exceed the platform fees Lavo actually collected in respect of the Property in the one (1) month preceding the event giving rise to the claim, and in no event shall Lavo be liable for indirect, incidental or consequential damages. Lavo’s sole obligation in respect of a cancelled date is to return to the affected Occupants the payments it collected for it.');
+  for (const clause of LIABILITY_CLAUSES) paragraph(ctx, clause);
 
   // 7. Governing Law
   heading(ctx, '7. Governing Law');

@@ -11,6 +11,7 @@ import { OperatorTabs } from '../marketplace/OperatorTabs';
 import { resolveGoverningLaw } from '@/lib/governing-law';
 import { getPendingAgreementsForManager } from '@/lib/pending-agreements';
 import { MINIMUM_CUTOFF_HOURS } from '@/lib/wash-day-minimum';
+import { LIABILITY_CLAUSES, insuranceClause } from '@/lib/contract-terms';
 import { normalizeBillingMode, describeBillingArrangement } from '@/lib/billing-arrangement';
 import { PendingAgreementsBanner } from './PendingAgreementsBanner';
 
@@ -440,50 +441,21 @@ export default async function ContractPage() {
             <section>
               <h3 className="mb-3 font-display text-lg text-white">5. Insurance</h3>
               <p>
-                Service Provider shall maintain general liability insurance of no less than $1,000,000 per
-                occurrence throughout the term of this Agreement.
-                {hasApprovedInsurance(op) ? (
-                  <span className="ml-1 text-gleam">
-                    ✓ Current policy on file, expires {op.insurance_expires_at}.
-                  </span>
-                ) : (
-                  <span className="ml-1 text-ink-400"> Proof of insurance to be provided prior to first service date.</span>
-                )}
+                {insuranceClause({
+                  approved: hasApprovedInsurance(op),
+                  expiresAt: op.insurance_expires_at,
+                })}
               </p>
             </section>
 
             {/* Liability */}
             <section>
               <h3 className="mb-3 font-display text-lg text-white">6. Limitation of Liability</h3>
-              <p>
-                Service Provider&rsquo;s liability for any single incident is limited to the retail value of
-                the service rendered. Property Manager is not liable for vehicles damaged during service.
-              </p>
-              <p className="mt-3">
-                Lavo acts solely as a platform intermediary. It is not a party to the service
-                relationship between Property Manager and Service Provider, is not the provider of
-                the Services, and does not direct, supervise or control how Service Provider
-                performs them.
-              </p>
-              <p className="mt-3">
-                Lavo does not guarantee any volume of bookings, the attendance of Service Provider
-                on any date, or the quality of any Services performed, and is not liable to either
-                party for any date that is cancelled, missed or unsatisfactorily performed. Lavo is
-                not liable for property damage, vehicle damage, personal injury or any other loss
-                arising out of the Services, whether claimed by a party to this Agreement, an
-                Occupant, or any third party. Service Provider is solely responsible for the
-                Services and for the acts of its personnel.
-              </p>
-              <p className="mt-3">
-                Service Provider shall indemnify and hold Lavo harmless from any claim, demand or
-                proceeding brought by any person arising out of the Services. Lavo&rsquo;s aggregate
-                liability to either party under this Agreement, on any theory, shall not exceed the
-                platform fees Lavo actually collected in respect of the Property in the one (1)
-                month preceding the event giving rise to the claim, and in no event shall Lavo be
-                liable for indirect, incidental or consequential damages. Lavo&rsquo;s sole
-                obligation in respect of a cancelled date is to return to the affected Occupants the
-                payments it collected for it.
-              </p>
+              {LIABILITY_CLAUSES.map((clause, i) => (
+                <p key={i} className={i === 0 ? undefined : 'mt-3'}>
+                  {clause}
+                </p>
+              ))}
             </section>
 
             {/* Governing law */}

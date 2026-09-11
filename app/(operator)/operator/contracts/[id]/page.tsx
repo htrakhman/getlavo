@@ -8,6 +8,7 @@ import { hasApprovedInsurance } from '@/lib/insurance';
 import { resolveGoverningLaw } from '@/lib/governing-law';
 import { normalizeBillingMode } from '@/lib/billing-arrangement';
 import { MINIMUM_CUTOFF_HOURS } from '@/lib/wash-day-minimum';
+import { LIABILITY_CLAUSES, insuranceClause } from '@/lib/contract-terms';
 
 const BLANK = (label: string) => (
   <span className="inline-block min-w-[120px] border-b border-dashed border-ink-500 text-ink-500 italic px-1">
@@ -287,26 +288,21 @@ export default async function OperatorContractPage({ params }: { params: { id: s
             <section>
               <h3 className="mb-3 font-display text-lg text-white">5. Insurance</h3>
               <p>
-                Service Provider shall maintain general liability insurance of no less than $1,000,000 per
-                occurrence throughout the term of this Agreement.
-                {hasApprovedInsurance(op) ? (
-                  <span className="ml-1 text-gleam">
-                    ✓ Current policy on file, expires {op.insurance_expires_at}.
-                  </span>
-                ) : (
-                  <span className="ml-1 text-ink-400"> Proof of insurance to be provided prior to first service date.</span>
-                )}
+                {insuranceClause({
+                  approved: hasApprovedInsurance(op),
+                  expiresAt: op.insurance_expires_at,
+                })}
               </p>
             </section>
 
             {/* Liability */}
             <section>
               <h3 className="mb-3 font-display text-lg text-white">6. Limitation of Liability</h3>
-              <p>
-                Service Provider&rsquo;s liability for any single incident is limited to the retail value of
-                the service rendered. Property Manager is not liable for vehicles damaged during service.
-                Lavo acts as platform intermediary and is not a party to the service relationship.
-              </p>
+              {LIABILITY_CLAUSES.map((clause, i) => (
+                <p key={i} className={i === 0 ? undefined : 'mt-3'}>
+                  {clause}
+                </p>
+              ))}
             </section>
 
             {/* Governing law */}
