@@ -34,7 +34,7 @@ export const RESOURCES: ResourcePage[] = [
       'A property manager adds the building to Lavo and shares a resident signup link or QR code. Residents create accounts tied to their unit and vehicle.',
       'The building connects with a mobile car wash operator in the area. Wash days or on-demand slots are scheduled based on garage access rules and operator capacity.',
       'Residents book and pay in the app. Operators see the day list with unit, vehicle, and parking spot details. After service, residents can review and rebook.',
-      'Lavo handles payment collection and operator payouts. The building does not invoice residents or manage cash.',
+      'Lavo handles payment collection and operator payouts. The building never invoices residents or handles cash, whether occupants pay for their own washes or the property covers them as an amenity.',
     ],
     whoItIsFor: [
       'Property managers who want a visible resident perk without adding staff or vendor management overhead.',

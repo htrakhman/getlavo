@@ -9,7 +9,7 @@ export const metadata = createPageMetadata({
   path: '/for-properties',
   title: 'Add a Free Car Wash Amenity for Your Residents | Lavo',
   description:
-    'Lavo gives apartment residents on-demand mobile car wash access at their building. Free for properties. No contract, no staff time, no cost.',
+    'Lavo gives residents and tenants on-demand mobile car wash access at their building. No staff time, no minimum term, and no cost to the property unless you choose to fund it.',
 });
 
 const RELATED = [
@@ -80,7 +80,7 @@ const WHAT_YOU_GET = [
 const FAQ = [
   [
     'Does this cost my building anything?',
-    'No. Lavo is free for properties. Residents pay operators directly online. The building is never invoiced.',
+    'Only if you want it to. By default occupants pay for their own washes and the property is never charged. If you would rather offer it as an amenity, the property can cover every wash or part of each one — you choose in your settings, and it becomes a term of your agreement.',
   ],
   [
     'What if we already have a car wash vendor?',
@@ -102,7 +102,7 @@ export default function ForPropertiesPage() {
             name: 'Free car wash amenity for apartment buildings',
             serviceType: 'Mobile car wash amenity for property managers',
             description:
-              'Lavo gives apartment residents on-demand mobile car wash access at their building. Free for properties.',
+              'Lavo gives residents and tenants on-demand mobile car wash access at their building. No cost to the property unless you choose to fund it.',
             audience: 'Property managers and community managers',
             price: 0,
           }),

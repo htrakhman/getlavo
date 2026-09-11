@@ -10,9 +10,14 @@ const stripePromise: Promise<StripeJs | null> = process.env.NEXT_PUBLIC_STRIPE_P
 export function PaymentMethodCapture({
   onSaved,
   buttonLabel = 'Save card',
+  // Which SetupIntent to open. Residents save a card against their own Stripe
+  // customer; a property saves one against the building's. Defaults to the
+  // resident route so every existing caller is unaffected.
+  setupIntentEndpoint = '/api/stripe/setup-intent',
 }: {
   onSaved: (paymentMethodId: string) => void | Promise<void>;
   buttonLabel?: string;
+  setupIntentEndpoint?: string;
 }) {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -25,7 +30,7 @@ export function PaymentMethodCapture({
     (async () => {
       let r: Response;
       try {
-        r = await fetch('/api/stripe/setup-intent', { method: 'POST' });
+        r = await fetch(setupIntentEndpoint, { method: 'POST' });
       } catch {
         // fetch() only rejects when the request never completed.
         if (!cancelled) setErr('Network error — check your connection and try again.');
@@ -40,7 +45,7 @@ export function PaymentMethodCapture({
       else setErr(`Could not initialize payment (error ${r.status}). Please try again.`);
     })();
     return () => { cancelled = true; };
-  }, [attempt]);
+  }, [attempt, setupIntentEndpoint]);
 
   if (err) {
     return (

@@ -3,6 +3,9 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
 import { confirmPaidBookingAndNotify } from '@/lib/booking-confirm';
 import { recordPromoRedemption } from '@/lib/promo';
 import { notify } from '@/lib/notify';
+import { getBuildingBilling } from '@/lib/billing-for-building';
+import { chargePropertyForWash } from '@/lib/stripe/charge-property';
+import { logError } from '@/lib/error-log';
 import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? '', { apiVersion: '2024-06-20' });
@@ -59,6 +62,12 @@ export async function POST(req: Request) {
           : (session.payment_intent as Stripe.PaymentIntent | null)?.id ?? null;
 
       await confirmPaidBookingAndNotify(admin, bookingId, piId);
+
+      // A property sharing the cost is charged only now, once the occupant has
+      // actually paid their half. Charging at booking time would bill the
+      // property for every abandoned checkout — the occupant walks away and the
+      // property is left paying for a wash nobody booked.
+      await chargePropertyShareIfOwed(admin, bookingId);
 
       const { data: b } = await admin
         .from('bookings')
@@ -150,4 +159,62 @@ export async function POST(req: Request) {
   }
 
   return NextResponse.json({ ok: true });
+}
+
+/**
+ * Charge the property its share of a booking the occupant has just paid for.
+ *
+ * Idempotent by way of property_payment_intent_id: Stripe retries webhooks, and
+ * a second delivery must not bill the property twice. The charge helper also
+ * carries an idempotency key on the booking id as a second line of defence.
+ *
+ * A failure here is logged, never thrown. The occupant has paid and the wash is
+ * confirmed; failing the webhook would make Stripe retry the whole delivery and
+ * risk re-running everything around it. An uncollected property share shows up
+ * in error_logs with the booking id to chase.
+ */
+async function chargePropertyShareIfOwed(
+  admin: ReturnType<typeof supabaseAdmin>,
+  bookingId: string,
+): Promise<void> {
+  const { data: booking } = await admin
+    .from('bookings')
+    .select('id, building_id, operator_id, scheduled_for, property_charge_cents, property_payment_intent_id')
+    .eq('id', bookingId)
+    .maybeSingle();
+
+  if (!booking) return;
+  if ((booking.property_charge_cents ?? 0) <= 0) return;
+  if (booking.property_payment_intent_id) return; // already settled
+
+  const [{ data: operator }, { data: building }] = await Promise.all([
+    admin.from('operators').select('stripe_account_id').eq('id', booking.operator_id).maybeSingle(),
+    admin.from('buildings').select('name').eq('id', booking.building_id).maybeSingle(),
+  ]);
+
+  const billing = await getBuildingBilling(admin, booking.building_id);
+
+  const charge = await chargePropertyForWash(admin, {
+    bookingId: booking.id,
+    buildingId: booking.building_id,
+    amountCents: booking.property_charge_cents,
+    customerId: billing.stripeCustomerId,
+    paymentMethodId: billing.paymentMethodId,
+    operatorStripeAccountId: operator?.stripe_account_id ?? null,
+    description: `Car wash — ${building?.name ?? 'property'} · ${booking.scheduled_for}`,
+  });
+
+  if (!charge.ok) {
+    void logError({
+      source: 'webhooks.stripe.property-share',
+      message: charge.error,
+      context: { bookingId, amountCents: booking.property_charge_cents, needsAction: charge.needsAction },
+    });
+    return;
+  }
+
+  await admin
+    .from('bookings')
+    .update({ property_payment_intent_id: charge.paymentIntentId })
+    .eq('id', booking.id);
 }
