@@ -153,6 +153,31 @@ function partyBox(ctx: Ctx, x: number, w: number, title: string, lines: string[]
  * write real marketing copy in these fields, so both cases were the norm
  * rather than the edge.
  */
+/**
+ * How much of a package description belongs in the agreement.
+ *
+ * Operators write marketing copy here — "Best For:", "What You'll Get:", several
+ * paragraphs each. Rendered in full across a menu of packages it buries the
+ * actual terms in sales prose. The opening sentences are the part that reads as
+ * scope ("Based on average condition. Heavy buildup may require additional time
+ * or cost."), so keep those and point at the app for the rest.
+ */
+const DESCRIPTION_LIMIT = 200;
+
+export function condenseDescription(text: string | null | undefined): string | null {
+  const flat = (text ?? '').replace(/\s+/g, ' ').trim();
+  if (!flat) return null;
+  if (flat.length <= DESCRIPTION_LIMIT) return flat;
+
+  const window = flat.slice(0, DESCRIPTION_LIMIT);
+  // Prefer a sentence boundary, so the cut reads as a finished thought.
+  const sentenceEnd = Math.max(window.lastIndexOf('. '), window.lastIndexOf('! '), window.lastIndexOf('? '));
+  if (sentenceEnd > DESCRIPTION_LIMIT * 0.4) return window.slice(0, sentenceEnd + 1);
+
+  const lastSpace = window.lastIndexOf(' ');
+  return `${(lastSpace > 0 ? window.slice(0, lastSpace) : window).replace(/[,;:]$/, '')}…`;
+}
+
 function priceRow(ctx: Ctx, label: string, priceText: string, description?: string | null) {
   const size = 10;
   const lineH = size * 1.45;
@@ -276,7 +301,10 @@ export async function renderContractPdf(data: ContractPdfData): Promise<Uint8Arr
     ctx.y -= 4;
     paragraph(ctx, 'Service packages:', { color: MUTED, gap: 2 });
     for (const p of data.packages) {
-      priceRow(ctx, p.name, money(p.priceCents), p.description);
+      priceRow(ctx, p.name, money(p.priceCents), condenseDescription(p.description));
+    }
+    if (data.packages.some((p) => (p.description ?? '').replace(/\s+/g, ' ').trim().length > DESCRIPTION_LIMIT)) {
+      paragraph(ctx, 'Package descriptions are abridged here; the full description of each package is available on the Lavo platform.', { size: 8, color: MUTED, gap: 2 });
     }
   }
 
