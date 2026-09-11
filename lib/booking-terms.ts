@@ -15,7 +15,7 @@ import { CANCELLATION_CUTOFF_HOURS } from '@/lib/cancellation-policy';
  * to the audit log against the booking it was given for, so what a specific
  * resident agreed to on a specific wash stays answerable later.
  */
-export const BOOKING_TERMS_VERSION = '2026-08-03';
+export const BOOKING_TERMS_VERSION = '2026-09-11';
 
 export type BookingTerm = {
   /** Stable identifier, recorded on acceptance so a reworded point stays traceable. */
@@ -42,10 +42,30 @@ export function bookingTerms(): BookingTerm[] {
         'the wash can’t happen, and the booking is not refunded.',
     },
     {
+      // The Occupant is not a party to the service agreement between the
+      // property and the operator, so nothing in that document binds them.
+      // This checkbox is the only place an Occupant agrees to anything, which
+      // makes it the only place their claim for a damaged car can be directed
+      // at the party who actually washed it.
       key: 'liability',
       text:
-        'An independent operator performs this service. Lavo and my building are not liable for ' +
-        'vehicle damage, and the operator may enter the garage or lot to reach my car.',
+        'The wash is performed by an independent operator, not by Lavo or by the property. ' +
+        'The operator is solely responsible for my vehicle, anything inside it, and any damage or ' +
+        'injury arising from the service, and carries insurance for it. I will bring any such claim ' +
+        'against the operator, not against Lavo or the property, and I agree that neither Lavo nor ' +
+        'the property is liable for it.',
+    },
+    {
+      key: 'access',
+      text:
+        'The operator may enter the parking area to reach my vehicle, and I confirm I am authorized ' +
+        'to have it washed.',
+    },
+    {
+      key: 'valuables',
+      text:
+        'I will remove valuables from my vehicle before the wash. Nobody is responsible for items ' +
+        'left inside it.',
     },
   ];
 }

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabaseBrowser } from '@/lib/supabase/client';
+import { LIABILITY_CLAUSES, insuranceClause } from '@/lib/contract-terms';
 import { money } from '@/lib/format';
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -288,28 +289,20 @@ export function AgreementBuilder({ initial, pdfHref }: { initial: Initial; pdfHr
             <section>
               <h3 className="mb-2 text-[15px] font-bold text-[#111418]">5. Insurance</h3>
               <p className="text-justify">
-                Service Provider shall maintain general liability insurance of no less than $1,000,000 per
-                occurrence throughout the term.{' '}
-                {initial.insuranceApproved ? (
-                  <span className="font-medium text-[#0a7d70]">A current policy is on file.</span>
-                ) : initial.insuranceOnFile ? (
-                  <span className="font-medium text-[#b26a00]">Certificate uploaded — pending review.</span>
-                ) : (
-                  <span className="italic text-[#555b63]">Proof of insurance to be provided prior to the first service date.</span>
-                )}
+                {insuranceClause({ approved: initial.insuranceApproved })}
+                {initial.insuranceApproved ? null : initial.insuranceOnFile ? (
+                  <span className="ml-1 font-medium text-[#b26a00]">Certificate uploaded — pending review.</span>
+                ) : null}
               </p>
             </section>
 
             <section>
               <h3 className="mb-2 text-[15px] font-bold text-[#111418]">6. Limitation of Liability</h3>
-              <p className="text-justify">
-                Service Provider&rsquo;s liability for any single incident is limited to the retail value of the
-                service rendered. Property Manager is not liable for vehicles damaged during service. Lavo acts
-                solely as a platform intermediary, is not a party to the service relationship, and is not liable
-                for property damage, vehicle damage, personal injury or any other loss arising out of the
-                Services. Service Provider is solely responsible for the Services and for the acts of its
-                personnel, and shall indemnify and hold Lavo harmless from any claim arising out of them.
-              </p>
+              {LIABILITY_CLAUSES.map((clause, i) => (
+                <p key={i} className={`text-justify${i === 0 ? '' : ' mt-3'}`}>
+                  {clause}
+                </p>
+              ))}
             </section>
 
             <section>

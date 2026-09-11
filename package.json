@@ -27,6 +27,10 @@
     "validate:wash-time": "tsx --tsconfig tsconfig.scripts.json scripts/wash-time-test.ts",
     "validate:cancellation-policy": "tsx --tsconfig tsconfig.scripts.json scripts/cancellation-policy-test.ts",
     "validate:refund-notice": "tsx --tsconfig tsconfig.scripts.json scripts/refund-notice-test.ts",
+    "validate:contract-consistency": "tsx --tsconfig tsconfig.scripts.json scripts/contract-consistency-test.ts",
+    "validate:contract-pdf-layout": "tsx --tsconfig tsconfig.scripts.json scripts/contract-pdf-layout-test.ts",
+    "validate:billing-arrangement": "tsx --tsconfig tsconfig.scripts.json scripts/billing-arrangement-test.ts",
+    "validate:wash-day-minimum": "tsx --tsconfig tsconfig.scripts.json scripts/wash-day-minimum-test.ts",
     "db:push": "supabase db push"
   },
   "dependencies": {
