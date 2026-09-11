@@ -6,11 +6,18 @@ interface Props {
   contractId: string;
   buildingName: string;
   alreadySigned?: boolean;
+  /**
+   * The next building still waiting on this manager's signature, if any.
+   * Offered right here at the signature line: a manager signing several
+   * agreements in a row lands at the bottom of a long document each time, and
+   * without this the only way on was to scroll back up to the banner.
+   */
+  nextPending?: { buildingId: string; buildingName: string } | null;
 }
 
 type Mode = 'idle' | 'sign' | 'reject';
 
-export function ContractDraftSigner({ contractId, buildingName, alreadySigned }: Props) {
+export function ContractDraftSigner({ contractId, buildingName, alreadySigned, nextPending }: Props) {
   const router = useRouter();
   const [mode, setMode] = useState<Mode>('idle');
   const [name, setName] = useState('');
@@ -51,13 +58,28 @@ export function ContractDraftSigner({ contractId, buildingName, alreadySigned }:
 
   if (alreadySigned) {
     return (
-      <div className="mt-6 flex flex-wrap items-center gap-4">
-        <div className="inline-flex items-center gap-2 text-gleam text-sm">
-          <span>✓</span> You&rsquo;ve accepted this agreement — awaiting operator signature
+      <div className="mt-6">
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="inline-flex items-center gap-2 text-gleam text-sm">
+            <span>✓</span> You&rsquo;ve accepted this agreement — awaiting operator signature
+          </div>
+          <a href={`/api/contracts/${contractId}/pdf`} target="_blank" rel="noreferrer" className="text-xs text-gleam hover:underline">
+            View PDF →
+          </a>
         </div>
-        <a href={`/api/contracts/${contractId}/pdf`} target="_blank" rel="noreferrer" className="text-xs text-gleam hover:underline">
-          View PDF →
-        </a>
+
+        {nextPending && (
+          <a
+            href={`/api/building/select?buildingId=${nextPending.buildingId}&next=${encodeURIComponent('/building/contract#sign')}`}
+            className="mt-4 flex items-center justify-between gap-4 rounded-lg border border-gleam/30 bg-gleam/5 px-4 py-3 text-sm hover:border-gleam/50 hover:bg-gleam/10"
+          >
+            <span className="min-w-0">
+              <span className="block text-xs text-ink-400">Next agreement</span>
+              <span className="block truncate font-medium text-ink-100">{nextPending.buildingName}</span>
+            </span>
+            <span className="shrink-0 text-xs font-medium text-gleam">Review &amp; sign →</span>
+          </a>
+        )}
       </div>
     );
   }

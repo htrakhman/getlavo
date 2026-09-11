@@ -140,6 +140,57 @@ function partyBox(ctx: Ctx, x: number, w: number, title: string, lines: string[]
   return boxH;
 }
 
+/**
+ * A priced line item: label on the left, price right-aligned, optional
+ * description wrapped underneath.
+ *
+ * Packages and add-ons used to call drawText directly with the name and
+ * description joined into one string, which broke in two ways at once. Nothing
+ * wrapped, so a long label ran under the price and off the page; and pdf-lib
+ * honours newlines inside a string, so an operator whose description carried
+ * line breaks got several lines drawn downward while y advanced by exactly
+ * one — every package after it was overprinted by the one above. Operators
+ * write real marketing copy in these fields, so both cases were the norm
+ * rather than the edge.
+ */
+function priceRow(ctx: Ctx, label: string, priceText: string, description?: string | null) {
+  const size = 10;
+  const lineH = size * 1.45;
+  const gutter = 12;
+  const priceW = ctx.bold.widthOfTextAtSize(safe(priceText), size);
+  const labelW = CONTENT_W - 12 - priceW - gutter;
+
+  const labelLines = wrap(ctx.bold, size, label, labelW);
+  ensure(ctx, lineH);
+
+  // Price sits on the first line of the label, right-aligned to the margin.
+  ctx.page.drawText(safe(priceText), {
+    x: PAGE_W - MARGIN - priceW,
+    y: ctx.y - size,
+    size,
+    font: ctx.bold,
+    color: GLEAM,
+  });
+
+  for (const line of labelLines) {
+    ensure(ctx, lineH);
+    ctx.page.drawText(line, { x: MARGIN + 12, y: ctx.y - size, size, font: ctx.bold, color: INK });
+    ctx.y -= lineH;
+  }
+
+  if (description) {
+    const descSize = 9;
+    const descLineH = descSize * 1.4;
+    for (const line of wrap(ctx.regular, descSize, description, CONTENT_W - 24)) {
+      ensure(ctx, descLineH);
+      ctx.page.drawText(line, { x: MARGIN + 24, y: ctx.y - descSize, size: descSize, font: ctx.regular, color: MUTED });
+      ctx.y -= descLineH;
+    }
+  }
+
+  ctx.y -= 4;
+}
+
 const BLANK = '__________________';
 
 export async function renderContractPdf(data: ContractPdfData): Promise<Uint8Array> {
@@ -174,6 +225,7 @@ export async function renderContractPdf(data: ContractPdfData): Promise<Uint8Arr
   // 1. Parties
   heading(ctx, '1. Parties');
   paragraph(ctx, 'This Service Agreement ("Agreement") is entered into between the Building Manager and the Service Provider identified below:');
+  paragraph(ctx, '"Occupants" means the residents, tenants, employees or other authorized users of the property who book Services under this Agreement.', { color: MUTED, gap: 2 });
   ctx.y -= 4;
   const colGap = 16;
   const colW = (CONTENT_W - colGap) / 2;
@@ -211,12 +263,12 @@ export async function renderContractPdf(data: ContractPdfData): Promise<Uint8Arr
     { color: MUTED, gap: 2 },
   );
   bullet(ctx, 'Minimum bookings per wash day:', minBookings > 0 ? String(minBookings) : 'None');
-  bullet(ctx, 'Service location:', 'Building parking garage / designated wash area');
+  bullet(ctx, 'Service location:', 'On-site parking area designated by the property');
   paragraph(
     ctx,
     minBookings > 0
-      ? `A scheduled wash day carrying fewer than ${minBookings} booking${minBookings === 1 ? '' : 's'} ${MINIMUM_CUTOFF_HOURS} hours beforehand is cancelled automatically and every affected resident is refunded in full. Service Provider is under no obligation to attend a wash day that does not meet this minimum, and no penalty arises from a day cancelled this way.`
-      : 'Service Provider attends every scheduled wash day regardless of how many residents book it.',
+      ? `A scheduled wash day carrying fewer than ${minBookings} booking${minBookings === 1 ? '' : 's'} ${MINIMUM_CUTOFF_HOURS} hours beforehand is cancelled automatically and every affected Occupant is refunded in full. Service Provider is under no obligation to attend a wash day that does not meet this minimum, and no penalty arises from a day cancelled this way.`
+      : 'Service Provider attends every scheduled wash day regardless of how many Occupants book it.',
     { color: MUTED, gap: 2 },
   );
 
@@ -224,15 +276,7 @@ export async function renderContractPdf(data: ContractPdfData): Promise<Uint8Arr
     ctx.y -= 4;
     paragraph(ctx, 'Service packages:', { color: MUTED, gap: 2 });
     for (const p of data.packages) {
-      const size = 10;
-      const lineH = size * 1.45;
-      ensure(ctx, lineH);
-      const left = p.description ? `${p.name}  -  ${p.description}` : p.name;
-      ctx.page.drawText(safe(left), { x: MARGIN + 12, y: ctx.y - size, size, font: ctx.regular, color: BODY });
-      const priceText = money(p.priceCents);
-      const pw = ctx.bold.widthOfTextAtSize(priceText, size);
-      ctx.page.drawText(priceText, { x: PAGE_W - MARGIN - pw, y: ctx.y - size, size, font: ctx.bold, color: GLEAM });
-      ctx.y -= lineH + 2;
+      priceRow(ctx, p.name, money(p.priceCents), p.description);
     }
   }
 
@@ -240,27 +284,20 @@ export async function renderContractPdf(data: ContractPdfData): Promise<Uint8Arr
     ctx.y -= 4;
     paragraph(ctx, 'Optional add-ons:', { color: MUTED, gap: 2 });
     for (const a of data.addons) {
-      const size = 10;
-      const lineH = size * 1.45;
-      ensure(ctx, lineH);
-      ctx.page.drawText(safe(a.label), { x: MARGIN + 12, y: ctx.y - size, size, font: ctx.regular, color: BODY });
-      const priceText = money(a.priceCents);
-      const pw = ctx.bold.widthOfTextAtSize(priceText, size);
-      ctx.page.drawText(priceText, { x: PAGE_W - MARGIN - pw, y: ctx.y - size, size, font: ctx.bold, color: GLEAM });
-      ctx.y -= lineH + 2;
+      priceRow(ctx, a.label, money(a.priceCents));
     }
   }
 
   // 3. Fees & Payment
   heading(ctx, '3. Fees & Payment');
-  paragraph(ctx, 'Residents pay Service Provider directly per wash via the Lavo platform. The building manager incurs no per-wash charge. Lavo collects a platform fee from each resident transaction.');
+  paragraph(ctx, 'Occupants pay Service Provider directly per wash via the Lavo platform. The property incurs no per-wash charge. Lavo collects a platform fee from each Occupant transaction.');
   if (data.operator.basePriceCents) {
-    bullet(ctx, 'Standard base price per resident wash:', money(data.operator.basePriceCents));
+    bullet(ctx, 'Standard base price per wash:', money(data.operator.basePriceCents));
   }
 
   // 4. Term
   heading(ctx, '4. Term');
-  paragraph(ctx, 'This Agreement begins on the effective date and continues for an initial pilot period of 90 days, after which it renews automatically on a month-to-month basis unless either party provides 30 days’ written notice of termination.');
+  paragraph(ctx, 'This Agreement begins on the effective date and continues on a month-to-month basis until either party provides 30 days’ written notice of termination. There is no minimum term.');
 
   // 5. Insurance
   heading(ctx, '5. Insurance');
@@ -273,8 +310,8 @@ export async function renderContractPdf(data: ContractPdfData): Promise<Uint8Arr
   heading(ctx, '6. Limitation of Liability');
   paragraph(ctx, 'Service Provider’s liability for any single incident is limited to the retail value of the service rendered. Building Manager is not liable for vehicles damaged during service.');
   paragraph(ctx, 'Lavo acts solely as a platform intermediary. It is not a party to the service relationship between Building Manager and Service Provider, is not the provider of the Services, and does not direct, supervise or control how Service Provider performs them.');
-  paragraph(ctx, 'Lavo does not guarantee any volume of bookings, the attendance of Service Provider on any date, or the quality of any Services performed, and is not liable to either party for any date that is cancelled, missed or unsatisfactorily performed. Lavo is not liable for property damage, vehicle damage, personal injury or any other loss arising out of the Services, whether claimed by a party to this Agreement, a resident, or any third party. Service Provider is solely responsible for the Services and for the acts of its personnel.');
-  paragraph(ctx, 'Service Provider shall indemnify and hold Lavo harmless from any claim, demand or proceeding brought by any person arising out of the Services. Lavo’s aggregate liability to either party under this Agreement, on any theory, shall not exceed the platform fees Lavo actually collected in respect of this building in the one (1) month preceding the event giving rise to the claim, and in no event shall Lavo be liable for indirect, incidental or consequential damages. Lavo’s sole obligation in respect of a cancelled date is to return to the affected residents the payments it collected for it.');
+  paragraph(ctx, 'Lavo does not guarantee any volume of bookings, the attendance of Service Provider on any date, or the quality of any Services performed, and is not liable to either party for any date that is cancelled, missed or unsatisfactorily performed. Lavo is not liable for property damage, vehicle damage, personal injury or any other loss arising out of the Services, whether claimed by a party to this Agreement, an Occupant, or any third party. Service Provider is solely responsible for the Services and for the acts of its personnel.');
+  paragraph(ctx, 'Service Provider shall indemnify and hold Lavo harmless from any claim, demand or proceeding brought by any person arising out of the Services. Lavo’s aggregate liability to either party under this Agreement, on any theory, shall not exceed the platform fees Lavo actually collected in respect of this building in the one (1) month preceding the event giving rise to the claim, and in no event shall Lavo be liable for indirect, incidental or consequential damages. Lavo’s sole obligation in respect of a cancelled date is to return to the affected Occupants the payments it collected for it.');
 
   // 7. Governing Law
   heading(ctx, '7. Governing Law');

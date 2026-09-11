@@ -164,6 +164,9 @@ export default async function ContractPage() {
   // stay invisible and a manager who signs the one they landed on believes
   // they are done.
   const pendingAgreements = await getPendingAgreementsForManager(session.user.id);
+  // Once this building is signed it drops out of the pending list, so the head
+  // of what's left is genuinely the next one to sign.
+  const nextPending = pendingAgreements.find((p) => p.buildingId !== building.id) ?? null;
 
   return (
     <>
@@ -269,6 +272,10 @@ export default async function ContractPage() {
               <p>
                 This Service Agreement (&ldquo;Agreement&rdquo;) is entered into between:
               </p>
+              <p className="mt-3 text-xs text-ink-400">
+                &ldquo;Occupants&rdquo; means the residents, tenants, employees or other authorized
+                users of the property who book Services under this Agreement.
+              </p>
               <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="rounded-xl bg-white/5 p-4">
                   <div className="mb-2 text-xs uppercase tracking-widest text-ink-400">Building Manager</div>
@@ -320,7 +327,7 @@ export default async function ContractPage() {
                     <div className="mt-1 text-xs text-ink-400">
                       A scheduled wash day carrying fewer than {minBookings}{' '}
                       {minBookings === 1 ? 'booking' : 'bookings'} {MINIMUM_CUTOFF_HOURS} hours
-                      beforehand is cancelled automatically and every affected resident is refunded
+                      beforehand is cancelled automatically and every affected Occupant is refunded
                       in full. Service Provider is under no obligation to attend a wash day that
                       does not meet this minimum, and no penalty arises from a day cancelled this
                       way.
@@ -328,13 +335,13 @@ export default async function ContractPage() {
                   ) : (
                     <div className="mt-1 text-xs text-ink-400">
                       Service Provider attends every scheduled wash day regardless of how many
-                      residents book it.
+                      Occupants book it.
                     </div>
                   )}
                 </li>
                 <li>
                   <span className="text-ink-400">Service location:</span>{' '}
-                  <strong className="text-white">Building parking garage / designated wash area</strong>
+                  <strong className="text-white">On-site parking area designated by the property</strong>
                 </li>
               </ul>
 
@@ -359,7 +366,7 @@ export default async function ContractPage() {
               {/* Add-ons */}
               {addons && addons.length > 0 && (
                 <div className="mt-3">
-                  <p className="mb-2 text-ink-400">Optional add-ons available to residents:</p>
+                  <p className="mb-2 text-ink-400">Optional add-ons available to Occupants:</p>
                   <div className="rounded-xl bg-white/5 p-4 space-y-2">
                     {addons.map((a: any) => (
                       <div key={a.label} className="flex items-center justify-between">
@@ -376,12 +383,12 @@ export default async function ContractPage() {
             <section>
               <h3 className="mb-3 font-display text-lg text-white">3. Fees &amp; Payment</h3>
               <p>
-                Residents pay Service Provider directly per wash via the Lavo platform. The building manager
-                incurs no per-wash charge. Lavo collects a platform fee from each resident transaction.
+                Occupants pay Service Provider directly per wash via the Lavo platform. The property
+                incurs no per-wash charge. Lavo collects a platform fee from each Occupant transaction.
               </p>
               {op?.base_price_cents && (
                 <p className="mt-3">
-                  <span className="text-ink-400">Standard base price per resident wash:</span>{' '}
+                  <span className="text-ink-400">Standard base price per wash:</span>{' '}
                   <strong className="text-white">
                     {money(op.base_price_cents)}
                   </strong>
@@ -393,9 +400,9 @@ export default async function ContractPage() {
             <section>
               <h3 className="mb-3 font-display text-lg text-white">4. Term</h3>
               <p>
-                This Agreement begins on the effective date and continues for an initial pilot period of{' '}
-                <strong className="text-white">90 days</strong>, after which it renews automatically on a
-                month-to-month basis unless either party provides 30 days&rsquo; written notice of termination.
+                This Agreement begins on the effective date and continues on a{' '}
+                <strong className="text-white">month-to-month</strong> basis until either party provides
+                30 days&rsquo; written notice of termination. There is no minimum term.
               </p>
             </section>
 
@@ -433,8 +440,8 @@ export default async function ContractPage() {
                 on any date, or the quality of any Services performed, and is not liable to either
                 party for any date that is cancelled, missed or unsatisfactorily performed. Lavo is
                 not liable for property damage, vehicle damage, personal injury or any other loss
-                arising out of the Services, whether claimed by a party to this Agreement, a
-                resident, or any third party. Service Provider is solely responsible for the
+                arising out of the Services, whether claimed by a party to this Agreement, an
+                Occupant, or any third party. Service Provider is solely responsible for the
                 Services and for the acts of its personnel.
               </p>
               <p className="mt-3">
@@ -444,7 +451,7 @@ export default async function ContractPage() {
                 platform fees Lavo actually collected in respect of this building in the one (1)
                 month preceding the event giving rise to the claim, and in no event shall Lavo be
                 liable for indirect, incidental or consequential damages. Lavo&rsquo;s sole
-                obligation in respect of a cancelled date is to return to the affected residents the
+                obligation in respect of a cancelled date is to return to the affected Occupants the
                 payments it collected for it.
               </p>
             </section>
@@ -496,6 +503,7 @@ export default async function ContractPage() {
                   contractId={contract.id}
                   buildingName={building.name}
                   alreadySigned={isSigned}
+                  nextPending={nextPending}
                 />
               )}
             </section>
