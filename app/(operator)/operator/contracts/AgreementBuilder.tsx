@@ -205,14 +205,21 @@ export function AgreementBuilder({ initial, pdfHref }: { initial: Initial; pdfHr
           <div className="mt-9 space-y-6 text-[14px] leading-7 text-[#26292e]">
             <p className="text-justify text-[#3a3f45]">
               This Service Agreement (the &ldquo;Agreement&rdquo;) is entered into as of the effective date by and
-              between the Building Manager and the Service Provider identified below.
+              between the Property Manager and the Service Provider identified below.
+            </p>
+            <p className="text-justify text-[13px] leading-6 text-[#555b63]">
+              &ldquo;Property&rdquo; means the building, buildings or premises identified below, whether
+              residential or commercial. &ldquo;Occupants&rdquo; means the residents and tenants of the
+              Property, and the employees, staff and authorized visitors of those tenants, who book
+              Services under this Agreement. A tenant that is a business books through the individuals
+              it authorizes.
             </p>
 
             <section>
               <h3 className="mb-2 text-[15px] font-bold text-[#111418]">1. Parties</h3>
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                 <div>
-                  <div className="text-[11px] font-semibold uppercase tracking-wider text-[#8a8f98]" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>Building Manager</div>
+                  <div className="text-[11px] font-semibold uppercase tracking-wider text-[#8a8f98]" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>Property Manager</div>
                   <div className="mt-1 text-[#555b63]">The building you send this to.</div>
                 </div>
                 <div>
@@ -227,10 +234,16 @@ export function AgreementBuilder({ initial, pdfHref }: { initial: Initial; pdfHr
             <section>
               <h3 className="mb-2 text-[15px] font-bold text-[#111418]">2. Services</h3>
               <p className="text-justify">
-                Service Provider shall provide car wash services on a{' '}
-                {orderedDays.length ? <strong className="font-semibold">{orderedDays.join(', ')}</strong> : <Blank label="wash days" />}{' '}
-                schedule, weekly or as otherwise agreed through the Lavo scheduling tool, at the building&rsquo;s
-                designated wash area. Service packages offered to residents:
+                Service Provider shall provide car wash services at the Property, in a parking area designated
+                by Property Manager. Service dates are scheduled through the Lavo platform: Service Provider
+                proposes dates and Property Manager confirms them, and either party may decline a proposed date.
+                This Agreement commits neither party to any particular day of the week or number of visits.
+                {orderedDays.length ? (
+                  <> Service Provider currently works{' '}
+                    <strong className="font-semibold">{orderedDays.join(', ')}</strong>, and may change that at
+                    any time.</>
+                ) : null}{' '}
+                Service packages offered to Occupants:
               </p>
               <table className="mt-3 w-full border-collapse text-[13px]">
                 <tbody>
@@ -251,18 +264,24 @@ export function AgreementBuilder({ initial, pdfHref }: { initial: Initial; pdfHr
             <section>
               <h3 className="mb-2 text-[15px] font-bold text-[#111418]">3. Fees &amp; Payment</h3>
               <p className="text-justify">
-                Residents pay Service Provider directly per wash via the Lavo platform; the Building Manager
-                incurs no per-wash charge. The standard base price per resident wash is{' '}
+                Who pays for each wash is set per property when the agreement is signed: Occupants may pay
+                for their own washes, or Property Manager may cover each wash in whole or in part from a
+                payment method kept on file for the Property. Lavo collects a platform fee from each
+                transaction. The standard base price per wash is{' '}
                 {basePriceCents > 0 ? <strong className="font-semibold">{money(basePriceCents)}</strong> : <Blank label="base price" />}.
+              </p>
+              <p className="mt-2 text-justify text-[13px] leading-6 text-[#555b63]">
+                Optional add-ons an Occupant selects at checkout are always paid by that Occupant,
+                whatever the arrangement above.
               </p>
             </section>
 
             <section>
               <h3 className="mb-2 text-[15px] font-bold text-[#111418]">4. Term</h3>
               <p className="text-justify">
-                This Agreement begins on the effective date and continues for an initial pilot period of ninety
-                (90) days, after which it renews automatically on a month-to-month basis unless either party
-                provides thirty (30) days&rsquo; written notice of termination.
+                This Agreement begins on the effective date and continues on a month-to-month basis until
+                either party provides thirty (30) days&rsquo; written notice of termination. There is no
+                minimum term.
               </p>
             </section>
 
@@ -285,15 +304,18 @@ export function AgreementBuilder({ initial, pdfHref }: { initial: Initial; pdfHr
               <h3 className="mb-2 text-[15px] font-bold text-[#111418]">6. Limitation of Liability</h3>
               <p className="text-justify">
                 Service Provider&rsquo;s liability for any single incident is limited to the retail value of the
-                service rendered. Lavo acts as a platform intermediary and is not a party to the service
-                relationship.
+                service rendered. Property Manager is not liable for vehicles damaged during service. Lavo acts
+                solely as a platform intermediary, is not a party to the service relationship, and is not liable
+                for property damage, vehicle damage, personal injury or any other loss arising out of the
+                Services. Service Provider is solely responsible for the Services and for the acts of its
+                personnel, and shall indemnify and hold Lavo harmless from any claim arising out of them.
               </p>
             </section>
 
             <section>
               <h3 className="mb-2 text-[15px] font-bold text-[#111418]">7. Governing Law</h3>
               <p className="text-justify">
-                This Agreement shall be governed by the laws of the State in which the building is located,
+                This Agreement shall be governed by the laws of the State in which the Property is located,
                 without regard to its conflict of law principles.
               </p>
             </section>
@@ -301,7 +323,7 @@ export function AgreementBuilder({ initial, pdfHref }: { initial: Initial; pdfHr
             <div className="grid grid-cols-1 gap-8 border-t border-[#d9dbe0] pt-8 sm:grid-cols-2">
               <div>
                 <div className="h-8 border-b border-[#111418]" />
-                <div className="mt-1 text-[12px] text-[#555b63]">Building Manager</div>
+                <div className="mt-1 text-[12px] text-[#555b63]">Property Manager</div>
               </div>
               <div>
                 <div className="flex h-8 items-end border-b border-[#111418] pb-1 font-semibold text-[#111418]">{name.trim() || ''}</div>

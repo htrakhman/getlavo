@@ -254,8 +254,8 @@ export async function renderContractPdf(data: ContractPdfData): Promise<Uint8Arr
 
   // 1. Parties
   heading(ctx, '1. Parties');
-  paragraph(ctx, 'This Service Agreement ("Agreement") is entered into between the Building Manager and the Service Provider identified below:');
-  paragraph(ctx, '"Occupants" means the residents, tenants, employees or other authorized users of the property who book Services under this Agreement.', { color: MUTED, gap: 2 });
+  paragraph(ctx, 'This Service Agreement ("Agreement") is entered into between the Property Manager and the Service Provider identified below:');
+  paragraph(ctx, '"Property" means the building, buildings or premises identified above, whether residential or commercial. "Occupants" means the residents and tenants of the Property, and the employees, staff and authorized visitors of those tenants, who book Services under this Agreement. A tenant that is a business books through the individuals it authorizes.', { color: MUTED, gap: 2 });
   ctx.y -= 4;
   const colGap = 16;
   const colW = (CONTENT_W - colGap) / 2;
@@ -271,19 +271,19 @@ export async function renderContractPdf(data: ContractPdfData): Promise<Uint8Arr
     ...(data.operator.contactPhone ? [data.operator.contactPhone] : []),
   ];
   const startY = ctx.y;
-  const h1 = partyBox(ctx, MARGIN, colW, 'Building Manager', managerLines);
+  const h1 = partyBox(ctx, MARGIN, colW, 'Property Manager', managerLines);
   ctx.y = startY;
   const h2 = partyBox(ctx, MARGIN + colW + colGap, colW, 'Service Provider', opLines);
   ctx.y = startY - Math.max(h1, h2) - 10;
 
   // 2. Services
   heading(ctx, '2. Services');
-  paragraph(ctx, `Service Provider agrees to provide car wash services ("Services") at ${buildingName}, ${address}.`);
+  paragraph(ctx, `Service Provider agrees to provide car wash services ("Services") at the Property: ${buildingName}, ${address}.`);
   const minBookings = Math.max(0, data.minBookings ?? 0);
   bullet(ctx, 'Service dates:', 'Scheduled through the Lavo platform');
   paragraph(
     ctx,
-    'Service Provider proposes dates and Building Manager confirms them. Either party may decline a proposed date, and a date that is not confirmed creates no obligation for either party.',
+    'Service Provider proposes dates and Property Manager confirms them. Either party may decline a proposed date, and a date that is not confirmed creates no obligation for either party.',
     { color: MUTED, gap: 2 },
   );
   bullet(ctx, 'Frequency:', 'No fixed cadence');
@@ -293,7 +293,7 @@ export async function renderContractPdf(data: ContractPdfData): Promise<Uint8Arr
     { color: MUTED, gap: 2 },
   );
   bullet(ctx, 'Minimum bookings per wash day:', minBookings > 0 ? String(minBookings) : 'None');
-  bullet(ctx, 'Service location:', 'On-site parking area designated by the property');
+  bullet(ctx, 'Service location:', 'Parking area at the Property designated by Property Manager');
   paragraph(
     ctx,
     minBookings > 0
@@ -328,10 +328,10 @@ export async function renderContractPdf(data: ContractPdfData): Promise<Uint8Arr
   paragraph(
     ctx,
     billingMode === 'property_pays'
-      ? 'The property pays for each wash via the Lavo platform, charged to the payment method it keeps on file. Occupants book at no charge to themselves. Lavo collects a platform fee from each transaction.'
+      ? 'Property Manager pays for each wash via the Lavo platform, charged to the payment method kept on file for the Property. Occupants book at no charge to themselves. Lavo collects a platform fee from each transaction.'
       : billingMode === 'property_subsidized'
-        ? `The property covers ${money(subsidyCents)} of each wash, charged to the payment method it keeps on file, and the Occupant pays the remainder at checkout. Lavo collects a platform fee from each transaction.`
-        : 'Occupants pay Service Provider directly per wash via the Lavo platform. The property incurs no per-wash charge. Lavo collects a platform fee from each Occupant transaction.',
+        ? `Property Manager covers ${money(subsidyCents)} of each wash, charged to the payment method kept on file for the Property, and the Occupant pays the remainder at checkout. Lavo collects a platform fee from each transaction.`
+        : 'Occupants pay Service Provider directly per wash via the Lavo platform. Property Manager incurs no per-wash charge. Lavo collects a platform fee from each Occupant transaction.',
   );
   paragraph(ctx, 'Optional add-ons an Occupant selects at checkout are always paid by that Occupant, whatever the arrangement above.', { color: MUTED, gap: 2 });
   if (data.operator.basePriceCents) {
@@ -351,10 +351,10 @@ export async function renderContractPdf(data: ContractPdfData): Promise<Uint8Arr
 
   // 6. Limitation of Liability
   heading(ctx, '6. Limitation of Liability');
-  paragraph(ctx, 'Service Provider’s liability for any single incident is limited to the retail value of the service rendered. Building Manager is not liable for vehicles damaged during service.');
-  paragraph(ctx, 'Lavo acts solely as a platform intermediary. It is not a party to the service relationship between Building Manager and Service Provider, is not the provider of the Services, and does not direct, supervise or control how Service Provider performs them.');
+  paragraph(ctx, 'Service Provider’s liability for any single incident is limited to the retail value of the service rendered. Property Manager is not liable for vehicles damaged during service.');
+  paragraph(ctx, 'Lavo acts solely as a platform intermediary. It is not a party to the service relationship between Property Manager and Service Provider, is not the provider of the Services, and does not direct, supervise or control how Service Provider performs them.');
   paragraph(ctx, 'Lavo does not guarantee any volume of bookings, the attendance of Service Provider on any date, or the quality of any Services performed, and is not liable to either party for any date that is cancelled, missed or unsatisfactorily performed. Lavo is not liable for property damage, vehicle damage, personal injury or any other loss arising out of the Services, whether claimed by a party to this Agreement, an Occupant, or any third party. Service Provider is solely responsible for the Services and for the acts of its personnel.');
-  paragraph(ctx, 'Service Provider shall indemnify and hold Lavo harmless from any claim, demand or proceeding brought by any person arising out of the Services. Lavo’s aggregate liability to either party under this Agreement, on any theory, shall not exceed the platform fees Lavo actually collected in respect of this building in the one (1) month preceding the event giving rise to the claim, and in no event shall Lavo be liable for indirect, incidental or consequential damages. Lavo’s sole obligation in respect of a cancelled date is to return to the affected Occupants the payments it collected for it.');
+  paragraph(ctx, 'Service Provider shall indemnify and hold Lavo harmless from any claim, demand or proceeding brought by any person arising out of the Services. Lavo’s aggregate liability to either party under this Agreement, on any theory, shall not exceed the platform fees Lavo actually collected in respect of the Property in the one (1) month preceding the event giving rise to the claim, and in no event shall Lavo be liable for indirect, incidental or consequential damages. Lavo’s sole obligation in respect of a cancelled date is to return to the affected Occupants the payments it collected for it.');
 
   // 7. Governing Law
   heading(ctx, '7. Governing Law');
@@ -368,7 +368,7 @@ export async function renderContractPdf(data: ContractPdfData): Promise<Uint8Arr
   heading(ctx, 'Signatures');
 
   const sigY = ctx.y;
-  drawSignature(ctx, MARGIN, colW, 'Building Manager', data.managerSignedName, data.managerSignedAt, `${data.building?.managerName || ''}${data.building?.name ? ' · ' + data.building.name : ''}`);
+  drawSignature(ctx, MARGIN, colW, 'Property Manager', data.managerSignedName, data.managerSignedAt, `${data.building?.managerName || ''}${data.building?.name ? ' · ' + data.building.name : ''}`);
   ctx.y = sigY;
   drawSignature(ctx, MARGIN + colW + colGap, colW, 'Service Provider', data.operatorSignedName, data.operatorSignedAt, data.operator.name);
   ctx.y -= 90;

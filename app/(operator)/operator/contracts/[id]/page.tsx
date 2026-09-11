@@ -7,6 +7,7 @@ import { OperatorContractSigner } from './OperatorContractSigner';
 import { hasApprovedInsurance } from '@/lib/insurance';
 import { resolveGoverningLaw } from '@/lib/governing-law';
 import { normalizeBillingMode } from '@/lib/billing-arrangement';
+import { MINIMUM_CUTOFF_HOURS } from '@/lib/wash-day-minimum';
 
 const BLANK = (label: string) => (
   <span className="inline-block min-w-[120px] border-b border-dashed border-ink-500 text-ink-500 italic px-1">
@@ -56,10 +57,10 @@ export default async function OperatorContractPage({ params }: { params: { id: s
   const address = building
     ? `${building.address_line1}, ${building.city}, ${building.region} ${building.postal_code}`
     : null;
-  const washDay = building?.wash_day || building?.preferred_wash_day || contract.service_day || null;
   const governingLaw = resolveGoverningLaw(building?.region, contract.governing_law);
   const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
+  const minBookings = Math.max(0, op?.min_bookings_per_day ?? 0);
   const billingMode = normalizeBillingMode(contract.billing_mode);
   const propertySubsidyCents = Math.max(0, contract.property_subsidy_cents ?? 0);
   const managerSigned = !!contract.manager_signed_at;
@@ -95,7 +96,7 @@ export default async function OperatorContractPage({ params }: { params: { id: s
 
       {operatorSigned && !managerSigned && !isFullyExecuted && (
         <div className="mb-6 rounded-xl border border-yellow-500/30 bg-yellow-500/10 px-5 py-3 text-sm text-amber-600">
-          You've signed. Awaiting the building manager's signature.
+          You've signed. Awaiting the property manager's signature.
         </div>
       )}
 
@@ -122,9 +123,16 @@ export default async function OperatorContractPage({ params }: { params: { id: s
             <section>
               <h3 className="mb-3 font-display text-lg text-white">1. Parties</h3>
               <p>This Service Agreement (&ldquo;Agreement&rdquo;) is entered into between:</p>
+              <p className="mt-3 text-xs text-ink-400">
+                &ldquo;Property&rdquo; means the building, buildings or premises identified below,
+                whether residential or commercial. &ldquo;Occupants&rdquo; means the residents and
+                tenants of the Property, and the employees, staff and authorized visitors of those
+                tenants, who book Services under this Agreement. A tenant that is a business books
+                through the individuals it authorizes.
+              </p>
               <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="rounded-xl bg-white/5 p-4">
-                  <div className="mb-2 text-xs uppercase tracking-widest text-ink-400">Building Manager</div>
+                  <div className="mb-2 text-xs uppercase tracking-widest text-ink-400">Property Manager</div>
                   <div className="font-medium text-white">{managerName}</div>
                   <div className="mt-1 text-ink-300">{building?.name ?? '—'}</div>
                   <div className="mt-0.5 text-xs text-ink-400">{address ?? '—'}</div>
@@ -143,22 +151,52 @@ export default async function OperatorContractPage({ params }: { params: { id: s
             <section>
               <h3 className="mb-3 font-display text-lg text-white">2. Services</h3>
               <p>
-                Service Provider agrees to provide car wash services (&ldquo;Services&rdquo;) at{' '}
-                <strong className="text-white">{building?.name ?? BLANK('building name')}</strong>,{' '}
-                {address ?? BLANK('building address')}.
+                Service Provider agrees to provide car wash services (&ldquo;Services&rdquo;) at the
+                Property:{' '}
+                <strong className="text-white">{building?.name ?? BLANK('property name')}</strong>,{' '}
+                {address ?? BLANK('property address')}.
               </p>
               <ul className="mt-3 space-y-2 pl-4">
                 <li>
-                  <span className="text-ink-400">Scheduled wash day:</span>{' '}
-                  <strong className="text-white">{washDay ?? BLANK('day of week')}</strong>
+                  <span className="text-ink-400">Service dates:</span>{' '}
+                  <strong className="text-white">Scheduled through the Lavo platform</strong>
+                  <div className="mt-1 text-xs text-ink-400">
+                    Service Provider proposes dates and Property Manager confirms them. Either party
+                    may decline a proposed date, and a date that is not confirmed creates no
+                    obligation for either party.
+                  </div>
                 </li>
                 <li>
                   <span className="text-ink-400">Frequency:</span>{' '}
-                  <strong className="text-white">Weekly (or as agreed per scheduling tool)</strong>
+                  <strong className="text-white">No fixed cadence</strong>
+                  <div className="mt-1 text-xs text-ink-400">
+                    This Agreement commits neither party to any particular day of the week or number
+                    of visits. Service Provider sets their own availability and may change it at any
+                    time.
+                  </div>
+                </li>
+                <li>
+                  <span className="text-ink-400">Minimum bookings per wash day:</span>{' '}
+                  <strong className="text-white">{minBookings > 0 ? minBookings : 'None'}</strong>
+                  {minBookings > 0 ? (
+                    <div className="mt-1 text-xs text-ink-400">
+                      A scheduled wash day carrying fewer than {minBookings}{' '}
+                      {minBookings === 1 ? 'booking' : 'bookings'} {MINIMUM_CUTOFF_HOURS} hours
+                      beforehand is cancelled automatically and every affected Occupant is refunded
+                      in full. Service Provider is under no obligation to attend a wash day that
+                      does not meet this minimum, and no penalty arises from a day cancelled this
+                      way.
+                    </div>
+                  ) : (
+                    <div className="mt-1 text-xs text-ink-400">
+                      Service Provider attends every scheduled wash day regardless of how many
+                      Occupants book it.
+                    </div>
+                  )}
                 </li>
                 <li>
                   <span className="text-ink-400">Service location:</span>{' '}
-                  <strong className="text-white">Building parking garage / designated wash area</strong>
+                  <strong className="text-white">Parking area at the Property designated by Property Manager</strong>
                 </li>
               </ul>
 
@@ -203,22 +241,23 @@ export default async function OperatorContractPage({ params }: { params: { id: s
               <p>
                 {billingMode === 'property_pays' ? (
                   <>
-                    The property pays for each wash via the Lavo platform, charged to the payment
-                    method it keeps on file. Occupants book at no charge to themselves. Lavo collects
-                    a platform fee from each transaction.
+                    Property Manager pays for each wash via the Lavo platform, charged to the
+                    payment method kept on file for the Property. Occupants book at no charge to
+                    themselves. Lavo collects a platform fee from each transaction.
                   </>
                 ) : billingMode === 'property_subsidized' ? (
                   <>
-                    The property covers{' '}
+                    Property Manager covers{' '}
                     <strong className="text-white">{money(propertySubsidyCents)}</strong> of each
-                    wash, charged to the payment method it keeps on file, and the Occupant pays the
-                    remainder at checkout. Lavo collects a platform fee from each transaction.
+                    wash, charged to the payment method kept on file for the Property, and the
+                    Occupant pays the remainder at checkout. Lavo collects a platform fee from each
+                    transaction.
                   </>
                 ) : (
                   <>
-                    Occupants pay Service Provider directly per wash via the Lavo platform. The
-                    property incurs no per-wash charge. Lavo collects a platform fee from each
-                    Occupant transaction.
+                    Occupants pay Service Provider directly per wash via the Lavo platform.
+                    Property Manager incurs no per-wash charge. Lavo collects a platform fee from
+                    each Occupant transaction.
                   </>
                 )}
               </p>
@@ -238,9 +277,9 @@ export default async function OperatorContractPage({ params }: { params: { id: s
             <section>
               <h3 className="mb-3 font-display text-lg text-white">4. Term</h3>
               <p>
-                This Agreement begins on the effective date and continues for an initial pilot period of{' '}
-                <strong className="text-white">90 days</strong>, after which it renews automatically on a
-                month-to-month basis unless either party provides 30 days&rsquo; written notice of termination.
+                This Agreement begins on the effective date and continues on a{' '}
+                <strong className="text-white">month-to-month</strong> basis until either party provides
+                30 days&rsquo; written notice of termination. There is no minimum term.
               </p>
             </section>
 
@@ -265,7 +304,7 @@ export default async function OperatorContractPage({ params }: { params: { id: s
               <h3 className="mb-3 font-display text-lg text-white">6. Limitation of Liability</h3>
               <p>
                 Service Provider&rsquo;s liability for any single incident is limited to the retail value of
-                the service rendered. Building Manager is not liable for vehicles damaged during service.
+                the service rendered. Property Manager is not liable for vehicles damaged during service.
                 Lavo acts as platform intermediary and is not a party to the service relationship.
               </p>
             </section>
@@ -283,7 +322,7 @@ export default async function OperatorContractPage({ params }: { params: { id: s
               <h3 className="mb-4 font-display text-lg text-white">Signatures</h3>
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div>
-                  <div className="text-xs uppercase tracking-widest text-ink-400 mb-2">Building Manager</div>
+                  <div className="text-xs uppercase tracking-widest text-ink-400 mb-2">Property Manager</div>
                   {contract.manager_signed_at ? (
                     <div>
                       <div className="font-display text-xl text-gleam italic">{contract.manager_signed_name}</div>

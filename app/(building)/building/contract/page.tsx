@@ -276,12 +276,15 @@ export default async function ContractPage() {
                 This Service Agreement (&ldquo;Agreement&rdquo;) is entered into between:
               </p>
               <p className="mt-3 text-xs text-ink-400">
-                &ldquo;Occupants&rdquo; means the residents, tenants, employees or other authorized
-                users of the property who book Services under this Agreement.
+                &ldquo;Property&rdquo; means the building, buildings or premises identified above,
+                whether residential or commercial. &ldquo;Occupants&rdquo; means the residents and
+                tenants of the Property, and the employees, staff and authorized visitors of those
+                tenants, who book Services under this Agreement. A tenant that is a business books
+                through the individuals it authorizes.
               </p>
               <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="rounded-xl bg-white/5 p-4">
-                  <div className="mb-2 text-xs uppercase tracking-widest text-ink-400">Building Manager</div>
+                  <div className="mb-2 text-xs uppercase tracking-widest text-ink-400">Property Manager</div>
                   <div className="font-medium text-white">{managerName}</div>
                   <div className="mt-1 text-ink-300">{building.name}</div>
                   <div className="mt-0.5 text-xs text-ink-400">{address ?? '—'}</div>
@@ -300,7 +303,8 @@ export default async function ContractPage() {
             <section>
               <h3 className="mb-3 font-display text-lg text-white">2. Services</h3>
               <p>
-                Service Provider agrees to provide car wash services (&ldquo;Services&rdquo;) at{' '}
+                Service Provider agrees to provide car wash services (&ldquo;Services&rdquo;) at the
+                Property:{' '}
                 <strong className="text-white">{building.name}</strong>,{' '}
                 {address ?? BLANK('building address')}.
               </p>
@@ -309,7 +313,7 @@ export default async function ContractPage() {
                   <span className="text-ink-400">Service dates:</span>{' '}
                   <strong className="text-white">Scheduled through the Lavo platform</strong>
                   <div className="mt-1 text-xs text-ink-400">
-                    Service Provider proposes dates and Building Manager confirms them. Either party
+                    Service Provider proposes dates and Property Manager confirms them. Either party
                     may decline a proposed date, and a date that is not confirmed creates no
                     obligation for either party.
                   </div>
@@ -344,7 +348,7 @@ export default async function ContractPage() {
                 </li>
                 <li>
                   <span className="text-ink-400">Service location:</span>{' '}
-                  <strong className="text-white">On-site parking area designated by the property</strong>
+                  <strong className="text-white">Parking area at the Property designated by Property Manager</strong>
                 </li>
               </ul>
 
@@ -388,22 +392,23 @@ export default async function ContractPage() {
               <p>
                 {billingMode === 'property_pays' ? (
                   <>
-                    The property pays for each wash via the Lavo platform, charged to the payment
-                    method it keeps on file. Occupants book at no charge to themselves. Lavo collects
-                    a platform fee from each transaction.
+                    Property Manager pays for each wash via the Lavo platform, charged to the
+                    payment method kept on file for the Property. Occupants book at no charge to
+                    themselves. Lavo collects a platform fee from each transaction.
                   </>
                 ) : billingMode === 'property_subsidized' ? (
                   <>
-                    The property covers{' '}
+                    Property Manager covers{' '}
                     <strong className="text-white">{money(propertySubsidyCents)}</strong> of each
-                    wash, charged to the payment method it keeps on file, and the Occupant pays the
-                    remainder at checkout. Lavo collects a platform fee from each transaction.
+                    wash, charged to the payment method kept on file for the Property, and the
+                    Occupant pays the remainder at checkout. Lavo collects a platform fee from each
+                    transaction.
                   </>
                 ) : (
                   <>
-                    Occupants pay Service Provider directly per wash via the Lavo platform. The
-                    property incurs no per-wash charge. Lavo collects a platform fee from each
-                    Occupant transaction.
+                    Occupants pay Service Provider directly per wash via the Lavo platform.
+                    Property Manager incurs no per-wash charge. Lavo collects a platform fee from
+                    each Occupant transaction.
                   </>
                 )}
               </p>
@@ -452,11 +457,11 @@ export default async function ContractPage() {
               <h3 className="mb-3 font-display text-lg text-white">6. Limitation of Liability</h3>
               <p>
                 Service Provider&rsquo;s liability for any single incident is limited to the retail value of
-                the service rendered. Building Manager is not liable for vehicles damaged during service.
+                the service rendered. Property Manager is not liable for vehicles damaged during service.
               </p>
               <p className="mt-3">
                 Lavo acts solely as a platform intermediary. It is not a party to the service
-                relationship between Building Manager and Service Provider, is not the provider of
+                relationship between Property Manager and Service Provider, is not the provider of
                 the Services, and does not direct, supervise or control how Service Provider
                 performs them.
               </p>
@@ -473,7 +478,7 @@ export default async function ContractPage() {
                 Service Provider shall indemnify and hold Lavo harmless from any claim, demand or
                 proceeding brought by any person arising out of the Services. Lavo&rsquo;s aggregate
                 liability to either party under this Agreement, on any theory, shall not exceed the
-                platform fees Lavo actually collected in respect of this building in the one (1)
+                platform fees Lavo actually collected in respect of the Property in the one (1)
                 month preceding the event giving rise to the claim, and in no event shall Lavo be
                 liable for indirect, incidental or consequential damages. Lavo&rsquo;s sole
                 obligation in respect of a cancelled date is to return to the affected Occupants the
@@ -494,7 +499,7 @@ export default async function ContractPage() {
               <h3 className="mb-4 font-display text-lg text-white">Signatures</h3>
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div>
-                  <div className="text-xs uppercase tracking-widest text-ink-400 mb-2">Building Manager</div>
+                  <div className="text-xs uppercase tracking-widest text-ink-400 mb-2">Property Manager</div>
                   {contract?.manager_signed_at ? (
                     <div>
                       <div className="font-display text-xl text-gleam italic">{contract.manager_signed_name}</div>
