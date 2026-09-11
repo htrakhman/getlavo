@@ -11,7 +11,7 @@
  */
 import assert from 'node:assert';
 import { PDFPage } from 'pdf-lib';
-import { renderContractPdf } from '../lib/contract-pdf';
+import { renderContractPdf, condenseDescription } from '../lib/contract-pdf';
 
 const PAGE_W = 612;
 const MARGIN = 48;
@@ -100,6 +100,35 @@ async function main() {
   // A long description must actually consume vertical space rather than being
   // crammed onto one line — proof the wrapping ran.
   assert.ok(draws.length > 40, `expected long descriptions to wrap into many lines, saw only ${draws.length} draws`);
+
+  // --- description capping -------------------------------------------------
+  // Operators write several paragraphs of marketing copy. The agreement keeps
+  // the opening sentences (which read as scope) and points at the app for the
+  // rest, so a menu of packages cannot bury the actual terms.
+  const capped = condenseDescription(LONG_DESC);
+  assert.ok(capped, 'a long description should still produce text');
+  assert.ok(!capped!.includes('\n'), 'capped description must be a single line');
+  assert.ok(capped!.length <= 201, `capped description too long: ${capped!.length}`);
+  assert.ok(
+    capped!.startsWith('Based on average condition.'),
+    'capping should keep the opening sentence, which carries the scope caveat',
+  );
+  assert.ok(!capped!.includes("What You'll Get"), 'capping should drop the marketing tail');
+
+  assert.equal(condenseDescription('Quick exterior wash and dry.'), 'Quick exterior wash and dry.',
+    'a short description passes through untouched');
+  assert.equal(condenseDescription(''), null, 'empty description yields null');
+  assert.equal(condenseDescription(null), null, 'null description yields null');
+  assert.equal(condenseDescription(undefined), null, 'undefined description yields null');
+
+  // No sentence break and no spaces at all must still terminate cleanly.
+  const runOn = condenseDescription('a'.repeat(400))!;
+  assert.ok(runOn.endsWith('…'), 'a run-on with no boundary should end in an ellipsis');
+  assert.ok(runOn.length <= 201, `run-on cap too long: ${runOn.length}`);
+
+  // Never cut mid-word when a space is available.
+  const words = condenseDescription(Array(80).fill('word').join(' '))!;
+  assert.ok(/(\bword…)$/.test(words), `expected a clean word boundary, got: ${words.slice(-20)}`);
 
   console.log(`contract-pdf layout: all assertions passed (${draws.length} draws checked)`);
 }
