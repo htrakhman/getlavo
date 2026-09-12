@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { LEGAL_ENTITY_NAME } from '@/lib/legal-entity';
 
 export default function ContactPage() {
   const [msg, setMsg] = useState<string | null>(null);
@@ -13,7 +14,7 @@ export default function ContactPage() {
   return (
     <div className="mx-auto max-w-lg">
       <h1 className="font-display text-3xl">Contact</h1>
-      <p className="mt-2 text-sm text-ink-400">hello@getlavo.io · Lavo, Inc.</p>
+      <p className="mt-2 text-sm text-ink-400">hello@getlavo.io · {LEGAL_ENTITY_NAME}</p>
       <form className="mt-6 space-y-3" onSubmit={submit}>
         <input className="field" required name="email" type="email" placeholder="Your email" />
         <textarea className="field min-h-[120px]" required name="message" placeholder="How can we help?" />
