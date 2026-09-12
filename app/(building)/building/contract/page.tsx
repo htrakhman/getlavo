@@ -158,9 +158,6 @@ export default async function ContractPage() {
   const isSigned = !!contract?.manager_signed_at;
   const operatorSigned = !!contract?.operator_signed_at;
   const isFullyExecuted = contract?.status === 'executed' || (isSigned && operatorSigned);
-  // Same condition the sidebar uses to red-dot "My operator" — badges the
-  // Contract tab here too so the dot isn't nav-only.
-  const contractPending = contract?.status === 'pending_signatures' && !isSigned;
 
   // Every building with an open agreement, current one included — a flat
   // list rather than an implicit-current/explicit-others split. This page can
@@ -171,6 +168,12 @@ export default async function ContractPage() {
   // Once this building is signed it drops out of the pending list, so the head
   // of what's left is genuinely the next one to sign.
   const nextPending = pendingAgreements.find((p) => p.buildingId !== building.id) ?? null;
+
+  // The tab dot is the cross-building count, matching the sidebar. Scoped to
+  // this building it contradicted the nav: signed here, two others open, dot
+  // in the nav, nothing marked on the page. The banner below lists them, so
+  // the dot leads somewhere real.
+  const contractPending = pendingAgreements.length > 0;
 
   return (
     <>

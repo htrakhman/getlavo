@@ -15,6 +15,7 @@ import { operatorSetup, pendingLabel, setupChipLabel } from '@/lib/operator-read
 import { OperatorTabs } from './OperatorTabs';
 import { OperatorPricingCard } from './OperatorPricingCard';
 import { operatorPricing } from '@/lib/operator-pricing';
+import { getPendingAgreementsForManager } from '@/lib/pending-agreements';
 
 export default async function MyOperator() {
   const session = await getSessionUser();
@@ -28,18 +29,14 @@ export default async function MyOperator() {
     ? await admin.from('buildings').select('id, name, wash_day, preferred_wash_day, requested_wash_dates, lat, lng').eq('id', bSel.id).maybeSingle()
     : { data: null };
 
-  // Same "awaiting manager signature" check that flags "My operator" in the
-  // sidebar — badges the Contract tab here too so the dot isn't nav-only.
-  const { data: pendingContract } = building
-    ? await sb
-        .from('contracts')
-        .select('id')
-        .eq('building_id', building.id)
-        .eq('status', 'pending_signatures')
-        .is('manager_signed_at', null)
-        .limit(1)
-        .maybeSingle()
-    : { data: null };
+  // Badge the Contract tab from the SAME cross-building count that flags "My
+  // operator" in the sidebar. Scoped to the selected building (as this was),
+  // the two disagreed: a manager who had signed the building they were looking
+  // at, with offers open on two others, saw a red dot in the nav and a page
+  // with nothing marked on it. Following the dot has to lead somewhere — and
+  // it does, because the Contract tab lists every pending building.
+  const pendingAgreements = await getPendingAgreementsForManager(session.user.id);
+  const pendingContract = pendingAgreements.length > 0;
 
   // Admin client: RLS-scoped partnership reads can silently return nothing for
   // managers, leaving this page stuck on "We're finding your crew" after a match.
@@ -141,7 +138,7 @@ export default async function MyOperator() {
   return (
     <>
       <PageHeader eyebrow="Operator" title="My operator" />
-      <OperatorTabs active="/building/marketplace" contractPending={!!pendingContract} />
+      <OperatorTabs active="/building/marketplace" contractPending={pendingContract} />
 
       {!operator ? (
         <div className="space-y-8">

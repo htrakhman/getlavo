@@ -3,6 +3,7 @@ import { getSessionUser } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { getCurrentBuildingForSession } from '@/lib/building';
 import { getPendingAgreementsForManager } from '@/lib/pending-agreements';
+import { getBuildingAttention, attentionNavHrefs } from '@/lib/building-attention';
 import { BuildingSwitcher } from './BuildingSwitcher';
 
 const NAV = [
@@ -29,14 +30,17 @@ export default async function BuildingLayout({ children }: { children: React.Rea
     getCurrentBuildingForSession(session.user.id),
     getPendingAgreementsForManager(session.user.id),
   ]);
+  const attention = await getBuildingAttention(session.user.id, current?.id ?? null);
 
-  // Red-dot guidance: flag "My operator" (which hosts the Contract tab) when
-  // an agreement is waiting on the manager's signature. This counts EVERY
-  // building the manager owns, not just the selected one — scoped to the
-  // current building, the dot vanished the moment they switched away from the
-  // building with the offer, which is how offers on the other buildings went
-  // unnoticed entirely.
-  const alerts: string[] = pending.length ? ['/building/marketplace'] : [];
+  // Red-dot guidance now comes from lib/building-attention.ts, which is also
+  // what the Overview checklist and the page-level panels render. One dot per
+  // nav entry that actually has an outstanding item beneath it, so a dot is
+  // always answerable: follow it and the page names the thing.
+  //
+  // Signature items still count EVERY building the manager owns, not just the
+  // selected one — scoped to the current building, the dot vanished the moment
+  // they switched away from the building with the offer.
+  const alerts: string[] = attentionNavHrefs(attention);
   const pendingBuildingIds = pending.map((p) => p.buildingId);
 
   return (
