@@ -50,9 +50,8 @@ const LAVO_PROTECTIONS: [RegExp, string][] = [
   [/independent contractor/i, 'does not state that the operator is an independent contractor'],
   [/solely responsible for the Services/i, 'does not put sole responsibility for the Services on the operator'],
   [/defend, indemnify and hold harmless Lavo/i, 'missing the indemnity running to Lavo'],
-  [/garagekeepers legal liability/i, "does not require garagekeepers cover — a standard CGL policy excludes damage to vehicles in the operator's care"],
-  [/additional insured/i, 'does not require Lavo to be named as an additional insured'],
-  [/waive rights of subrogation/i, 'does not require a waiver of subrogation'],
+  [/maintain[^.]{0,120}general liability insurance/i, 'does not oblige the operator to carry insurance at all'],
+  [/garagekeepers legal liability/i, 'no longer mentions garagekeepers cover — it is a recommendation now, not a requirement, but the operator should still be told the coverage exists and why'],
   [/survives termination/i, 'does not say the indemnity survives termination'],
   // Keep the subject pinned to Lavo: the operator's cap sentence also says
   // "not liable", and matching that instead would pass while Lavo's own
@@ -64,6 +63,51 @@ const LAVO_PROTECTIONS: [RegExp, string][] = [
 for (const [pattern, why] of LAVO_PROTECTIONS) {
   assert.ok(pattern.test(terms.flat), `${TERMS} ${why}`);
 }
+
+// The agreement must not state as fact anything the platform does not check.
+//
+// It used to require garagekeepers cover at $100k/vehicle with Lavo named as
+// an additional insured, primary and non-contributory, with waiver of
+// subrogation. Onboarding checks one thing: that a certificate file exists.
+// Nothing reads its coverage type, limits, or who is named on it. Telling a
+// commercial landlord their vendor carries specific cover, on the strength of
+// a PDF nobody opened, is the same defect as advertising background checks
+// that never ran — a statement of fact with no basis behind it.
+//
+// If verification is ever built, tighten the clause AND these assertions
+// together, deliberately. Until then the contract stays inside what is known.
+const UNVERIFIED_CLAIMS: [RegExp, string][] = [
+  [
+    /shall(?:[^.]{0,200})named as an additional insured/i,
+    'requires additional-insured status, which nothing on the platform verifies',
+  ],
+  [
+    /insurers shall waive rights of subrogation/i,
+    'requires a waiver of subrogation, which nothing on the platform verifies',
+  ],
+  [
+    /no less than \$100,000 per vehicle/i,
+    'specifies a per-vehicle limit that nothing on the platform reads off the certificate',
+  ],
+  [
+    /Service Provider’s insurance is the source of recovery/i,
+    'asserts the operator’s insurance will pay, which Lavo has no basis to state',
+  ],
+];
+for (const [pattern, why] of UNVERIFIED_CLAIMS) {
+  const hit = terms.flat.match(pattern);
+  assert.equal(hit, null, `${TERMS} ${why}\n  found: ${hit?.[0]}`);
+}
+
+// And it must say who is responsible for checking, since Lavo is not.
+assert.ok(
+  /Property Manager may set its own insurance requirements/i.test(terms.flat),
+  `${TERMS} does not tell Property Manager it may set its own vendor insurance requirements`,
+);
+assert.ok(
+  /does not verify, endorse or warrant/i.test(terms.flat),
+  `${TERMS} does not disclaim that Lavo verifies the coverage it collects certificates for`,
+);
 
 // The operator's cap must never again be written broadly enough to swallow
 // vehicle damage: capping the operator at the price of one wash sends a
