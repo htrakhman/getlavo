@@ -43,7 +43,7 @@ export default function DamagePolicyPage() {
       <p className="mt-6 text-sm text-ink-400">
         Building programs: see{' '}
         <Link href="/safety" className="text-gleam hover:underline">
-          Safety and vetting
+          Safety and operator review
         </Link>
         .
       </p>

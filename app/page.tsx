@@ -12,7 +12,7 @@ export const metadata = createPageMetadata({
   path: '/',
   title: 'Apartment Mobile Car Wash for Residents, Buildings, and Operators | Lavo',
   description:
-    'Lavo connects apartment residents, property managers, and vetted mobile car wash operators so residents can book car washes without leaving home.',
+    'Lavo connects apartment residents, property managers, and independent mobile car wash operators so residents can book car washes without leaving home.',
 });
 
 const AUDIENCES = [
@@ -21,7 +21,7 @@ const AUDIENCES = [
     title: 'Residents',
     description: 'Book a car wash at your building, right from your phone.',
     points: [
-      'Vetted, insured operators your building already trusts',
+      'Independent operators your building has approved, with insurance on file',
       'Pay online with prices shown before you confirm',
       'Get a photo when your wash is done',
     ],
@@ -149,7 +149,8 @@ export default async function Home({
             <span className="gleam-text">forgot to add.</span>
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-balance text-lg text-ink-300">
-            Book from your phone. Operators are vetted and insured. Buildings pay nothing.
+            Book from your phone. Operators are independent businesses that carry their own
+            insurance. Buildings pay nothing.
           </p>
 
           {/* Get started */}
@@ -192,7 +193,7 @@ export default async function Home({
       <FourStepGrid
         variant="accent"
         title="How it works"
-        subtitle="Book from your phone. A vetted crew washes your car at your building. You get notified when it's done."
+        subtitle="Book from your phone. An independent operator washes your car at your building. You get notified when it's done."
         footerHref="/how-it-works"
         footerLabel="Full guide for buildings and operators"
       />

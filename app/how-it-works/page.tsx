@@ -212,8 +212,8 @@ export default function HowItWorksPage() {
                 For operators
               </h2>
               <p className="text-ink-300 leading-relaxed max-w-md mb-8">
-                Recurring revenue with no marketing. Partner with apartment buildings and get a guaranteed
-                customer base, then fill open slots with on-demand bookings between visits.
+                Reach residents without marketing spend. Partner with apartment buildings to build a
+                repeat customer base, then fill open slots with on-demand bookings between visits.
               </p>
               <ul className="space-y-4 text-sm text-ink-200">
                 {[

@@ -10,7 +10,7 @@ export const metadata = createPageMetadata({
   path: '/press',
   title: 'Lavo Press Kit | Company Info, Brand Assets, and Media Contact',
   description:
-    'Learn about Lavo, the apartment mobile car wash platform for residents, buildings, and vetted car wash operators.',
+    'Learn about Lavo, the apartment mobile car wash platform for residents, buildings, and independent car wash operators.',
 });
 
 export default function PressPage() {

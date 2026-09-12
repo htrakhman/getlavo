@@ -14,7 +14,7 @@ const STEPS = [
   {
     num: 3,
     title: 'Your car gets washed',
-    body: 'A vetted local team washes your car at your building, in its spot or in an approved wash area.',
+    body: 'An independent local operator washes your car at your building, in its spot or in an approved wash area.',
   },
   {
     num: 4,
