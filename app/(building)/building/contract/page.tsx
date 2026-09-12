@@ -14,6 +14,7 @@ import { MINIMUM_CUTOFF_HOURS } from '@/lib/wash-day-minimum';
 import { LIABILITY_CLAUSES, insuranceClause } from '@/lib/contract-terms';
 import { normalizeBillingMode, describeBillingArrangement } from '@/lib/billing-arrangement';
 import { PendingAgreementsBanner } from './PendingAgreementsBanner';
+import { NextAgreementBar } from './NextAgreementBar';
 
 export const dynamic = 'force-dynamic';
 
@@ -167,7 +168,8 @@ export default async function ContractPage() {
   const pendingAgreements = await getPendingAgreementsForManager(session.user.id);
   // Once this building is signed it drops out of the pending list, so the head
   // of what's left is genuinely the next one to sign.
-  const nextPending = pendingAgreements.find((p) => p.buildingId !== building.id) ?? null;
+  const nextRow = pendingAgreements.find((p) => p.buildingId !== building.id) ?? null;
+  const nextPending = nextRow ? { ...nextRow, remaining: pendingAgreements.length } : null;
 
   // The tab dot is the cross-building count, matching the sidebar. Scoped to
   // this building it contradicted the nav: signed here, two others open, dot
@@ -516,6 +518,14 @@ export default async function ContractPage() {
         </div>
       </div>
       )}
+
+      {/* Scroll-independent: the agreement is long and both the signature box
+          and the next building sit at the bottom of it. */}
+      <NextAgreementBar
+        pending={pendingAgreements}
+        currentBuildingId={building.id}
+        signedHere={isSigned}
+      />
     </>
   );
 }
