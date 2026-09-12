@@ -6,6 +6,8 @@ import { redirect } from 'next/navigation';
 import { CopyResidentLink } from './CopyResidentLink';
 import { getCurrentBuildingForSession } from '@/lib/building';
 import { RetentionChart } from './RetentionChart';
+import { AttentionPanel } from './AttentionPanel';
+import { getBuildingAttention } from '@/lib/building-attention';
 
 export default async function BuildingDashboard() {
   const session = await getSessionUser();
@@ -13,6 +15,9 @@ export default async function BuildingDashboard() {
   const { current: building, all } = await getCurrentBuildingForSession(session.user.id);
   if (!building) redirect('/building/onboarding');
   const sb = supabaseServer();
+  // Overview is where a manager lands, so it is where the outstanding work
+  // belongs — the nav dot only says that there is some.
+  const attention = await getBuildingAttention(session.user.id, building.id);
 
   const today = new Date().toISOString().slice(0, 10);
   const thisMonthStart = today.slice(0, 8) + '01';
@@ -103,6 +108,8 @@ export default async function BuildingDashboard() {
           </Link>
         }
       />
+
+      <AttentionPanel items={attention} className="mb-6" />
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <div className="stat">
