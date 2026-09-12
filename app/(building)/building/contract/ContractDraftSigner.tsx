@@ -12,7 +12,8 @@ interface Props {
    * agreements in a row lands at the bottom of a long document each time, and
    * without this the only way on was to scroll back up to the banner.
    */
-  nextPending?: { buildingId: string; buildingName: string } | null;
+  /** `remaining` counts every agreement still unsigned, this one included. */
+  nextPending?: { buildingId: string; buildingName: string; remaining?: number } | null;
 }
 
 type Mode = 'idle' | 'sign' | 'reject';
@@ -69,16 +70,27 @@ export function ContractDraftSigner({ contractId, buildingName, alreadySigned, n
         </div>
 
         {nextPending && (
-          <a
-            href={`/api/building/select?buildingId=${nextPending.buildingId}&next=${encodeURIComponent('/building/contract#sign')}`}
-            className="mt-4 flex items-center justify-between gap-4 rounded-lg border border-gleam/30 bg-gleam/5 px-4 py-3 text-sm hover:border-gleam/50 hover:bg-gleam/10"
-          >
+          // A real button, not a tinted info panel with 12px text. This is the
+          // next step in the task the signer is mid-way through, so it should
+          // look like the primary action on the page rather than a footnote.
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-gleam/30 bg-gleam/5 px-4 py-3">
             <span className="min-w-0">
-              <span className="block text-xs text-ink-400">Next agreement</span>
+              <span className="block text-xs text-ink-400">
+                {nextPending.remaining && nextPending.remaining > 1
+                  ? `Next agreement · ${nextPending.remaining} still to sign`
+                  : 'Next agreement'}
+              </span>
               <span className="block truncate font-medium text-ink-100">{nextPending.buildingName}</span>
             </span>
-            <span className="shrink-0 text-xs font-medium text-gleam">Review &amp; sign →</span>
-          </a>
+            {/* Plain <a>: /api/building/select answers with an HTTP redirect,
+                which next/link's soft navigation does not follow. */}
+            <a
+              href={`/api/building/select?buildingId=${nextPending.buildingId}&next=${encodeURIComponent('/building/contract#sign')}`}
+              className="btn-primary shrink-0 whitespace-nowrap"
+            >
+              Review &amp; sign →
+            </a>
+          </div>
         )}
       </div>
     );
