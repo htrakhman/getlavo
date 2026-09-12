@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { FOOTER_COLUMNS } from '@/lib/seo/internal-links';
 import { Logo } from './Logo';
 import { useEffect, useRef, useState } from 'react';
+import { copyrightLine } from '@/lib/legal-entity';
 
 const ROLES = [
   { label: 'Property Manager', href_signin: '/login?prefer=building' },
@@ -182,7 +183,7 @@ export function MarketingFooter() {
         </div>
       </div>
       <div className="mx-auto mt-8 max-w-7xl text-center text-xs text-ink-500">
-        © {new Date().getFullYear()} Lavo, Inc.
+        {copyrightLine()}
       </div>
     </footer>
   );
