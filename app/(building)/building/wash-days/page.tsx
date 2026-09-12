@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { getCurrentBuildingForSession } from '@/lib/building';
 import { dateShort } from '@/lib/format';
 import Link from 'next/link';
+import { PageAttention } from '../PageAttention';
 
 export const dynamic = 'force-dynamic';
 
@@ -47,6 +48,8 @@ export default async function BuildingWashDaysPage() {
   return (
     <>
       <PageHeader eyebrow={building.name} title="Wash days" />
+
+      <PageAttention profileId={session.user.id} buildingId={building.id} navHref="/building/wash-days" />
 
       {pendingProposals.length > 0 && (
         <>

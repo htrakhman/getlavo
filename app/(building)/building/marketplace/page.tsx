@@ -16,6 +16,7 @@ import { OperatorTabs } from './OperatorTabs';
 import { OperatorPricingCard } from './OperatorPricingCard';
 import { operatorPricing } from '@/lib/operator-pricing';
 import { getPendingAgreementsForManager } from '@/lib/pending-agreements';
+import { PageAttention } from '../PageAttention';
 
 export default async function MyOperator() {
   const session = await getSessionUser();
@@ -139,6 +140,10 @@ export default async function MyOperator() {
     <>
       <PageHeader eyebrow="Operator" title="My operator" />
       <OperatorTabs active="/building/marketplace" contractPending={pendingContract} />
+
+      {/* This is the page the sidebar dot points at, and it used to answer with
+          "We're finding your crew" while two other buildings sat unsigned. */}
+      <PageAttention profileId={session.user.id} buildingId={bSel?.id ?? null} navHref="/building/marketplace" />
 
       {!operator ? (
         <div className="space-y-8">

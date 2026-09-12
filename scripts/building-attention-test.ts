@@ -84,4 +84,48 @@ assert.deepEqual(attentionNavHrefs([]), [], 'dots appear with nothing outstandin
   assert.deepEqual([...headingsWithAlerts(nav, new Set())], []);
 }
 
+// --- Every page a dot points at must explain itself ----------------------
+// The dot says a page needs something; the page has to say what. Residents
+// showed a dot in the nav and then an empty table reading "No residents
+// enrolled yet" — an empty-state description, not the thing the dot meant.
+// So: every navHref the helper can emit must belong to a page that renders
+// the matching slice of the list. Add an item for a new page without wiring
+// it up and this fails rather than shipping another unanswerable dot.
+{
+  const fs = require('node:fs') as typeof import('node:fs');
+  const source = fs.readFileSync('lib/building-attention.ts', 'utf8');
+
+  const navHrefs = new Set(
+    [...source.matchAll(/navHref:\s*'([^']+)'/g)].map((m) => m[1]),
+  );
+  assert.ok(navHrefs.size > 0, 'found no navHref literals — did the field get renamed?');
+
+  const PAGE_FOR: Record<string, string> = {
+    '/building': 'app/(building)/building/page.tsx',
+    '/building/marketplace': 'app/(building)/building/marketplace/page.tsx',
+    '/building/residents': 'app/(building)/building/residents/page.tsx',
+    '/building/wash-days': 'app/(building)/building/wash-days/page.tsx',
+    '/building/announcements': 'app/(building)/building/announcements/page.tsx',
+    '/building/issues': 'app/(building)/building/issues/page.tsx',
+    '/building/settings': 'app/(building)/building/settings/page.tsx',
+  };
+
+  for (const href of navHrefs) {
+    const page = PAGE_FOR[href];
+    assert.ok(page, `navHref ${href} has no page mapped in this test — add it`);
+    assert.ok(fs.existsSync(page), `${href} maps to ${page}, which does not exist`);
+    const body = fs.readFileSync(page, 'utf8');
+    assert.ok(
+      /<PageAttention\b/.test(body) || /<AttentionPanel\b/.test(body),
+      `${page} is the destination for a red dot (${href}) but renders neither ` +
+        '<PageAttention> nor <AttentionPanel>, so following the dot lands on a ' +
+        'page that never says what is missing',
+    );
+  }
+
+  // Overview is the checklist home and must always carry the full list.
+  const overview = fs.readFileSync(PAGE_FOR['/building'], 'utf8');
+  assert.ok(/<AttentionPanel\b/.test(overview), 'Overview no longer renders the checklist');
+}
+
 console.log('building attention: all assertions passed');

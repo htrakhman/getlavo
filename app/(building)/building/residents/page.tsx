@@ -3,6 +3,7 @@ import { getSessionUser, supabaseServer, supabaseAdmin } from '@/lib/supabase/se
 import { redirect } from 'next/navigation';
 import { plateLabel } from '@/lib/format';
 import { InviteResidents } from './InviteResidents';
+import { PageAttention } from '../PageAttention';
 
 export default async function Residents() {
   const session = await getSessionUser();
@@ -35,6 +36,8 @@ export default async function Residents() {
         title="Residents"
         action={<InviteResidents buildingSlug={building.slug ?? ''} />}
       />
+
+      <PageAttention profileId={session.user.id} buildingId={building.id} navHref="/building/residents" />
 
       <div className="card overflow-hidden mb-8">
         <div className="border-b border-white/5 px-5 py-3 text-xs uppercase tracking-widest text-ink-400">
