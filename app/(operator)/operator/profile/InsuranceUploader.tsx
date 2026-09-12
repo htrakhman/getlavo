@@ -36,7 +36,7 @@ export function InsuranceUploader({ op, docViewUrl }: { op: any; docViewUrl?: st
   async function save() {
     setErr(null);
     if (!file && !op.insurance_doc_url) {
-      setErr('Upload your certificate of insurance (PDF or image) to get verified.');
+      setErr('Upload your certificate of insurance (PDF or image) to get it on file.');
       return;
     }
     if (!carrier.trim()) {
@@ -95,17 +95,17 @@ export function InsuranceUploader({ op, docViewUrl }: { op: any; docViewUrl?: st
       )}
       {op.insurance_review_status === 'expired' && (
         <div className="card border-red-500/30 bg-red-500/5 mb-3 p-3 text-xs text-red-500">
-          Your policy on file has expired. Upload a current certificate to get verified again.
+          Your policy on file has expired. Upload a current certificate to replace it.
         </div>
       )}
       {pending && (
         <div className="card border-amber-500/30 bg-amber-500/5 mb-3 p-3 text-xs text-amber-600">
-          Certificate under review — this usually takes a few minutes. We&apos;ll email you the moment
-          it&apos;s verified, and this page updates on its own.
+          Certificate received — it&apos;ll show as on file in a few minutes. We&apos;ll email you, and
+          this page updates on its own.
         </div>
       )}
       {op.insurance_review_status === 'approved' && (
-        <div className="text-xs text-gleam mb-3">✓ Verified</div>
+        <div className="text-xs text-gleam mb-3">✓ Certificate on file</div>
       )}
       {op.insurance_doc_url ? (
         <div className="text-sm text-ink-300 mb-3">
@@ -124,7 +124,7 @@ export function InsuranceUploader({ op, docViewUrl }: { op: any; docViewUrl?: st
         </div>
       ) : (
         <div className="text-sm text-ink-400 mb-3">
-          Upload your insurance certificate. Providers must carry active general liability insurance.
+          Upload your insurance certificate. You&rsquo;re required to carry general liability insurance appropriate to your work.
         </div>
       )}
 
