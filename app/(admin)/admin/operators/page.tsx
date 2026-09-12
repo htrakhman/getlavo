@@ -10,7 +10,7 @@ export default async function AdminOperators() {
     .order('created_at', { ascending: false });
 
   const insuranceLabel = (s: string | null) => {
-    if (s === 'approved') return 'verified';
+    if (s === 'approved') return 'on file';
     if (s === 'pending_review') return 'pending review';
     if (s === 'rejected') return 'rejected';
     if (s === 'expired') return 'expired';

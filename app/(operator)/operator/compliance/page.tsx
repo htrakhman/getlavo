@@ -29,8 +29,12 @@ export default async function OperatorCompliancePage() {
       <div>
         <h1 className="font-display text-3xl">Insurance &amp; compliance</h1>
         <p className="mt-2 text-sm text-ink-400">
-          Upload your current certificate of insurance (COI). Your policy must carry active general
-          liability insurance — additional insured wording must name partnered buildings.
+          Upload your current certificate of insurance (COI). You&rsquo;re required to carry general
+          liability insurance appropriate to your work. Lavo stores your certificate and shares it with
+          properties on request — we don&rsquo;t review the policy behind it, so check any requirements a
+          property gives you directly with your insurer. Most general liability policies exclude damage
+          to a vehicle in your care; garagekeepers cover is the one that pays for that, and it&rsquo;s
+          usually a cheap add-on. Not required by Lavo, but worth asking your agent about.
         </p>
       </div>
       <div className="card p-6">

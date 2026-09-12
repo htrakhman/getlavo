@@ -53,7 +53,7 @@ export default async function OperatorDetail({ params }: { params: { id: string 
 
       {setup.requestable && !setup.insured && (
         <div className="mb-6 rounded-xl border border-amber-500/30 bg-amber-500/5 px-5 py-3 text-xs text-amber-600">
-          This crew&rsquo;s certificate of insurance isn&rsquo;t verified yet. You can still request a
+          This crew&rsquo;s certificate of insurance isn&rsquo;t on file yet. You can still request a
           partnership — the agreement requires proof of insurance before the first service date.
         </div>
       )}

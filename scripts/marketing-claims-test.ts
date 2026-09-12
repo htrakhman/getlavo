@@ -36,6 +36,11 @@ const ROOTS = ['app', 'components'];
 // implementation, not claims. (The Checkr webhook there is still only a stub —
 // which is exactly why the copy may not promise a background check.)
 const SKIP_DIRS = new Set(['node_modules', '.next', 'api']);
+// Internal admin tooling describes the mechanism to the operator of the
+// platform, not a claim to a customer — app/(admin)/admin/insurance states
+// plainly that certificates auto-verify on a timer, which is the truth these
+// patterns exist to protect. Customer-facing copy has no such exemption.
+const SKIP_PATH = /^app\/\(admin\)\//;
 /** These render a specific operator's own stored status, not a platform claim. */
 const ALLOWED_FILES = new Set<string>([]);
 
@@ -59,6 +64,21 @@ const BANNED: [RegExp, string][] = [
   ],
   [/\bguaranteed\b/i, 'promises a guarantee; the service agreement expressly disclaims guarantees of volume and quality'],
   [/\bfully insured\b/i, 'states operators are "fully insured" rather than that insurance is on file'],
+  // Certificates are promoted by a timer (lib/insurance-auto-verify.ts) — the
+  // admin queue is a rejection window, not a gate, and nobody opens the file.
+  // The service agreement now says Lavo "does not verify, endorse or warrant"
+  // any coverage, so a Verified badge contradicts the contract in the same
+  // product. Say "on file", which is exactly what is true.
+  // Scoped to insurance: "verified reviews" elsewhere is accurate — wash_reviews
+  // carries a booking_id, so a review really does come from a completed wash.
+  [
+    /(?:insurance|certificate|policy|coverage|COI)[^.]{0,60}\bverif(?:y|ied|ication)\b|\bverif(?:y|ied|ication)\b[^.]{0,60}(?:insurance|certificate|policy|coverage|COI)/i,
+    'claims insurance is "verified" — certificates auto-approve on a timer (lib/insurance-auto-verify.ts) and nobody reads the policy',
+  ],
+  [
+    /additional insured wording must/i,
+    'requires additional-insured wording, which the agreement no longer requires and the platform never checks',
+  ],
 ];
 
 /** Identifiers and DB columns legitimately contain these words. */
@@ -69,10 +89,14 @@ const CODE_CONTEXT = /\bbackground_check\w*|\bbackgroundCheck\w*|\bcheckr_\w+|\b
 const offenders: string[] = [];
 for (const root of ROOTS) {
   for (const file of walk(root)) {
-    if (ALLOWED_FILES.has(file)) continue;
+    if (ALLOWED_FILES.has(file) || SKIP_PATH.test(file)) continue;
     const lines = fs.readFileSync(file, 'utf8').split('\n');
     lines.forEach((line, i) => {
       if (CODE_CONTEXT.test(line)) return;
+      // Comments and imports are implementation, not claims to a user.
+      const t = line.trim();
+      if (t.startsWith('//') || t.startsWith('*') || t.startsWith('/*')) return;
+      if (t.startsWith('import ') || t.startsWith('} from ')) return;
       for (const [pattern, why] of BANNED) {
         if (pattern.test(line)) offenders.push(`${file}:${i + 1} ${why}\n  ${line.trim().slice(0, 140)}`);
       }
