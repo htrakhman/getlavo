@@ -38,7 +38,7 @@ const STEPS = [
 
 const TRUST = [
   'Approved by your building’s management',
-  'Insured, vetted professionals',
+  'Independent operators with insurance on file',
   'Interior, exterior & full-detail options',
   'Secure online payment',
 ];

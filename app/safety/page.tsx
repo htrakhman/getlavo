@@ -10,9 +10,9 @@ import { createPageMetadata } from '@/lib/seo/site';
 
 export const metadata = createPageMetadata({
   path: '/safety',
-  title: 'Safety, Vetting, and Building Readiness | Lavo',
+  title: 'Safety, Operator Review, and Building Readiness | Lavo',
   description:
-    'Learn how Lavo approaches operator vetting, building access, insurance documentation, resident communication, and issue handling.',
+    'Learn how Lavo approaches operator review, building access, insurance documentation, resident communication, and issue handling.',
 });
 
 const RELATED = [
@@ -33,11 +33,11 @@ export default function SafetyPage() {
         ])}
       />
       <SeoPageHeader
-        h1="Safety, Vetting, and Building Readiness"
-        opening="Lavo is designed to help apartment buildings offer mobile car wash service with a clear process for operator vetting, building access, resident communication, and issue handling."
+        h1="Safety, Operator Review, and Building Readiness"
+        opening="Lavo is designed to help apartment buildings offer mobile car wash service with a clear process for operator review, building access, resident communication, and issue handling."
       />
       <SeoSection
-        title="Vetted operators"
+        title="Operator review"
         paragraphs={[
           'Lavo works with mobile car wash operators who are reviewed before being added to the platform.',
           'Onboarding includes service profile review and compliance steps before a building partnership goes live.',

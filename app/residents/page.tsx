@@ -32,7 +32,7 @@ export default function ResidentsPage() {
             name: 'Mobile car wash for apartment residents',
             serviceType: 'In-building mobile car wash booking for residents',
             description:
-              'Residents book vetted operators at their building, pay online, and get a photo when the wash is complete.',
+              'Residents book independent operators at their building, pay online, and get a photo when the wash is complete.',
             audience: 'Apartment and condo residents',
           }),
           breadcrumbSchema([
@@ -69,7 +69,7 @@ export default function ResidentsPage() {
           {[
             {
               title: 'Operators at your building',
-              body: 'Only see operators within your building\'s radius — no browsing random listings. Your property partners with vetted local pros.',
+              body: 'Only see operators within your building\'s radius — no browsing random listings. Your property approves the local operators it works with.',
             },
             {
               title: 'Wash day or on-demand',

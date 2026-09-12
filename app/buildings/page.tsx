@@ -152,7 +152,7 @@ export default function BuildingsPage() {
             ['Enter your building address', 'Takes 60 seconds. We auto-generate a branded landing page and QR code for your building.'],
             [
               'Browse nearby car washes or get matched by the Lavo team',
-              'See local operators within your building\'s radius, or let us pair you with a vetted crew.',
+              'See local operators within your building\'s radius, or let us pair you with a local operator.',
             ],
             ['Request a partnership', 'Pick an operator and send a request. They accept, and the partnership goes live instantly.'],
             ['Share the QR code', 'Post it in your lobby, elevator, or parking area. Include the link in your resident newsletter.'],

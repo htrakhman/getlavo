@@ -42,7 +42,7 @@ export default function NeighborhoodSeoPage({ params }: { params: { city: string
       />
       <h1 className="font-display text-4xl">Apartment car wash in {title}</h1>
       <p className="mt-4 text-lg leading-relaxed text-ink-300">
-        Lavo helps apartment residents in {title} book mobile car washes from their building garage or parking area. Buildings offer the program at no cost while vetted operators serve approved wash days.
+        Lavo helps apartment residents in {title} book mobile car washes from their building garage or parking area. Buildings offer the program at no cost while independent operators serve approved wash days.
       </p>
       <Link href="/" className="btn-primary mt-8 inline-block">
         See if your building is on Lavo

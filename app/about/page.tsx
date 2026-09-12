@@ -34,7 +34,7 @@ export default function AboutPage() {
       />
       <SeoPageHeader
         h1="About Lavo"
-        opening="Lavo is building a better way for apartment residents to take care of their cars without leaving home. The platform connects residents, apartment buildings, and vetted mobile car wash operators so buildings can offer a convenient resident amenity without managing the service themselves."
+        opening="Lavo is building a better way for apartment residents to take care of their cars without leaving home. The platform connects residents, apartment buildings, and independent mobile car wash operators so buildings can offer a convenient resident amenity without managing the service themselves."
       />
       <SeoSection
         title="What Lavo does"
@@ -51,7 +51,7 @@ export default function AboutPage() {
       <SeoSection
         title="Why we are building it"
         paragraphs={[
-          'Car ownership in apartment buildings is inconvenient. Residents often need to leave their building, wait at a car wash, or coordinate with a random provider. Lavo makes the process easier by bringing vetted operators directly to apartment garages and parking areas.',
+          'Car ownership in apartment buildings is inconvenient. Residents often need to leave their building, wait at a car wash, or coordinate with a random provider. Lavo makes the process easier by bringing independent operators directly to apartment garages and parking areas.',
         ]}
       />
       <div className="mb-10">

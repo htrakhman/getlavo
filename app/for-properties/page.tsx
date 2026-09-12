@@ -31,7 +31,7 @@ const WHY_LAVO = [
   },
   {
     title: 'Zero management overhead',
-    body: 'We handle operator vetting, scheduling, payments, and service coordination.',
+    body: 'We handle operator onboarding, scheduling, payments, and service coordination.',
   },
   {
     title: 'Launch materials included',
@@ -45,8 +45,8 @@ const HOW_IT_WORKS = [
     'Takes 5 minutes. Tell us your building name, address, and parking setup.',
   ],
   [
-    'We match you with a vetted operator',
-    'A background-checked mobile wash crew is approved for your property.',
+    'We match you with an operator',
+    'An independent mobile wash operator, with insurance on file, is approved for your property.',
   ],
   [
     'You share the booking link',
@@ -69,7 +69,7 @@ const WHAT_YOU_GET = [
   },
   {
     title: 'Operator coordination',
-    body: "Lavo manages vetting, scheduling, insurance, and service flow. You're not in the loop until you want to be.",
+    body: "Lavo manages onboarding, scheduling, insurance documentation, and service flow. You're not in the loop until you want to be.",
   },
   {
     title: 'Monthly amenity recap',

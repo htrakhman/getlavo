@@ -99,7 +99,7 @@ function BuildingSetupMockup() {
             <span className="font-mono text-[10px] text-ink-400">QR for residents</span>
           </div>
           <div className="min-w-0 flex-1 space-y-2">
-            <CheckRow label="Vetted operator assigned" />
+            <CheckRow label="Approved operator assigned" />
             <div className="flex items-center gap-2 rounded-lg border border-white/[0.06] bg-white/[0.02] px-2 py-1.5">
               <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0 text-ink-400" fill="none" aria-hidden>
                 <rect x="5" y="3" width="14" height="18" rx="1" stroke="currentColor" strokeWidth="1.25" />
@@ -156,7 +156,7 @@ function WashDayMockup() {
         <div className="flex items-center justify-between gap-2 rounded-lg border border-white/10 bg-white/[0.02] px-2.5 py-2">
           <div>
             <p className="text-xs font-medium text-ink-200">Bay City Mobile Wash</p>
-            <p className="text-[11px] text-ink-400">Vetted local operator</p>
+            <p className="text-[11px] text-ink-400">Independent local operator</p>
           </div>
           <span className="shrink-0 rounded-full border border-gleam/30 bg-gleam/10 px-2 py-0.5 text-[10px] font-medium text-gleam">
             On site
@@ -307,7 +307,7 @@ const WORKFLOW_STEPS = [
     n: '03',
     role: 'Local operator',
     title: 'Wash day',
-    body: 'A vetted local operator arrives on site, washes the car in your garage, and uploads photos.',
+    body: 'An independent local operator arrives on site, washes the car in your garage, and uploads photos.',
     mockup: <WashDayMockup />,
     featured: true,
   },
@@ -337,7 +337,7 @@ const AUDIENCE_CARDS = [
   {
     label: 'For operators',
     headline: 'Operators get paid after the job',
-    body: 'Vetted local operators complete the wash, upload photos, and receive payout.',
+    body: 'Independent local operators complete the wash, upload photos, and receive payout.',
     mockup: <CompactOperatorMockup />,
   },
 ] as const;
@@ -585,7 +585,7 @@ function ActorSummaryBar() {
         ))}
       </div>
       <p className="mt-4 text-center text-xs leading-relaxed text-ink-400 sm:text-sm">
-        Lavo is the platform — not the wash crew. Vetted local operators do the wash.
+        Lavo is the platform — not the wash crew. Independent local operators do the wash.
       </p>
     </div>
   );
@@ -742,7 +742,7 @@ export function HowLavoWorksPreview({ className = '' }: { className?: string }) 
     <FourStepGrid
       className={className}
       title="How it works"
-      subtitle="Book from your phone. A vetted crew washes your car at your building. You get notified when it's done."
+      subtitle="Book from your phone. An independent operator washes your car at your building. You get notified when it's done."
       footerHref="/how-it-works"
       footerLabel="Full guide for buildings and operators"
     />
