@@ -4,6 +4,7 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
 import { redirect } from 'next/navigation';
 import { money } from '@/lib/format';
 import { OperatorContractSigner } from './OperatorContractSigner';
+import { StickySignBar } from '@/components/StickySignBar';
 import { hasApprovedInsurance } from '@/lib/insurance';
 import { resolveGoverningLaw } from '@/lib/governing-law';
 import { normalizeBillingMode } from '@/lib/billing-arrangement';
@@ -102,9 +103,13 @@ export default async function OperatorContractPage({ params }: { params: { id: s
       )}
 
       {managerSigned && !operatorSigned && !isFullyExecuted && (
-        <div className="mb-6 rounded-xl border border-gleam/30 bg-gleam/10 px-5 py-3 text-sm text-gleam">
-          The building manager has signed. Your signature is next.
-        </div>
+        <a
+          href="#sign"
+          className="mb-6 flex items-center justify-between gap-4 rounded-xl border border-gleam/30 bg-gleam/10 px-5 py-3 text-sm text-gleam transition hover:border-gleam/50 hover:bg-gleam/15"
+        >
+          <span>The building manager has signed. Your signature is next.</span>
+          <span className="shrink-0 font-medium">Jump to signature ↓</span>
+        </a>
       )}
 
       <div className="mx-auto max-w-3xl">
@@ -314,7 +319,7 @@ export default async function OperatorContractPage({ params }: { params: { id: s
             </section>
 
             {/* Signatures */}
-            <section className="border-t border-white/10 pt-6">
+            <section id="sign" className="scroll-mt-6 border-t border-white/10 pt-6">
               <h3 className="mb-4 font-display text-lg text-white">Signatures</h3>
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div>
@@ -358,6 +363,16 @@ export default async function OperatorContractPage({ params }: { params: { id: s
           </div>
         </div>
       </div>
+
+      {/* The signature box is several screens down; this keeps it one tap away
+          from anywhere in the document. */}
+      {!isFullyExecuted && !operatorSigned && (
+        <StickySignBar
+          href="#sign"
+          label="Sign this agreement ↓"
+          detail={managerSigned ? 'The property has signed. Yours is the last step.' : 'Awaiting your signature'}
+        />
+      )}
     </>
   );
 }

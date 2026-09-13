@@ -74,4 +74,37 @@ assert.ok(
   `${HELPER} does not restrict to open agreements`,
 );
 
+// --- The signature box must be reachable without hunting for it ---------
+// The agreement runs several screens; the place you sign is at the bottom of
+// it. Both signing surfaces need an in-page anchor and a bar that jumps to it,
+// or the one action the page exists for is the one thing never on screen.
+{
+  const SIGNING_PAGES: [string, string][] = [
+    ['app/(operator)/operator/contracts/[id]/page.tsx', "the operator's copy"],
+    ['app/(building)/building/contract/page.tsx', "the manager's copy"],
+  ];
+  for (const [file, who] of SIGNING_PAGES) {
+    const body = fs.readFileSync(file, 'utf8');
+    assert.ok(
+      /id="sign"/.test(body),
+      `${file} (${who}) has no id="sign" anchor, so nothing can link to the signature box`,
+    );
+    assert.ok(
+      /<StickySignBar\b|<NextAgreementBar\b/.test(body),
+      `${file} (${who}) renders no jump-to-signature bar — the signature box sits several screens ` +
+        'down and the reader has to find it',
+    );
+  }
+
+  // Both bars must render the SAME component, or the two portals drift into
+  // looking like different products mid-signature.
+  const shared = fs.readFileSync('components/StickySignBar.tsx', 'utf8');
+  assert.ok(/export function StickySignBar/.test(shared), 'components/StickySignBar.tsx lost its export');
+  const buildingBar = fs.readFileSync('app/(building)/building/contract/NextAgreementBar.tsx', 'utf8');
+  assert.ok(
+    /<StickySignBar\b/.test(buildingBar),
+    'NextAgreementBar no longer renders the shared StickySignBar — the two portals can now diverge',
+  );
+}
+
 console.log('operator signature visibility: all assertions passed');

@@ -1,4 +1,5 @@
 import type { PendingAgreement } from '@/lib/pending-agreements';
+import { StickySignBar } from '@/components/StickySignBar';
 
 /**
  * A persistent bar pinned to the bottom of the viewport while this manager
@@ -47,24 +48,14 @@ export function NextAgreementBar({
   const label = needsSignatureHere ? 'Sign this agreement ↓' : `Next: ${next!.buildingName} →`;
 
   return (
-    <div className="pointer-events-none sticky bottom-0 z-30 mt-8 pb-4">
-      <div className="pointer-events-auto mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3 rounded-xl border border-gleam/40 bg-ink-900/95 px-4 py-3 shadow-lg backdrop-blur">
-        <div className="min-w-0">
-          <div className="text-sm font-medium text-ink-100">
-            {remaining === 1
-              ? '1 agreement still needs your signature'
-              : `${remaining} agreements still need your signature`}
-          </div>
-          {!needsSignatureHere && next?.operatorName && (
-            <div className="truncate text-xs text-ink-400">from {next.operatorName}</div>
-          )}
-        </div>
-        {/* Plain <a>: /api/building/select answers with an HTTP redirect and
-            next/link's soft navigation does not follow one. */}
-        <a href={href} className="btn-primary shrink-0 whitespace-nowrap">
-          {label}
-        </a>
-      </div>
-    </div>
+    <StickySignBar
+      href={href}
+      label={label}
+      detail={
+        remaining === 1
+          ? '1 agreement still needs your signature'
+          : `${remaining} agreements still need your signature`
+      }
+    />
   );
 }
