@@ -1,4 +1,5 @@
 import { PortalShell } from '@/components/PortalShell';
+import { getContractsAwaitingOperator } from '@/lib/operator-signatures';
 import { getSessionUser, supabaseServer } from '@/lib/supabase/server';
 import { withAutoVerifiedInsurance } from '@/lib/insurance-auto-verify';
 import { redirect } from 'next/navigation';
@@ -76,7 +77,14 @@ async function operatorSetupAlerts(ownerId: string): Promise<string[]> {
   const complianceIncomplete =
     !op.insurance_doc_url || ['rejected', 'expired'].includes(op.insurance_review_status ?? '');
 
+  // An agreement the property has already signed is blocking a live deal, so
+  // it earns a dot in the nav the same way an incomplete profile does. Without
+  // this the operator's only cue was a row buried under the whole agreement
+  // preview on /operator/contracts.
+  const awaitingSignature = await getContractsAwaitingOperator(op.id);
+
   const alerts: string[] = [];
+  if (awaitingSignature.length) alerts.push('/operator/contracts');
   if (profileIncomplete) alerts.push('/operator/profile');
   if (complianceIncomplete) alerts.push('/operator/compliance');
   return alerts;
