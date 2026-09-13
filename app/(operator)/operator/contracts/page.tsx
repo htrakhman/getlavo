@@ -5,6 +5,8 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { SendContractPanel } from './SendContractPanel';
 import { AgreementBuilder } from './AgreementBuilder';
+import { AwaitingSignatureBanner } from './AwaitingSignatureBanner';
+import { getContractsAwaitingOperator } from '@/lib/operator-signatures';
 import { hasApprovedInsurance } from '@/lib/insurance';
 import { openWashDays, operatorRequirements } from '@/lib/operator-readiness';
 
@@ -75,6 +77,9 @@ export default async function OperatorContractsPage() {
   const executed = (contracts ?? []).find((c: any) => c.status === 'executed');
   const pending = (contracts ?? []).find((c: any) => c.status === 'pending_signatures');
 
+  // Same query the sidebar dot reads, so the dot and the page agree.
+  const awaitingSignature = await getContractsAwaitingOperator(op.id);
+
   // Don't offer buildings the operator already has a live agreement with.
   const contractedBuildingIds = new Set(
     (contracts ?? [])
@@ -87,6 +92,10 @@ export default async function OperatorContractsPage() {
   return (
     <>
       <PageHeader eyebrow={op.name} title="Service agreements" />
+
+      {/* Above AgreementBuilder deliberately: the builder renders a full copy of
+          the agreement, and anything after it is past a wall of legal text. */}
+      <AwaitingSignatureBanner awaiting={awaitingSignature} />
 
       <AgreementBuilder initial={initial} pdfHref="/api/operator/agreement-preview" />
 
@@ -108,7 +117,9 @@ export default async function OperatorContractsPage() {
         </div>
       ) : pending ? (
         <div className="mb-8 rounded-xl border border-yellow-500/30 bg-yellow-500/10 px-5 py-3 text-sm text-amber-600">
-          No executed agreement yet — one with {(pending as any).building?.name} is awaiting signatures.
+          {awaitingSignature.length
+            ? 'No executed agreement yet. The signatures above are the last step.'
+            : `No executed agreement yet — one with ${(pending as any).building?.name} is sent and waiting on the property manager.`}
         </div>
       ) : (
         <div className="mb-8 rounded-xl border border-white/10 bg-white/5 px-5 py-3 text-sm text-ink-300">
